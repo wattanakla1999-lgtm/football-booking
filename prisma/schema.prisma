@@ -1,0 +1,271 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Enums
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum BookingStatus {
+  pending
+  paid
+  confirmed
+  cancelled
+  completed
+}
+
+enum PaymentStatus {
+  unpaid
+  pending_verify
+  verified
+  rejected
+}
+
+enum AdminRole {
+  SUPER_ADMIN
+  ORG_ADMIN
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Organization (SaaS multi-tenant root)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  logoUrl   String?
+  timezone  String   @default("Asia/Bangkok")
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  users          User[]
+  admins         Admin[]
+  courts         Court[]
+  bookings       Booking[]
+  operatingHours OperatingHour[]
+  holidays       Holiday[]
+
+  @@map("organizations")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// User (LINE-authenticated customer)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model User {
+  id           String   @id @default(cuid())
+  lineUserId   String   @unique
+  displayName  String
+  pictureUrl   String?
+  email        String?
+  phone        String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Multi-tenant
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  // Relations
+  bookings Booking[]
+
+  @@index([organizationId])
+  @@map("users")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Admin (backoffice staff)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Admin {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  displayName  String
+  role         AdminRole @default(ORG_ADMIN)
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  // Multi-tenant
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  // Relations
+  verifiedPayments Payment[] @relation("VerifiedBy")
+
+  @@index([organizationId])
+  @@map("admins")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Court (football field / mini-pitch)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Court {
+  id           String   @id @default(cuid())
+  name         String
+  description  String?
+  surface      String?  // e.g. "artificial grass", "futsal"
+  maxPlayers   Int?
+  pricePerHour Decimal  @db.Decimal(10, 2)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Multi-tenant
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  // Relations
+  bookings BookingItem[]
+  images   CourtImage[]
+
+  @@index([organizationId])
+  @@map("courts")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Court Image
+// ─────────────────────────────────────────────────────────────────────────────
+
+model CourtImage {
+  id        String   @id @default(cuid())
+  url       String
+  isPrimary Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  courtId String
+  court   Court  @relation(fields: [courtId], references: [id], onDelete: Cascade)
+
+  @@index([courtId])
+  @@map("court_images")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Operating Hour
+// ─────────────────────────────────────────────────────────────────────────────
+
+model OperatingHour {
+  id             String       @id @default(cuid())
+  dayOfWeek      Int          // 0 = Sunday, 1 = Monday, etc.
+  openTime       String       // "HH:mm"
+  closeTime      String       // "HH:mm"
+  isClosed       Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  // Composite unique to prevent overlapping rules for same day in an org
+  @@unique([organizationId, dayOfWeek])
+  @@map("operating_hours")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Holiday
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Holiday {
+  id             String       @id @default(cuid())
+  date           DateTime     @db.Date
+  description    String?
+  isClosed       Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, date])
+  @@map("holidays")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Booking
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Booking {
+  id         String        @id @default(cuid())
+  totalPrice Decimal       @db.Decimal(10, 2)
+  status     BookingStatus @default(pending)
+  notes      String?
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  // Multi-tenant
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  // Relations
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+  
+  items   BookingItem[]
+  payment Payment?
+
+  @@index([organizationId])
+  @@index([userId])
+  @@map("bookings")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Booking Item
+// ─────────────────────────────────────────────────────────────────────────────
+
+model BookingItem {
+  id        String   @id @default(cuid())
+  date      DateTime @db.Date
+  startTime String   // "HH:mm"
+  endTime   String   // "HH:mm"
+  price     Decimal  @db.Decimal(10, 2)
+
+  bookingId String
+  booking   Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  courtId   String
+  court     Court    @relation(fields: [courtId], references: [id])
+
+  @@index([bookingId])
+  @@index([courtId])
+  @@index([date])
+  @@map("booking_items")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Payment
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Payment {
+  id          String        @id @default(cuid())
+  amount      Decimal       @db.Decimal(10, 2)
+  slipUrl     String?       // uploaded payment slip image
+  status      PaymentStatus @default(unpaid)
+  verifiedAt  DateTime?
+  rejectedAt  DateTime?
+  rejectNote  String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  // Relations
+  bookingId String  @unique
+  booking   Booking @relation(fields: [bookingId], references: [id])
+
+  verifiedById String?
+  verifiedBy   Admin?  @relation("VerifiedBy", fields: [verifiedById], references: [id])
+
+  @@map("payments")
+}

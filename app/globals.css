@@ -1,26 +1,834 @@
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* Dynamic CSS Variable Registrations for Custom Theme Colors */
+  --color-primary: var(--color-primary);
+  --color-background: var(--color-background);
+  --color-surface-tint: var(--color-surface-tint);
+  --color-on-primary-fixed-variant: var(--color-on-primary-fixed-variant);
+  --color-on-secondary-fixed-variant: var(--color-on-secondary-fixed-variant);
+  --color-on-secondary-fixed: var(--color-on-secondary-fixed);
+  --color-primary-fixed: var(--color-primary-fixed);
+  --color-surface-dim: var(--color-surface-dim);
+  --color-inverse-primary: var(--color-inverse-primary);
+  --color-surface-variant: var(--color-surface-variant);
+  --color-tertiary-fixed: var(--color-tertiary-fixed);
+  --color-inverse-on-surface: var(--color-inverse-on-surface);
+  --color-error-container: var(--color-error-container);
+  --color-on-background: var(--color-on-background);
+  --color-on-primary: var(--color-on-primary);
+  --color-on-error-container: var(--color-on-error-container);
+  --color-secondary: var(--color-secondary);
+  --color-tertiary-fixed-dim: var(--color-tertiary-fixed-dim);
+  --color-on-error: var(--color-on-error);
+  --color-surface-container-highest: var(--color-surface-container-highest);
+  --color-surface-container-lowest: var(--color-surface-container-lowest);
+  --color-on-tertiary-fixed-variant: var(--color-on-tertiary-fixed-variant);
+  --color-on-primary-container: var(--color-on-primary-container);
+  --color-on-tertiary: var(--color-on-tertiary);
+  --color-outline-variant: var(--color-outline-variant);
+  --color-outline: var(--color-outline);
+  --color-surface-bright: var(--color-surface-bright);
+  --color-tertiary-container: var(--color-tertiary-container);
+  --color-error: var(--color-error);
+  --color-surface-container-high: var(--color-surface-container-high);
+  --color-surface: var(--color-surface);
+  --color-on-primary-fixed: var(--color-on-primary-fixed);
+  --color-on-secondary-container: var(--color-on-secondary-container);
+  --color-primary-container: var(--color-primary-container);
+  --color-surface-container-low: var(--color-surface-container-low);
+  --color-on-surface-variant: var(--color-on-surface-variant);
+  --color-secondary-fixed-dim: var(--color-secondary-fixed-dim);
+  --color-on-surface: var(--color-on-surface);
+  --color-inverse-surface: var(--color-inverse-surface);
+  --color-primary-fixed-dim: var(--color-primary-fixed-dim);
+  --color-surface-container: var(--color-surface-container);
+  --color-on-tertiary-container: var(--color-on-tertiary-container);
+  --color-tertiary: var(--color-tertiary);
+  --color-on-secondary: var(--color-on-secondary);
+  --color-secondary-fixed: var(--color-secondary-fixed);
+  --color-on-tertiary-fixed: var(--color-on-tertiary-fixed);
+  --color-secondary-container: var(--color-secondary-container);
+
+  /* Spacing */
+  --spacing-sm: 12px;
+  --spacing-xs: 8px;
+  --spacing-gutter: 20px;
+  --spacing-md: 16px;
+  --spacing-base: 4px;
+  --spacing-lg: 24px;
+  --spacing-margin-mobile: 16px;
+  --spacing-margin-desktop: 40px;
+  --spacing-xl: 32px;
+
+  --font-headline-lg: "Plus Jakarta Sans", sans-serif;
+  --font-headline-xl: "Plus Jakarta Sans", sans-serif;
+  --font-label-md: "Plus Jakarta Sans", sans-serif;
+  --font-body-md: "Plus Jakarta Sans", sans-serif;
+  --font-body-lg: "Plus Jakarta Sans", sans-serif;
+  --font-label-sm: "Plus Jakarta Sans", sans-serif;
+  --font-headline-md: "Plus Jakarta Sans", sans-serif;
+  --font-headline-lg-mobile: "Plus Jakarta Sans", sans-serif;
+
+  --text-headline-lg: 28px;
+  --text-headline-lg--line-height: 36px;
+  --text-headline-lg--font-weight: 700;
+  --text-headline-lg--letter-spacing: -0.01em;
+
+  --text-headline-xl: 36px;
+  --text-headline-xl--line-height: 44px;
+  --text-headline-xl--font-weight: 700;
+  --text-headline-xl--letter-spacing: -0.02em;
+
+  --text-label-md: 12px;
+  --text-label-md--line-height: 16px;
+  --text-label-md--font-weight: 600;
+  --text-label-md--letter-spacing: 0.05em;
+
+  --text-body-md: 14px;
+  --text-body-md--line-height: 20px;
+  --text-body-md--font-weight: 400;
+
+  --text-body-lg: 16px;
+  --text-body-lg--line-height: 24px;
+  --text-body-lg--font-weight: 400;
+
+  --text-label-sm: 11px;
+  --text-label-sm--line-height: 14px;
+  --text-label-sm--font-weight: 500;
+
+  --text-headline-md: 20px;
+  --text-headline-md--line-height: 28px;
+  --text-headline-md--font-weight: 600;
+
+  --text-headline-lg-mobile: 24px;
+  --text-headline-lg-mobile--line-height: 32px;
+  --text-headline-lg-mobile--font-weight: 700;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ─────────────────────────────────────────────────────────────────────────────
+   CSS Custom Properties
+───────────────────────────────────────────────────────────────────────────── */
+:root {
+  --color-primary: #06c755;
+  /* LINE green */
+  --color-primary-dark: #05a648;
+  --color-bg-from: #0a1628;
+  --color-bg-mid: #0d2137;
+  --color-bg-to: #082210;
+  --color-card-bg: rgba(255, 255, 255, 0.04);
+  --color-card-border: rgba(255, 255, 255, 0.1);
+  --color-text: #f0fdf4;
+  --color-text-muted: rgba(255, 255, 255, 0.55);
+  --radius-card: 24px;
+  --shadow-card: 0 32px 80px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.07);
+  --font-sans: "Inter", "Noto Sans Thai", system-ui, sans-serif;
+
+  /* Theme variables default fallbacks */
+  --color-background: #0a1628;
+  --color-surface-tint: #06c755;
+  --color-on-primary-fixed-variant: #05a648;
+  --color-on-secondary-fixed-variant: rgba(255, 255, 255, 0.55);
+  --color-on-secondary-fixed: #ffffff;
+  --color-primary-fixed: #06c755;
+  --color-surface-dim: #0a1628;
+  --color-inverse-primary: #06c755;
+  --color-surface-variant: rgba(255, 255, 255, 0.04);
+  --color-tertiary-fixed: #ffffff;
+  --color-inverse-on-surface: #ffffff;
+  --color-error-container: #93000a;
+  --color-on-background: #f0fdf4;
+  --color-on-primary: #ffffff;
+  --color-on-error-container: #ffdad6;
+  --color-secondary: rgba(255, 255, 255, 0.7);
+  --color-tertiary-fixed-dim: rgba(255, 255, 255, 0.7);
+  --color-on-error: #ffffff;
+  --color-surface-container-highest: rgba(255, 255, 255, 0.1);
+  --color-surface-container-lowest: #020e22;
+  --color-on-tertiary-fixed-variant: rgba(255, 255, 255, 0.7);
+  --color-on-primary-container: #ffffff;
+  --color-on-tertiary: #ffffff;
+  --color-outline-variant: rgba(255, 255, 255, 0.1);
+  --color-outline: rgba(255, 255, 255, 0.2);
+  --color-surface-bright: rgba(255, 255, 255, 0.15);
+  --color-tertiary-container: rgba(255, 255, 255, 0.08);
+  --color-error: #ffb4ab;
+  --color-surface-container-high: rgba(255, 255, 255, 0.08);
+  --color-surface: #0a1628;
+  --color-on-primary-fixed: #ffffff;
+  --color-on-secondary-container: rgba(255, 255, 255, 0.55);
+  --color-primary-container: #06c755;
+  --color-surface-container-low: rgba(255, 255, 255, 0.02);
+  --color-on-surface-variant: rgba(255, 255, 255, 0.55);
+  --color-secondary-fixed-dim: rgba(255, 255, 255, 0.7);
+  --color-on-surface: #f0fdf4;
+  --color-inverse-surface: #f0fdf4;
+  --color-primary-fixed-dim: #06c755;
+  --color-surface-container: rgba(255, 255, 255, 0.04);
+  --color-on-tertiary-container: #ffffff;
+  --color-tertiary: rgba(255, 255, 255, 0.7);
+  --color-on-secondary: #ffffff;
+  --color-secondary-fixed: #ffffff;
+  --color-on-tertiary-fixed: #ffffff;
+  --color-secondary-container: rgba(255, 255, 255, 0.08);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Reset / Base
+   NOTE: ไม่ต้อง reset margin/padding/box-sizing เองที่นี่ —
+   Tailwind v4 Preflight (@layer base) ทำให้แล้ว. การเขียน `* { margin:0 }`
+   นอก @layer จะ override ทุก utility ของ Tailwind (px-*, py-*, mx-auto ฯลฯ)
+   เพราะ unlayered ชนะ layered เสมอตามสเปก CSS Cascade Layers.
+───────────────────────────────────────────────────────────────────────────── */
+html {
+  scroll-behavior: smooth;
+  width: 100%;
+  max-width: 100%;
+  min-height: 100%;
+  overflow-x: clip;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  width: 100%;
+  max-width: 100%;
+  min-height: 100dvh;
+
+  font-family: var(--font-sans);
+  background: var(--color-bg-from);
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+
+  overflow-x: clip;
+  overscroll-behavior-x: none;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Login Page Layout
+───────────────────────────────────────────────────────────────────────────── */
+.login-root {
+  position: relative;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  overflow: hidden;
+}
+
+/* ── Gradient background ── */
+.login-root .bg-gradient {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse 120% 80% at 60% 0%,
+      #0d3d1a 0%,
+      #0a1628 45%,
+      #050d18 100%);
+  z-index: 0;
+}
+
+.login-root .bg-pattern {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background-image:
+    linear-gradient(rgba(6, 199, 85, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg,
+      rgba(6, 199, 85, 0.04) 1px,
+      transparent 1px);
+  background-size: 48px 48px;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Football Pitch Decoration
+───────────────────────────────────────────────────────────────────────────── */
+.login-root .pitch-decoration {
+  position: fixed;
+  top: -20%;
+  right: -15%;
+  width: 60vmin;
+  height: 60vmin;
+  z-index: 0;
+  opacity: 0.07;
+  pointer-events: none;
+}
+
+.pitch-circle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 55%;
+  height: 55%;
+  border-radius: 50%;
+  border: 3px solid var(--color-primary);
+}
+
+.pitch-line {
+  position: absolute;
+  background: var(--color-primary);
+  border-radius: 2px;
+}
+
+.pitch-line--center {
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 3px;
+  transform: translateY(-50%);
+}
+
+.pitch-line--left {
+  top: 20%;
+  bottom: 20%;
+  left: 0;
+  width: 3px;
+}
+
+.pitch-line--right {
+  top: 20%;
+  bottom: 20%;
+  right: 0;
+  width: 3px;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Login Card
+───────────────────────────────────────────────────────────────────────────── */
+.login-card {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 420px;
+  background: var(--color-card-bg);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--color-card-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 2.5rem 2rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.75rem;
+  animation: card-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: translateY(28px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ── Brand ── */
+.brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  text-align: center;
+}
+
+.brand-icon {
+  width: 72px;
+  height: 72px;
+  background: linear-gradient(135deg, #0f5132 0%, #06c755 100%);
+  border-radius: 50%;
+  padding: 10px;
+  box-shadow: 0 0 0 6px rgba(6, 199, 85, 0.12), 0 8px 32px rgba(6, 199, 85, 0.25);
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 6px rgba(6, 199, 85, 0.12), 0 8px 32px rgba(6, 199, 85, 0.25);
+  }
+
+  50% {
+    box-shadow: 0 0 0 10px rgba(6, 199, 85, 0.18), 0 8px 40px rgba(6, 199, 85, 0.35);
+  }
+}
+
+.brand-icon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.brand-name {
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: #ffffff;
+  text-shadow: 0 2px 16px rgba(6, 199, 85, 0.3);
+}
+
+.brand-tagline {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+
+/* ── Feature list ── */
+.features {
+  list-style: none;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.88rem;
+  color: rgba(255, 255, 255, 0.75);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
+  padding: 0.6rem 1rem;
+  transition: background 0.2s;
+}
+
+.feature-item:hover {
+  background: rgba(6, 199, 85, 0.07);
+  border-color: rgba(6, 199, 85, 0.2);
+}
+
+.feature-icon {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+/* ── LINE Login Button ── */
+.line-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.875rem 1.5rem;
+  background: #06c755;
+  color: #ffffff;
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  border-radius: 14px;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 24px rgba(6, 199, 85, 0.4);
+  transition: background 0.18s, transform 0.18s, box-shadow 0.18s;
+  position: relative;
+  overflow: hidden;
+}
+
+.line-btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.line-btn:hover {
+  background: var(--color-primary-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(6, 199, 85, 0.5);
+}
+
+.line-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 16px rgba(6, 199, 85, 0.35);
+}
+
+.line-logo {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+}
+
+/* ── Terms text ── */
+.terms {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.terms-link {
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 500;
+  transition: opacity 0.15s;
+}
+
+.terms-link:hover {
+  opacity: 0.8;
+  text-decoration: underline;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Bottom Wave
+───────────────────────────────────────────────────────────────────────────── */
+.wave-wrapper {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 120px;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.wave-wrapper svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Responsive
+───────────────────────────────────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .login-card {
+    padding: 2rem 1.25rem 1.75rem;
+    border-radius: 20px;
+    gap: 1.4rem;
+  }
+
+  .brand-name {
+    font-size: 1.4rem;
+  }
+
+  .brand-icon {
+    width: 60px;
+    height: 60px;
+  }
+}
+
+@media (min-width: 768px) {
+  .login-root {
+    padding: 3rem 2rem;
+  }
+
+  .login-card {
+    max-width: 480px;
+    padding: 3rem 2.5rem 2.5rem;
+    gap: 2rem;
+  }
+
+  .brand-name {
+    font-size: 1.75rem;
+  }
+
+  .brand-icon {
+    width: 80px;
+    height: 80px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .login-card {
+    max-width: 500px;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Admin Theme Overrides
+   This overrides all Tailwind theme colors and styles under .admin-layout-root
+───────────────────────────────────────────────────────────────────────────── */
+.admin-layout-root {
+  --color-surface-tint: #4ae176;
+  --color-on-primary-fixed-variant: #005321;
+  --color-on-secondary-fixed-variant: #39485a;
+  --color-on-secondary-fixed: #0d1c2d;
+  --color-primary-fixed: #6bff8f;
+  --color-surface-dim: #061327;
+  --color-inverse-primary: #006e2f;
+  --color-surface-variant: #29354a;
+  --color-tertiary-fixed: #dae2fd;
+  --color-inverse-on-surface: #253146;
+  --color-error-container: #93000a;
+  --color-on-background: #d6e3ff;
+  --color-on-primary: #003915;
+  --color-on-error-container: #ffdad6;
+  --color-secondary: #b9c8de;
+  --color-tertiary-fixed-dim: #bec6e0;
+  --color-on-error: #690005;
+  --color-surface-container-highest: #29354a;
+  --color-surface-container-lowest: #020e22;
+  --color-on-tertiary-fixed-variant: #3f465c;
+  --color-on-primary-container: #004b1e;
+  --color-on-tertiary: #283044;
+  --color-outline-variant: #3d4a3d;
+  --color-primary: #4be277;
+  --color-outline: #869585;
+  --color-surface-bright: #2d394f;
+  --color-tertiary-container: #a4abc4;
+  --color-error: #ffb4ab;
+  --color-background: #061327;
+  --color-surface-container-high: #1e2a3f;
+  --color-surface: #061327;
+  --color-on-primary-fixed: #002109;
+  --color-on-secondary-container: #a7b6cc;
+  --color-primary-container: #22c55e;
+  --color-surface-container-low: #0f1c30;
+  --color-on-surface-variant: #bccbb9;
+  --color-secondary-fixed-dim: #b9c8de;
+  --color-on-surface: #d6e3ff;
+  --color-inverse-surface: #d6e3ff;
+  --color-primary-fixed-dim: #4ae176;
+  --color-surface-container: #132034;
+  --color-on-tertiary-container: #383f54;
+  --color-tertiary: #bfc6e0;
+  --color-on-secondary: #233143;
+  --color-secondary-fixed: #d4e4fa;
+  --color-on-tertiary-fixed: #131b2e;
+  --color-secondary-container: #39485a;
+
+  --font-sans: 'Plus Jakarta Sans', sans-serif !important;
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  min-height: 100dvh;
+  overflow-x: clip;
+
+  font-family: "Plus Jakarta Sans", sans-serif !important;
+  background-color: #061327 !important;
+  color: #d6e3ff !important;
+}
+
+.admin-layout-root .material-symbols-outlined {
+  font-family: "Material Symbols Outlined" !important;
+  font-weight: normal;
+  font-style: normal;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  font-feature-settings: "liga";
+  -webkit-font-feature-settings: "liga";
+  -webkit-font-smoothing: antialiased;
+
+  font-variation-settings:
+    "FILL" 0,
+    "wght" 400,
+    "GRAD" 0,
+    "opsz" 24;
+}
+
+.material-symbols-outlined {
+  font-family: "Material Symbols Outlined" !important;
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  font-feature-settings: "liga";
+  -webkit-font-feature-settings: "liga";
+  -webkit-font-smoothing: antialiased;
+}
+
+
+
+.admin-layout-root .glass-card {
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.admin-layout-root .pitch-green-glow {
+  box-shadow: 0 0 20px rgba(75, 226, 119, 0.15);
+}
+
+/* Custom Scrollbar for Admin Area */
+.admin-layout-root ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.admin-layout-root ::-webkit-scrollbar-track {
+  background: #061327;
+}
+
+.admin-layout-root ::-webkit-scrollbar-thumb {
+  background: #29354a;
+  border-radius: 10px;
+}
+
+.admin-layout-root ::-webkit-scrollbar-thumb:hover {
+  background: #4be277;
+}
+
+/* --- Form Fields, Buttons & Modals --- */
+.admin-layout-root .admin-modal-backdrop {
+  background: rgba(3, 7, 18, 0.8) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  animation: adminFadeIn 0.25s ease-out both;
+}
+
+.admin-layout-root .admin-modal-content {
+  background: #090d16 !important;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  border-radius: 28px !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+  animation: adminScaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.admin-layout-root .admin-input,
+.admin-layout-root .admin-select,
+.admin-layout-root .admin-textarea {
+  width: 100% !important;
+  padding: 0.8rem 1rem !important;
+  background: rgba(255, 255, 255, 0.02) !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  border-radius: 12px !important;
+  color: #fff !important;
+  font-size: 0.85rem !important;
+  outline: none !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.admin-layout-root .admin-input:focus,
+.admin-layout-root .admin-select:focus,
+.admin-layout-root .admin-textarea:focus {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: #6366f1 !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2) !important;
+}
+
+.admin-layout-root .admin-input::placeholder,
+.admin-layout-root .admin-textarea::placeholder {
+  color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.admin-layout-root .admin-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 0.6rem 1.2rem;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.admin-layout-root .admin-btn-primary {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25) !important;
+}
+
+.admin-layout-root .admin-btn-primary:hover {
+  opacity: 0.9 !important;
+  transform: translateY(-1px) !important;
+}
+
+.admin-layout-root .admin-btn-secondary {
+  background: rgba(255, 255, 255, 0.03) !important;
+  color: rgba(255, 255, 255, 0.75) !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+.admin-layout-root .admin-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.06) !important;
+}
+
+.admin-layout-root .admin-btn-danger {
+  background: rgba(239, 68, 68, 0.1) !important;
+  color: #ef4444 !important;
+  border: 1px solid rgba(239, 68, 68, 0.2) !important;
+}
+
+.admin-layout-root .admin-btn-danger:hover {
+  background: rgba(239, 68, 68, 0.2) !important;
+}
+
+/* --- Floating Action Bar (Mobile & Desktop Offsets) --- */
+.admin-layout-root .admin-floating-bar {
+  position: fixed !important;
+  bottom: 5.5rem !important;
+  /* Above mobile bottom navigation bar (h-16 + spacing) */
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  width: calc(100% - 3rem) !important;
+  max-width: 600px !important;
+  background: rgba(9, 13, 22, 0.95) !important;
+  border: 1px solid rgba(99, 102, 241, 0.25) !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border-radius: 20px !important;
+  padding: 1rem 1.25rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  z-index: 60 !important;
+  /* Above bottom navigation bar (z-50) */
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (min-width: 768px) {
+  .admin-layout-root .admin-floating-bar {
+    bottom: 1.5rem !important;
+    /* Default bottom positioning on desktop */
+  }
+}
+
+/* --- Keyframe Animations --- */
+@keyframes adminFadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes adminFadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes adminScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
