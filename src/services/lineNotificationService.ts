@@ -93,35 +93,6 @@ export function buildAdminBookingDetailUrl(
   return `${appUrl}/admin/bookings/${bookingId}`;
 }
 
-function buildAdminBookingMessage(
-  payload: AdminBookingNotificationPayload
-) {
-  const adminBookingDetailUrl =
-    buildAdminBookingDetailUrl(payload.bookingId);
-
-  const lines = [
-    "มีรายการจองใหม่เข้ามา",
-    "",
-    "ข้อมูลลูกค้า",
-    `ชื่อ: ${payload.customerName}`,
-    `เบอร์โทร: ${payload.customerPhone?.trim() || "-"}`,
-    "",
-    "รายละเอียดการจอง",
-    `สนาม: ${payload.courtName}`,
-    `วันที่: ${payload.bookingDate}`,
-    `เวลา: ${formatTimeSlots(payload.slots)}`,
-    `ยอดชำระ: ${formatPrice(payload.totalPrice)}`,
-    `สถานะการจอง: ${bookingStatusLabels[payload.bookingStatus]}`,
-    `สถานะการชำระเงิน: ${paymentStatusLabels[payload.paymentStatus]}`,
-  ];
-
-  if (adminBookingDetailUrl) {
-    lines.push("", `ดูรายละเอียด: ${adminBookingDetailUrl}`);
-  }
-
-  return lines.join("\n");
-}
-
 function buildInfoRow(label: string, value: string) {
   return {
     type: "box" as const,
@@ -271,10 +242,6 @@ export async function sendAdminBookingNotification(
       to: adminLineUserId,
       messages: [
         buildAdminBookingFlexMessage(payload),
-        {
-          type: "text",
-          text: buildAdminBookingMessage(payload),
-        },
       ],
     }),
     cache: "no-store",
