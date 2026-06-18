@@ -10,8 +10,8 @@ import {
   useTransition,
 } from "react";
 
+import { AdminRouteLoadingOverlay } from "@/src/components/common/AdminRouteLoadingOverlay";
 import { PaginationControls } from "@/src/components/common/PaginationControls";
-import { LoadingSpinner } from "@/src/components/ui";
 import {
   updateAdminBookingStatus,
 } from "@/src/services/adminBookings";
@@ -160,6 +160,10 @@ export default function AdminBookingsTable({
 
   return (
     <div className="space-y-4">
+      <AdminRouteLoadingOverlay
+        open={isPending}
+      />
+
       <div
         style={{
           display: "flex",
@@ -184,60 +188,55 @@ export default function AdminBookingsTable({
         />
       </div>
 
-      {isPending && <LoadingSpinner />}
-
-      {!isPending &&
-        initialBookings.length === 0 && (
-          <AdminBookingsEmptyState
-            hasFilters={hasFilters}
+      {initialBookings.length === 0 ? (
+        <AdminBookingsEmptyState
+          hasFilters={hasFilters}
+        />
+      ) : (
+        <>
+          <AdminBookingsDesktopTable
+            bookings={initialBookings}
+            updating={updating}
+            actionMenuId={actionMenuId}
+            onToggleMenu={(bookingId) =>
+              setActionMenuId(
+                (currentId) =>
+                  currentId === bookingId
+                    ? null
+                    : bookingId,
+              )
+            }
+            onUpdateStatus={updateStatus}
           />
-        )}
+          <AdminBookingsMobileCards
+            bookings={initialBookings}
+            expandedId={expandedId}
+            updating={updating}
+            onToggleExpanded={(bookingId) =>
+              setExpandedId(
+                (currentId) =>
+                  currentId === bookingId
+                    ? null
+                    : bookingId,
+              )
+            }
+            onUpdateStatus={updateStatus}
+          />
 
-      {!isPending &&
-        initialBookings.length > 0 && (
-          <>
-            <AdminBookingsDesktopTable
-              bookings={initialBookings}
-              updating={updating}
-              actionMenuId={actionMenuId}
-              onToggleMenu={(bookingId) =>
-                setActionMenuId(
-                  (currentId) =>
-                    currentId === bookingId
-                      ? null
-                      : bookingId,
-                )
-              }
-              onUpdateStatus={updateStatus}
-            />
-            <AdminBookingsMobileCards
-              bookings={initialBookings}
-              expandedId={expandedId}
-              updating={updating}
-              onToggleExpanded={(bookingId) =>
-                setExpandedId(
-                  (currentId) =>
-                    currentId === bookingId
-                      ? null
-                      : bookingId,
-                )
-              }
-              onUpdateStatus={updateStatus}
-            />
-
-            <PaginationControls
-              page={pagination.page}
-              total={pagination.total}
-              limit={pagination.limit}
-              totalPages={pagination.totalPages}
-              onPageChange={(page) =>
-                pushQuery({
-                  nextPage: page,
-                })
-              }
-            />
-          </>
-        )}
+          <PaginationControls
+            page={pagination.page}
+            total={pagination.total}
+            limit={pagination.limit}
+            totalPages={pagination.totalPages}
+            loading={isPending}
+            onPageChange={(page) =>
+              pushQuery({
+                nextPage: page,
+              })
+            }
+          />
+        </>
+      )}
     </div>
   );
 }
