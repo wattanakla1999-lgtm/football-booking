@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 import type { Metadata } from "next";
 import { prisma } from "@/src/lib/prisma";
 
@@ -98,7 +99,7 @@ export default async function DashboardPage() {
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", width: "100%" }}>
-          <a
+          <Link
             href="/booking"
             style={{
               display: "inline-flex",
@@ -117,9 +118,9 @@ export default async function DashboardPage() {
             }}
           >
             🏟️ จองสนามฟุตบอล
-          </a>
+          </Link>
 
-          <a
+          <Link
             href="/history"
             style={{
               display: "inline-flex",
@@ -138,7 +139,7 @@ export default async function DashboardPage() {
             }}
           >
             📋 ประวัติการจองของฉัน
-          </a>
+          </Link>
 
           <a
             href="/api/auth/logout"
