@@ -9,7 +9,6 @@ import {
   createPaginationMeta,
   parsePageParam,
 } from "@/src/utils/pagination";
-import type { Prisma } from "@prisma/client";
 import CustomersListView from "./CustomersListView";
 import type { CustomerSummary } from "./types/customer";
 
@@ -52,7 +51,7 @@ export default async function AdminCustomersPage({
     redirect("/admin/login");
   }
 
-  const where: Prisma.UserWhereInput = {
+const where: Record<string, any> = {
     organizationId: admin.organizationId,
     ...(searchQuery
       ? {
