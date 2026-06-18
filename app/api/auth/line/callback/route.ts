@@ -5,6 +5,7 @@ import {
   upsertLineUser,
 } from "@/src/lib/lineAuth";
 import { getLineCallbackUrl } from "@/src/lib/lineConfig";
+import { verifyLineState } from "@/src/lib/lineState";
 import type { LineTokenResponse, LineProfile } from "@/src/types/line";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -31,8 +32,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }
 
   // ── 1. Validate CSRF state ───────────────────────────────────────────────────
-  const savedState = request.cookies.get("line_oauth_state")?.value;
-  if (!savedState || savedState !== state) {
+  if (!verifyLineState(state)) {
     return NextResponse.redirect(
       new URL("/?error=state_mismatch", request.url)
     );
@@ -98,9 +98,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   // Simple session: store user id in a signed-like cookie.
   // For production replace with a proper JWT / NextAuth session.
   const response = NextResponse.redirect(new URL("/dashboard", request.url));
-
-  // Clear the CSRF state cookie
-  response.cookies.set("line_oauth_state", "", { maxAge: 0, path: "/" });
 
   // Set user session
   setLineSessionCookie(response, user.id);

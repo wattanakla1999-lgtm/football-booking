@@ -2,8 +2,8 @@ import {
   NextRequest,
   NextResponse,
 } from "next/server";
-import crypto from "crypto";
 import { getLineCallbackUrl } from "@/src/lib/lineConfig";
+import { createLineState } from "@/src/lib/lineState";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // GET /api/auth/line
@@ -24,8 +24,7 @@ export async function GET(
     );
   }
 
-  // Generate a cryptographically random state value to prevent CSRF
-  const state = crypto.randomBytes(16).toString("hex");
+  const state = createLineState();
 
   const params = new URLSearchParams({
     response_type: "code",
@@ -36,16 +35,6 @@ export async function GET(
   });
 
   const lineAuthUrl = `https://access.line.me/oauth2/v2.1/authorize?${params.toString()}`;
-
-  // Persist state in an HttpOnly cookie so the callback can verify it
   const response = NextResponse.redirect(lineAuthUrl);
-  response.cookies.set("line_oauth_state", state, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: 60 * 10, // 10 minutes
-    path: "/",
-  });
-
   return response;
 }
