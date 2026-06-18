@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 import {
   formatBookingPrice,
   formatThaiDate,
@@ -21,6 +19,7 @@ interface AdminBookingsDesktopTableProps {
   updating: boolean;
   actionMenuId: string | null;
   onToggleMenu: (bookingId: string) => void;
+  onViewDetails: (bookingId: string) => void;
   onUpdateStatus: (
     bookingId: string,
     status: BookingStatus
@@ -32,6 +31,7 @@ export default function AdminBookingsDesktopTable({
   updating,
   actionMenuId,
   onToggleMenu,
+  onViewDetails,
   onUpdateStatus,
 }: AdminBookingsDesktopTableProps) {
   return (
@@ -151,8 +151,12 @@ export default function AdminBookingsDesktopTable({
 
                 <td style={{ padding: "0.85rem 1rem", position: "relative" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                    <Link
-                      href={`/admin/bookings/${booking.id}`}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        onViewDetails(booking.id)
+                      }
+                      disabled={updating}
                       style={{
                         display: "inline-flex",
                         alignItems: "center",
@@ -164,18 +168,22 @@ export default function AdminBookingsDesktopTable({
                         color: "#a5b4fc",
                         fontSize: "0.75rem",
                         fontWeight: 700,
-                        textDecoration: "none",
                         whiteSpace: "nowrap",
+                        cursor: updating
+                          ? "wait"
+                          : "pointer",
+                        opacity: updating ? 0.6 : 1,
                       }}
                     >
                       ดูรายละเอียด
-                    </Link>
+                    </button>
 
                     <BookingActionsMenu
                       booking={booking}
                       updating={updating}
                       actionMenuId={actionMenuId}
                       onToggleMenu={onToggleMenu}
+                      onViewDetails={onViewDetails}
                       onUpdateStatus={onUpdateStatus}
                     />
                   </div>

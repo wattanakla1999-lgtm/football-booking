@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 import {
   formatBookingPrice,
   formatThaiDate,
@@ -20,6 +18,7 @@ interface AdminBookingsMobileCardsProps {
   expandedId: string | null;
   updating: boolean;
   onToggleExpanded: (bookingId: string) => void;
+  onViewDetails: (bookingId: string) => void;
   onUpdateStatus: (
     bookingId: string,
     status: BookingStatus
@@ -31,6 +30,7 @@ export default function AdminBookingsMobileCards({
   expandedId,
   updating,
   onToggleExpanded,
+  onViewDetails,
   onUpdateStatus,
 }: AdminBookingsMobileCardsProps) {
   return (
@@ -168,16 +168,19 @@ export default function AdminBookingsMobileCards({
                 )}
 
                 <div style={{ display: "flex", gap: "0.4rem", width: "100%", marginTop: "0.35rem" }}>
-                  <Link
-                    href={`/admin/bookings/${booking.id}`}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onViewDetails(booking.id)
+                    }
+                    disabled={updating}
                     style={{
                       ...mobileActionStyle("rgba(99,102,241,0.12)", "#a5b4fc"),
                       textAlign: "center",
-                      textDecoration: "none",
                     }}
                   >
                     🔎 ดูรายละเอียด
-                  </Link>
+                  </button>
 
                   {booking.status !== "confirmed" && (
                     <button

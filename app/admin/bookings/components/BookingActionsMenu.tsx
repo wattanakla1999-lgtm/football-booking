@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 import type {
   Booking,
   BookingStatus,
@@ -10,6 +8,7 @@ interface BookingActionsMenuProps {
   updating: boolean;
   actionMenuId: string | null;
   onToggleMenu: (bookingId: string) => void;
+  onViewDetails: (bookingId: string) => void;
   onUpdateStatus: (
     bookingId: string,
     status: BookingStatus
@@ -21,6 +20,7 @@ export default function BookingActionsMenu({
   updating,
   actionMenuId,
   onToggleMenu,
+  onViewDetails,
   onUpdateStatus,
 }: BookingActionsMenuProps) {
   const isOpen = actionMenuId === booking.id;
@@ -58,15 +58,18 @@ export default function BookingActionsMenu({
             boxShadow: "0 12px 32px rgba(0,0,0,0.5)",
           }}
         >
-          <Link
-            href={`/admin/bookings/${booking.id}`}
+          <button
+            type="button"
+            onClick={() =>
+              onViewDetails(booking.id)
+            }
+            disabled={updating}
             style={{
               ...menuBtnStyle("#a5b4fc"),
-              textDecoration: "none",
             }}
           >
             🔎 ดูรายละเอียด
-          </Link>
+          </button>
 
           {booking.status !== "confirmed" && (
             <button

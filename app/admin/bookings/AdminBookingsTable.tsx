@@ -57,6 +57,8 @@ export default function AdminBookingsTable({
   const [actionMenuId, setActionMenuId] =
     useState<string | null>(null);
   const [updating, setUpdating] = useState(false);
+  const [detailLoadingId, setDetailLoadingId] =
+    useState<string | null>(null);
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
@@ -154,6 +156,17 @@ export default function AdminBookingsTable({
     }
   };
 
+  const handleViewDetails = (
+    bookingId: string,
+  ) => {
+    setActionMenuId(null);
+    setExpandedId(null);
+    setDetailLoadingId(bookingId);
+    window.location.assign(
+      `/admin/bookings/${bookingId}`,
+    );
+  };
+
   const hasFilters =
     Boolean(initialSearchQuery) ||
     initialStatusFilter !== "all";
@@ -161,7 +174,11 @@ export default function AdminBookingsTable({
   return (
     <div className="space-y-4">
       <AdminRouteLoadingOverlay
-        open={isPending}
+        open={
+          isPending ||
+          updating ||
+          detailLoadingId !== null
+        }
       />
 
       <div
@@ -206,6 +223,7 @@ export default function AdminBookingsTable({
                     : bookingId,
               )
             }
+            onViewDetails={handleViewDetails}
             onUpdateStatus={updateStatus}
           />
           <AdminBookingsMobileCards
@@ -220,6 +238,7 @@ export default function AdminBookingsTable({
                     : bookingId,
               )
             }
+            onViewDetails={handleViewDetails}
             onUpdateStatus={updateStatus}
           />
 

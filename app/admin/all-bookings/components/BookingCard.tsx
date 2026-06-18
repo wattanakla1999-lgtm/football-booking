@@ -1,4 +1,3 @@
-import Link from "next/link";
 import Image from "next/image";
 import type {
     Booking,
@@ -20,6 +19,9 @@ interface BookingCardProps {
     menuRef?: React.RefObject<HTMLDivElement | null>;
     onToggleMenu: () => void;
     onCloseMenu: () => void;
+    onViewDetails: (
+        bookingId: string
+    ) => void;
     onUpdateStatus: (
         bookingId: string,
         status: BookingStatus
@@ -33,6 +35,7 @@ export default function BookingCard({
     menuRef,
     onToggleMenu,
     onCloseMenu,
+    onViewDetails,
     onUpdateStatus,
 }: BookingCardProps) {
     const sortedItems = [...(booking.items || [])].sort((a, b) => a.startTime.localeCompare(b.startTime));
@@ -240,8 +243,12 @@ export default function BookingCard({
                     </span>
                 </p>
                 <div className="flex flex-wrap items-center gap-2">
-                    <Link
-                        href={`/admin/bookings/${booking.id}`}
+                    <button
+                        type="button"
+                        onClick={() =>
+                            onViewDetails(booking.id)
+                        }
+                        disabled={isUpdating}
                         className="inline-flex h-8 items-center justify-center gap-1.5 rounded-lg border border-primary/20 bg-primary/10 px-3 text-[10px] font-bold text-primary transition-all hover:brightness-110 active:scale-95"
                     >
                         <span className="material-symbols-outlined text-[16px]">
@@ -249,7 +256,7 @@ export default function BookingCard({
                         </span>
 
                         ดูรายละเอียด
-                    </Link>
+                    </button>
 
                     <QuickActionButton
                         booking={booking}

@@ -15,6 +15,7 @@ interface BookingCardsGridProps {
 
     onToggleMenu: (bookingId: string) => void;
     onCloseMenu: () => void;
+    onViewDetails: (bookingId: string) => void;
 
     onUpdateStatus: (
         bookingId: string,
@@ -29,6 +30,7 @@ export default function BookingCardsGrid({
     actionMenuRef,
     onToggleMenu,
     onCloseMenu,
+    onViewDetails,
     onUpdateStatus,
 }: BookingCardsGridProps) {
     return (
@@ -50,6 +52,7 @@ export default function BookingCardsGrid({
                         onToggleMenu(booking.id)
                     }
                     onCloseMenu={onCloseMenu}
+                    onViewDetails={onViewDetails}
                     onUpdateStatus={onUpdateStatus}
                 />
             ))}

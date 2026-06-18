@@ -70,6 +70,8 @@ export default function AllBookingsView({
     useState<string | null>(null);
   const [updatingId, setUpdatingId] =
     useState<string | null>(null);
+  const [detailLoadingId, setDetailLoadingId] =
+    useState<string | null>(null);
   const [showFilters, setShowFilters] =
     useState(false);
   const [searchKeyword, setSearchKeyword] =
@@ -240,9 +242,25 @@ export default function AllBookingsView({
     );
   };
 
+  const handleViewDetails = (
+    bookingId: string,
+  ) => {
+    setActiveActionMenuId(null);
+    setDetailLoadingId(bookingId);
+    window.location.assign(
+      `/admin/bookings/${bookingId}`,
+    );
+  };
+
   return (
     <div className="w-full min-w-0 max-w-full space-y-5 overflow-x-hidden">
-      <AdminRouteLoadingOverlay open={isPending} />
+      <AdminRouteLoadingOverlay
+        open={
+          isPending ||
+          updatingId !== null ||
+          detailLoadingId !== null
+        }
+      />
 
       <BookingPageHeader
         title={title}
@@ -340,6 +358,7 @@ export default function AllBookingsView({
           onCloseMenu={() =>
             setActiveActionMenuId(null)
           }
+          onViewDetails={handleViewDetails}
           onUpdateStatus={updateStatus}
         />
       )}
