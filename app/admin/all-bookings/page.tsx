@@ -1,12 +1,10 @@
-import type { Prisma } from "@prisma/client";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
-
 import { prisma } from "@/src/lib/prisma";
 import {
   createPaginationMeta,
   parsePageParam,
 } from "@/src/utils/pagination";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import AllBookingsView from "./AllBookingsView";
 import type {
   Booking,
@@ -50,8 +48,8 @@ export default async function AdminAllBookingsPage({
     redirect("/admin/login");
   }
 
-  const searchKeyword =
-    resolvedSearchParams.q?.trim() || "";
+  const searchKeyword = resolvedSearchParams.q?.trim() || "";
+
   const statusFilter =
     resolvedSearchParams.status === "pending" ||
     resolvedSearchParams.status === "paid" ||
@@ -60,10 +58,12 @@ export default async function AdminAllBookingsPage({
     resolvedSearchParams.status === "cancelled"
       ? resolvedSearchParams.status
       : "all";
+
   const bookingStatusFilter =
     statusFilter === "all"
       ? null
       : (statusFilter as PrismaBookingStatus);
+
   const courtFilter =
     resolvedSearchParams.court?.trim() || "all";
   const startDateFilter =
@@ -71,7 +71,7 @@ export default async function AdminAllBookingsPage({
   const endDateFilter =
     resolvedSearchParams.endDate?.trim() || "";
 
-  const baseWhere: Prisma.BookingWhereInput = {
+  const baseWhere: Record<string, unknown> = {
     organizationId: admin.organizationId,
   };
 
@@ -129,23 +129,14 @@ export default async function AdminAllBookingsPage({
         ...(courtFilter !== "all"
           ? { courtId: courtFilter }
           : {}),
-        ...((startDateFilter ||
-          endDateFilter)
+        ...(startDateFilter || endDateFilter
           ? {
               date: {
                 ...(startDateFilter
-                  ? {
-                      gte: new Date(
-                        startDateFilter,
-                      ),
-                    }
+                  ? { gte: new Date(startDateFilter) }
                   : {}),
                 ...(endDateFilter
-                  ? {
-                      lte: new Date(
-                        endDateFilter,
-                      ),
-                    }
+                  ? { lte: new Date(endDateFilter) }
                   : {}),
               },
             }
@@ -154,7 +145,7 @@ export default async function AdminAllBookingsPage({
     };
   }
 
-  const where: Prisma.BookingWhereInput = {
+  const where = {
     ...baseWhere,
     ...(bookingStatusFilter
       ? { status: bookingStatusFilter }
@@ -180,22 +171,13 @@ export default async function AdminAllBookingsPage({
       where: { ...baseWhere, status: "paid" },
     }),
     prisma.booking.count({
-      where: {
-        ...baseWhere,
-        status: "confirmed",
-      },
+      where: { ...baseWhere, status: "confirmed" },
     }),
     prisma.booking.count({
-      where: {
-        ...baseWhere,
-        status: "completed",
-      },
+      where: { ...baseWhere, status: "completed" },
     }),
     prisma.booking.count({
-      where: {
-        ...baseWhere,
-        status: "cancelled",
-      },
+      where: { ...baseWhere, status: "cancelled" },
     }),
     prisma.court.findMany({
       where: {
@@ -213,9 +195,7 @@ export default async function AdminAllBookingsPage({
 
   const pagination = createPaginationMeta({
     total,
-    page: parsePageParam(
-      resolvedSearchParams.page,
-    ),
+    page: parsePageParam(resolvedSearchParams.page),
     limit: PAGE_LIMIT,
   });
 
@@ -252,8 +232,8 @@ export default async function AdminAllBookingsPage({
     take: PAGE_LIMIT,
   });
 
-  const serializedBookings: Booking[] =
-    bookings.map((booking) => ({
+  const serializedBookings: Booking[] = bookings.map(
+    (booking) => ({
       id: booking.id,
       totalPrice: Number(booking.totalPrice),
       status: booking.status,
@@ -275,7 +255,8 @@ export default async function AdminAllBookingsPage({
             }
           : null,
       })),
-    }));
+    }),
+  );
 
   return (
     <AllBookingsView
@@ -285,8 +266,7 @@ export default async function AdminAllBookingsPage({
       title="รายการจองทั้งหมด"
       initialFilters={{
         searchKeyword,
-        statusFilter:
-          statusFilter as StatusFilter,
+        statusFilter: statusFilter as StatusFilter,
         courtFilter,
         startDateFilter,
         endDateFilter,
