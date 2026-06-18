@@ -70,9 +70,9 @@ export function getStatusColor(
 
         case "confirmed":
             return {
-                bg: "rgba(239, 68, 68, 0.08)",
-                border: "rgba(239, 68, 68, 0.25)",
-                text: "#f87171",
+                bg: "rgba(59, 130, 246, 0.08)",
+                border: "rgba(59, 130, 246, 0.25)",
+                text: "#60a5fa",
             };
 
         case "completed":

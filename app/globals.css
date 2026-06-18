@@ -737,9 +737,9 @@ body {
 }
 
 .admin-layout-root .admin-btn-primary {
-  background: linear-gradient(135deg, #6366f1, #8b5cf6) !important;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark)) !important;
   color: #ffffff !important;
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25) !important;
+  box-shadow: 0 4px 12px rgba(6, 199, 85, 0.25) !important;
 }
 
 .admin-layout-root .admin-btn-primary:hover {

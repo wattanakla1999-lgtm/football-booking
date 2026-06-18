@@ -4,6 +4,29 @@ import type {
   StatusOption,
 } from "../types/booking";
 
+const THAI_SHORT_MONTHS = [
+  "ม.ค.",
+  "ก.พ.",
+  "มี.ค.",
+  "เม.ย.",
+  "พ.ค.",
+  "มิ.ย.",
+  "ก.ค.",
+  "ส.ค.",
+  "ก.ย.",
+  "ต.ค.",
+  "พ.ย.",
+  "ธ.ค.",
+];
+
+function parseDateValue(dateValue: string) {
+  const normalizedValue = dateValue.includes("T")
+    ? dateValue
+    : `${dateValue}T12:00:00`;
+
+  return new Date(normalizedValue);
+}
+
 export const STATUS_OPTIONS: StatusOption[] = [
   { value: "all", label: "ทั้งหมด" },
   { value: "pending", label: "รอดำเนินการ" },
@@ -36,33 +59,38 @@ export function formatPrice(price: string | number) {
 }
 
 export function formatDate(dateValue: string) {
-  const date = new Date(dateValue);
+  const date = parseDateValue(dateValue);
 
   if (Number.isNaN(date.getTime())) {
     return "ไม่พบวันที่";
   }
 
-  return date.toLocaleDateString("th-TH", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
+  return `${date.getDate()} ${
+    THAI_SHORT_MONTHS[date.getMonth()]
+  } ${date.getFullYear() + 543}`;
 }
 
 export function formatCreatedAt(dateValue: string) {
-  const date = new Date(dateValue);
+  const date = parseDateValue(dateValue);
 
   if (Number.isNaN(date.getTime())) {
     return "ไม่พบข้อมูล";
   }
 
-  return date.toLocaleDateString("th-TH", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  const datePart = `${date.getDate()} ${
+    THAI_SHORT_MONTHS[date.getMonth()]
+  } ${date.getFullYear() + 543}`;
+
+  const timePart = date.toLocaleTimeString(
+    "th-TH",
+    {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    },
+  );
+
+  return `${datePart} ${timePart}`;
 }
 
 export function shortBookingId(bookingId: string) {

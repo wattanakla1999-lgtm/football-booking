@@ -1,9 +1,9 @@
 import { prisma } from "@/src/lib/prisma";
-import type { Prisma } from "@prisma/client";
 import {
   createPaginationMeta,
   parsePageParam,
 } from "@/src/utils/pagination";
+import type { Prisma } from "@prisma/client";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import AllBookingsView from "./AllBookingsView";
@@ -13,7 +13,7 @@ import type {
   StatusFilter,
 } from "./types/booking";
 
-const PAGE_LIMIT = 10;
+const PAGE_LIMIT = 12;
 
 type AdminAllBookingsPageProps = {
   searchParams: Promise<{

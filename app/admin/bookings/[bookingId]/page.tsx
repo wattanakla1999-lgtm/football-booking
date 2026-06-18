@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { bookingStatusMeta } from "@/src/constants/statusColors";
 import { prisma } from "@/src/lib/prisma";
+import BookingDetailNavigationActions from "./BookingDetailNavigationActions";
 
 type AdminBookingDetailPageProps = {
   params: Promise<{
@@ -280,20 +280,7 @@ const paymentStatus = paymentStatusKey
         </div>
       </div>
 
-      <div className="flex flex-col gap-3 sm:flex-row">
-        <Link
-          href="/admin/all-bookings"
-          className="inline-flex h-11 items-center justify-center rounded-xl border border-outline-variant/20 bg-surface-container-low px-4 text-label-md font-bold text-on-surface transition-all hover:bg-surface-container-high"
-        >
-          กลับไปหน้ารายการจอง
-        </Link>
-        <Link
-          href="/admin/availability"
-          className="inline-flex h-11 items-center justify-center rounded-xl bg-primary px-4 text-label-md font-bold text-on-primary transition-all hover:brightness-110"
-        >
-          สร้างรายการจองเพิ่ม
-        </Link>
-      </div>
+      <BookingDetailNavigationActions />
     </div>
   );
 }

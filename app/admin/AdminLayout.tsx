@@ -123,10 +123,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <span className="material-symbols-outlined">group</span>
             <span className="text-body-md font-body-md">ลูกค้า</span>
           </Link>
-          <a href="#" className="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-variant/30 hover:translate-x-1 transition-transform duration-200 cursor-pointer">
-            <span className="material-symbols-outlined">leaderboard</span>
-            <span className="text-body-md font-body-md">สถิติ</span>
-          </a>
           <Link
             href="/admin/operating-hours"
             className={getNavClass("/admin/operating-hours")}

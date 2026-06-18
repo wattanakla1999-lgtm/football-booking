@@ -21,11 +21,11 @@ export function EmptyState({
         </span>
       </div>
 
-      <h2 className="mt-4 text-lg font-bold text-white">
+      <h2 className="mt-4 max-w-3xl text-balance text-lg font-bold text-white">
         {title}
       </h2>
 
-      <p className="mt-2 max-w-md text-sm leading-6 text-white/45">
+      <p className="mt-2 w-full max-w-2xl text-pretty text-sm leading-7 text-white/45">
         {description}
       </p>
 

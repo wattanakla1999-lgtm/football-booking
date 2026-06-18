@@ -15,16 +15,16 @@ export default function EmptyBookings({
                 </span>
             </div>
 
-            <h3 className="mt-4 text-headline-md font-bold text-on-surface">
+            <h3 className="mt-4 max-w-3xl text-balance text-headline-md font-bold text-on-surface">
                 {hasActiveFilters
-                    ? "No matching bookings"
-                    : "No bookings yet"}
+                    ? "ไม่พบรายการจองที่ตรงกับเงื่อนไข"
+                    : "ยังไม่มีรายการจอง"}
             </h3>
 
-            <p className="mt-2 max-w-md text-body-md text-on-surface-variant">
+            <p className="mt-3 w-full max-w-2xl text-pretty text-body-md leading-7 text-on-surface-variant">
                 {hasActiveFilters
-                    ? "No bookings match the current filters. Try changing or clearing the filters."
-                    : "Bookings will appear here when customers reserve a field."}
+                    ? "ยังไม่มีรายการจองที่ตรงกับตัวกรองที่เลือกอยู่ ลองเปลี่ยนเงื่อนไขการค้นหาหรือล้างตัวกรองเพื่อดูรายการทั้งหมด"
+                    : "เมื่อมีลูกค้าทำรายการจอง ข้อมูลการจองทั้งหมดจะแสดงที่หน้านี้"}
             </p>
 
             {hasActiveFilters && (
@@ -37,7 +37,7 @@ export default function EmptyBookings({
                         filter_alt_off
                     </span>
 
-                    Clear filters
+                    ล้างตัวกรอง
                 </button>
             )}
         </section>

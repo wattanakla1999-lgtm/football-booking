@@ -10,14 +10,9 @@ const LEGEND_ITEMS = [
         border: "rgba(245,158,11,0.3)",
     },
     {
-        label: "รอตรวจสอบ (โอนแล้ว)",
+        label: "ยืนยันแล้ว / จองแล้ว",
         background: "rgba(59,130,246,0.08)",
         border: "rgba(59,130,246,0.3)",
-    },
-    {
-        label: "ยืนยันแล้ว / จองแล้ว",
-        background: "rgba(239,68,68,0.08)",
-        border: "rgba(239,68,68,0.3)",
     },
 ];
 

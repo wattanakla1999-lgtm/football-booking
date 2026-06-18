@@ -386,7 +386,7 @@ export default function BookingModal({
           <Button
             type="submit"
             loading={isSubmitting}
-            className="flex-1 bg-gradient-to-br from-primary to-[var(--color-primary-dark)] py-3 shadow-lg shadow-green-500/20"
+            className="flex-1 py-3"
           >
             {isSubmitting
               ? "กำลังบันทึก..."
