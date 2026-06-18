@@ -27,20 +27,22 @@ export function BookingSuccessStep({
     <div className="mt-1 animate-[slideUp_0.3s_ease-out]">
       <div className="overflow-hidden rounded-[28px] border border-green-500/20 bg-gradient-to-b from-green-500/12 via-green-500/8 to-white/[0.03]">
         <div className="border-b border-green-500/15 px-6 py-7 text-center">
-          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border border-green-400/20 bg-green-500/15 shadow-[0_0_40px_rgba(34,197,94,0.2)]">
-            <span className="material-symbols-outlined text-[42px] text-green-400">
-              task_alt
-            </span>
+          <div className="mx-auto w-full max-w-2xl">
+            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border border-green-400/20 bg-green-500/15 shadow-[0_0_40px_rgba(34,197,94,0.2)]">
+              <span className="material-symbols-outlined text-[42px] text-green-400">
+                task_alt
+              </span>
+            </div>
+
+            <h2 className="mt-5 w-full text-2xl font-extrabold leading-tight text-white">
+              จองสนามสำเร็จแล้ว
+            </h2>
+
+            <p className="mt-3 w-full text-sm leading-7 text-white/65">
+              ระบบบันทึกรายการจองของคุณเรียบร้อยแล้ว
+              สามารถดูรายการทั้งหมดหรือเปิดดูรายการที่เพิ่งจองได้ทันที
+            </p>
           </div>
-
-          <h2 className="mt-5 text-2xl font-extrabold text-white">
-            จองสนามสำเร็จแล้ว
-          </h2>
-
-          <p className="mx-auto mt-2 max-w-xl text-sm leading-7 text-white/65">
-            ระบบบันทึกรายการจองของคุณเรียบร้อยแล้ว
-            สามารถดูรายการทั้งหมดหรือเปิดดูรายการที่เพิ่งจองได้ทันที
-          </p>
         </div>
 
         <div className="space-y-4 px-6 py-6">
