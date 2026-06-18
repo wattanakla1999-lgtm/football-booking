@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/src/lib/prisma";
+import {
+  fetchLineProfileFromAccessToken,
+  setLineSessionCookie,
+  upsertLineUser,
+} from "@/src/lib/lineAuth";
 import type { LineTokenResponse, LineProfile } from "@/src/types/line";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -78,60 +82,17 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   // ── 3. Fetch LINE user profile ───────────────────────────────────────────────
   let profile: LineProfile;
   try {
-    const profileRes = await fetch("https://api.line.me/v2/profile", {
-      headers: { Authorization: `Bearer ${tokenData.access_token}` },
-    });
-
-    if (!profileRes.ok) {
-      const err = await profileRes.json();
-      console.error("[LINE Callback] Profile fetch failed:", err);
-      return NextResponse.redirect(
-        new URL("/?error=profile_fetch_failed", request.url)
-      );
-    }
-
-    profile = (await profileRes.json()) as LineProfile;
+    profile = await fetchLineProfileFromAccessToken(tokenData.access_token);
   } catch (err) {
     console.error("[LINE Callback] Network error fetching profile:", err);
     return NextResponse.redirect(
-      new URL("/?error=network_error", request.url)
+      new URL("/?error=profile_fetch_failed", request.url)
     );
   }
 
-  // ── 4. Resolve Organization ──────────────────────────────────────────────────
-  // For the initial release we use a single default organization identified
-  // by the env var ORG_SLUG (falls back to "default").
-  const orgSlug = process.env.ORG_SLUG ?? "default";
+  // ── 4. Upsert user and set session ───────────────────────────────────────────
+  const user = await upsertLineUser(profile);
 
-  let organization = await prisma.organization.findUnique({
-    where: { slug: orgSlug },
-  });
-
-  if (!organization) {
-    organization = await prisma.organization.create({
-      data: {
-        name: "Football Booking",
-        slug: orgSlug,
-      },
-    });
-  }
-
-  // ── 5. Upsert User in database ───────────────────────────────────────────────
-  const user = await prisma.user.upsert({
-    where: { lineUserId: profile.userId },
-    update: {
-      displayName: profile.displayName,
-      pictureUrl: profile.pictureUrl ?? null,
-    },
-    create: {
-      lineUserId: profile.userId,
-      displayName: profile.displayName,
-      pictureUrl: profile.pictureUrl ?? null,
-      organizationId: organization.id,
-    },
-  });
-
-  // ── 6. Set session cookie and redirect ───────────────────────────────────────
   // Simple session: store user id in a signed-like cookie.
   // For production replace with a proper JWT / NextAuth session.
   const response = NextResponse.redirect(new URL("/dashboard", request.url));
@@ -140,13 +101,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   response.cookies.set("line_oauth_state", "", { maxAge: 0, path: "/" });
 
   // Set user session
-  response.cookies.set("session_user_id", user.id, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: 60 * 60 * 24 * 7, // 7 days
-    path: "/",
-  });
+  setLineSessionCookie(response, user.id);
 
   return response;
 }

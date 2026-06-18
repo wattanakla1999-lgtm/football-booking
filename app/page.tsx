@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
+import { LineAutoLogin } from "@/src/components/auth/LineAutoLogin";
+
 export const metadata: Metadata = {
   title: "เข้าสู่ระบบ — Football Booking",
   description:
@@ -34,13 +36,18 @@ export default async function LoginPage({
   const isLineInAppBrowser =
     /Line\//i.test(userAgent) ||
     /LIFF/i.test(userAgent);
-
-  if (!error && isLineInAppBrowser) {
-    redirect("/api/auth/line");
-  }
+  const shouldAutoLoginWithLiff =
+    !error &&
+    isLineInAppBrowser &&
+    Boolean(process.env.NEXT_PUBLIC_LIFF_ID);
 
   return (
     <main className="login-root">
+      <LineAutoLogin
+        enabled={shouldAutoLoginWithLiff}
+        liffId={process.env.NEXT_PUBLIC_LIFF_ID}
+      />
+
       {/* ── Animated background ── */}
       <div className="bg-gradient" aria-hidden="true" />
       <div className="bg-pattern" aria-hidden="true" />
