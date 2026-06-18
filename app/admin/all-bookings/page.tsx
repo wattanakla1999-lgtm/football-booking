@@ -271,10 +271,12 @@ export default async function AdminAllBookingsPage({
         startDateFilter,
         endDateFilter,
       }}
-      courtOptions={courtOptions.map((court) => ({
-        value: court.id,
-        label: court.name,
-      }))}
+courtOptions={courtOptions.map(
+  (court: { id: string; name: string }) => ({
+    value: court.id,
+    label: court.name,
+  }),
+)}
       summaryCounts={{
         all: allCount,
         pending: pendingCount,
