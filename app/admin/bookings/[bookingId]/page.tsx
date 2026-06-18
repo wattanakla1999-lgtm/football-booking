@@ -170,7 +170,7 @@ const paymentStatus = paymentStatusKey
           </div>
 
           <div className="space-y-3">
-            {booking.items.map((item) => (
+         {booking.items.map((item: any) => (
               <div
                 key={item.id}
                 className="rounded-2xl border border-outline-variant/10 bg-surface-container-low p-4"
