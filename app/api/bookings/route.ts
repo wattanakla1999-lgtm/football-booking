@@ -1,4 +1,5 @@
 import { prisma } from "@/src/lib/prisma";
+import { sendAdminBookingNotification } from "@/src/services/lineNotificationService";
 import { Prisma } from "@prisma/client";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
@@ -52,7 +53,11 @@ export async function POST(request: Request) {
     // 1. Get user
     const user = await prisma.user.findUnique({
       where: { id: sessionUserId },
-      select: { organizationId: true }
+      select: {
+        organizationId: true,
+        displayName: true,
+        phone: true,
+      }
     });
 
     if (!user) {
@@ -199,6 +204,25 @@ export async function POST(request: Request) {
 
       return newBooking;
     });
+
+    try {
+      await sendAdminBookingNotification({
+        bookingId: booking.id,
+        customerName: user.displayName,
+        customerPhone: phone?.trim() || user.phone || null,
+        courtName: court.name,
+        bookingDate: date,
+        slots,
+        totalPrice,
+        bookingStatus: "pending",
+        paymentStatus: "unpaid",
+      });
+    } catch (notificationError) {
+      console.error(
+        "Failed to send LINE admin booking notification:",
+        notificationError
+      );
+    }
 
     return NextResponse.json({ success: true, bookingId: booking.id });
   } catch (error) {
