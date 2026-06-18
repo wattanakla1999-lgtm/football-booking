@@ -1,6 +1,7 @@
 import {
   FILTER_TABS,
 } from "../utils/bookingConstants";
+import { themeColors } from "@/src/constants/themeColors";
 
 import type {
   BookingStatus,
@@ -47,9 +48,9 @@ export default function AdminBookingsStatusTabs({
               gap: "0.35rem",
               padding: "0.45rem 0.85rem",
               borderRadius: "8px",
-              border: isActive ? "1px solid rgba(99,102,241,0.4)" : "1px solid rgba(255,255,255,0.05)",
-              background: isActive ? "rgba(99,102,241,0.1)" : "rgba(255,255,255,0.01)",
-              color: isActive ? "#a5b4fc" : "rgba(255,255,255,0.5)",
+              border: isActive ? themeColors.tabActiveBorder : "1px solid rgba(255,255,255,0.05)",
+              background: isActive ? themeColors.tabActiveBackground : "rgba(255,255,255,0.01)",
+              color: isActive ? themeColors.tabActiveText : "rgba(255,255,255,0.5)",
               fontSize: "0.75rem",
               fontWeight: isActive ? 700 : 500,
               cursor: "pointer",
@@ -61,7 +62,7 @@ export default function AdminBookingsStatusTabs({
             {tab.label}
             <span
               style={{
-                background: isActive ? "rgba(99,102,241,0.25)" : "rgba(255,255,255,0.05)",
+                background: isActive ? themeColors.tabActiveCountBackground : "rgba(255,255,255,0.05)",
                 padding: "0.1rem 0.4rem",
                 borderRadius: "6px",
                 fontSize: "0.65rem",

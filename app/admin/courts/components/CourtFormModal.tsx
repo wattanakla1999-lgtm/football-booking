@@ -9,6 +9,7 @@ import {
   Modal,
   Textarea,
 } from "@/src/components/ui";
+import { themeColors } from "@/src/constants/themeColors";
 import type {
   Court,
   CourtFormValues,
@@ -144,7 +145,7 @@ export default function CourtFormModal({
               style={{
                 width: "18px",
                 height: "18px",
-                accentColor: "var(--color-primary)",
+                accentColor: themeColors.primary,
                 cursor: "pointer",
               }}
             />
@@ -183,7 +184,7 @@ export default function CourtFormModal({
                 flex: 1,
                 padding: "0.7rem",
                 background:
-                  "linear-gradient(135deg, var(--color-primary), var(--color-primary-dark))",
+                  `linear-gradient(135deg, ${themeColors.primary}, ${themeColors.primaryDark})`,
                 border: "none",
                 boxShadow: "0 4px 12px rgba(6, 199, 85, 0.2)",
               }}

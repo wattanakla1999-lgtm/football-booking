@@ -1,4 +1,5 @@
 import { DEFAULT_COURT_IMAGE_URL } from "../hooks/useCourtForm";
+import { themeColors } from "@/src/constants/themeColors";
 
 import type { Court } from "../types/court";
 
@@ -31,8 +32,8 @@ export default function CourtCard({
             position: "absolute",
             top: "0.75rem",
             right: "0.75rem",
-            background: court.isActive ? "rgba(16,185,129,0.95)" : "rgba(239,68,68,0.95)",
-            color: "#fff",
+            background: court.isActive ? themeColors.successBadge : themeColors.dangerBadge,
+            color: themeColors.surfaceText,
             fontSize: "0.65rem",
             fontWeight: 700,
             padding: "0.25rem 0.6rem",
@@ -45,12 +46,12 @@ export default function CourtCard({
       </div>
 
       <div style={{ padding: "1.25rem", flex: 1, display: "flex", flexDirection: "column" }}>
-        <h3 style={{ fontSize: "1rem", fontWeight: 700, marginBottom: "0.5rem", color: "#fff" }}>
+        <h3 style={{ fontSize: "1rem", fontWeight: 700, marginBottom: "0.5rem", color: themeColors.surfaceText }}>
           {court.name}
         </h3>
 
         {court.description && (
-          <p style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.45)", marginBottom: "1rem", flex: 1 }}>
+          <p style={{ fontSize: "0.75rem", color: themeColors.surfaceTextMuted, marginBottom: "1rem", flex: 1 }}>
             {court.description}
           </p>
         )}
@@ -80,10 +81,10 @@ export default function CourtCard({
           }}
         >
           <div>
-            <span style={{ fontSize: "0.65rem", color: "rgba(255,255,255,0.4)", display: "block" }}>
+            <span style={{ fontSize: "0.65rem", color: themeColors.surfaceTextSoft, display: "block" }}>
               ราคาต่อชั่วโมง
             </span>
-            <span style={{ fontSize: "1.1rem", fontWeight: 800, color: "#4ade80" }}>
+            <span style={{ fontSize: "1.1rem", fontWeight: 800, color: themeColors.successTextStrong }}>
               ฿{Number(court.pricePerHour).toLocaleString("th-TH")}
             </span>
           </div>
@@ -113,8 +114,8 @@ export default function CourtCard({
 }
 
 const tagStyle: React.CSSProperties = {
-  background: "rgba(255,255,255,0.03)",
-  border: "1px solid rgba(255,255,255,0.06)",
+  background: themeColors.surfaceBackgroundSoft,
+  border: `1px solid ${themeColors.surfaceBorderSoft}`,
   borderRadius: "6px",
   padding: "0.2rem 0.5rem",
   fontSize: "0.65rem",

@@ -9,6 +9,7 @@ import {
     getStatusLabel,
 } from "../utils/availability";
 import { AdminRouteLoadingOverlay } from "@/src/components/common/AdminRouteLoadingOverlay";
+import { themeColors } from "@/src/constants/themeColors";
 
 interface BookedSlotModalProps {
     slot: SelectedBookedSlot;
@@ -75,7 +76,9 @@ export default function BookedSlotModal({
                         <DetailRow
                             label="เวลา"
                             value={`${slot.startTime} - ${slot.endTime}`}
-                            valueColor="#86efac"
+                            valueColor={
+                                themeColors.successTextSoft
+                            }
                         />
 
                         <DetailRow

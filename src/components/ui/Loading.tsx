@@ -1,3 +1,5 @@
+import { themeColors } from "@/src/constants/themeColors";
+
 type LoadingSpinnerProps = {
   fullHeight?: boolean;
   className?: string;
@@ -22,7 +24,7 @@ export function LoadingSpinner({
         style={{
           width: "32px",
           height: "32px",
-          border: "4px solid #6366f1",
+          border: themeColors.spinnerBorder,
           borderTopColor: "transparent",
           borderRadius: "50%",
           animation: "spin 0.6s linear infinite",

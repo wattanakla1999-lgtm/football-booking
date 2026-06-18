@@ -1,3 +1,5 @@
+import { themeColors } from "@/src/constants/themeColors";
+
 interface CourtsHeaderProps {
   onAddCourt: () => void;
 }
@@ -15,10 +17,10 @@ export default function CourtsHeader({
         onClick={onAddCourt}
         style={{
           background:
-            "linear-gradient(135deg, var(--color-primary), var(--color-primary-dark))",
+            `linear-gradient(135deg, ${themeColors.primary}, ${themeColors.primaryDark})`,
           border: "none",
           borderRadius: "10px",
-          color: "#fff",
+          color: themeColors.onPrimary,
           fontWeight: 700,
           fontSize: "0.85rem",
           padding: "0.55rem 1.25rem",

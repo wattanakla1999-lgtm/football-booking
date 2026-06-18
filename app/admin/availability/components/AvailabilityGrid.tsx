@@ -4,6 +4,7 @@ import type {
 } from "../types/availability";
 
 import { getStatusColor } from "../utils/availability";
+import { themeColors } from "@/src/constants/themeColors";
 
 interface AvailabilityGridProps {
     courts: CourtAvailability[];
@@ -65,16 +66,16 @@ export default function AvailabilityGrid({
 
                                 const style = isSelected
                                     ? {
-                                        borderColor: "#22c55e",
+                                        borderColor: themeColors.successStrong,
                                         background:
-                                            "rgba(34,197,94,0.12)",
+                                            themeColors.successSelectedBackground,
                                     }
                                     : slot.isAvailable
                                         ? {
                                             borderColor:
-                                                "rgba(16,185,129,0.2)",
+                                                themeColors.successBorder,
                                             background:
-                                                "rgba(16,185,129,0.03)",
+                                                themeColors.successBackground,
                                         }
                                         : {
                                             borderColor: statusColor.border,
@@ -108,9 +109,9 @@ export default function AvailabilityGrid({
                                                     ? "0.25rem"
                                                     : 0,
                                                 color: isSelected
-                                                    ? "#bbf7d0"
+                                                    ? themeColors.successTextMuted
                                                     : slot.isAvailable
-                                                        ? "#10b981"
+                                                        ? themeColors.success
                                                         : statusColor.text,
                                             }}
                                         >
@@ -122,7 +123,7 @@ export default function AvailabilityGrid({
                                                 className="text-[0.7rem]"
                                                 style={{
                                                     color: isSelected
-                                                        ? "#86efac"
+                                                        ? themeColors.successTextSoft
                                                         : "rgba(16,185,129,0.65)",
                                                 }}
                                             >
