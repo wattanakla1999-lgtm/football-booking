@@ -49,9 +49,7 @@ export default function AdminAvailabilityView({
 }: AdminAvailabilityViewProps) {
   const router = useRouter();
   const [selectedDate, setSelectedDate] =
-    useState<Date | null>(
-      new Date(initialSelectedDate),
-    );
+    useState<Date>(new Date(initialSelectedDate));
   const [courts, setCourts] = useState<
     CourtAvailability[]
   >(initialCourts);
@@ -101,10 +99,6 @@ export default function AdminAvailabilityView({
   );
 
   const fetchAvailability = useCallback(async () => {
-    if (!selectedDate) {
-      return;
-    }
-
     setLoading(true);
     setMessage("");
 
@@ -133,10 +127,6 @@ export default function AdminAvailabilityView({
   }, [selectedDate]);
 
   useEffect(() => {
-    if (!selectedDate) {
-      return;
-    }
-
     if (hasHydratedInitialData.current) {
       hasHydratedInitialData.current = false;
       return;
