@@ -219,6 +219,7 @@ model Booking {
 
   @@index([organizationId])
   @@index([userId])
+  @@index([userId, createdAt])
   @@map("bookings")
 }
 

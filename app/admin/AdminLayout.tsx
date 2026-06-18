@@ -1,16 +1,50 @@
 "use client";
 
-import { usePathname } from "next/navigation";
-import Link from "next/link";
+import { AdminRouteLoadingOverlay } from "@/src/components/common/AdminRouteLoadingOverlay";
 import Image from "next/image";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import type { MouseEvent } from "react";
+import { useState } from "react";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const [pendingPath, setPendingPath] =
+    useState<string | null>(null);
   const isLoginPage = pathname === "/admin/login";
+  const isRouteLoading =
+    pendingPath !== null && pendingPath !== pathname;
 
   if (isLoginPage) {
     return <div className="bg-background text-on-surface min-h-screen">{children}</div>;
   }
+
+  const startNavigationLoading = (
+    targetPath: string,
+  ) => {
+    if (targetPath === pathname) {
+      return;
+    }
+
+    setPendingPath(targetPath);
+  };
+
+  const handleNavClick =
+    (targetPath: string) =>
+    (event: MouseEvent<HTMLAnchorElement>) => {
+      if (
+        event.defaultPrevented ||
+        event.button !== 0 ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.shiftKey ||
+        event.altKey
+      ) {
+        return;
+      }
+
+      startNavigationLoading(targetPath);
+    };
 
   // Active link helper
   const getNavClass = (path: string) => {
@@ -48,24 +82,44 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
 
         <nav className="flex-1 space-y-1 px-md">
-          <Link href="/admin/dashboard" className={getNavClass("/admin/dashboard")}>
+          <Link
+            href="/admin/dashboard"
+            className={getNavClass("/admin/dashboard")}
+            onClick={handleNavClick("/admin/dashboard")}
+          >
             <span className="material-symbols-outlined">dashboard</span>
             <span className="text-body-md font-body-md">แดชบอร์ด</span>
           </Link>
-          <Link href="/admin/availability" className={getNavClass("/admin/availability")}>
+          <Link
+            href="/admin/availability"
+            className={getNavClass("/admin/availability")}
+            onClick={handleNavClick("/admin/availability")}
+          >
             <span className="material-symbols-outlined">calendar_month</span>
             <span className="text-body-md font-body-md">ตารางสนาม</span>
           </Link>
-          <Link href="/admin/all-bookings" className={getNavClass("/admin/all-bookings")}>
+          <Link
+            href="/admin/all-bookings"
+            className={getNavClass("/admin/all-bookings")}
+            onClick={handleNavClick("/admin/all-bookings")}
+          >
             <span className="material-symbols-outlined">calendar_month</span>
             <span className="text-body-md font-body-md">การจองทั้งหมด</span>
           </Link>
 
-          <Link href="/admin/courts" className={getNavClass("/admin/courts")}>
+          <Link
+            href="/admin/courts"
+            className={getNavClass("/admin/courts")}
+            onClick={handleNavClick("/admin/courts")}
+          >
             <span className="material-symbols-outlined">stadium</span>
             <span className="text-body-md font-body-md">จัดการสนาม</span>
           </Link>
-          <Link href="/admin/customers" className={getNavClass("/admin/customers")}>
+          <Link
+            href="/admin/customers"
+            className={getNavClass("/admin/customers")}
+            onClick={handleNavClick("/admin/customers")}
+          >
             <span className="material-symbols-outlined">group</span>
             <span className="text-body-md font-body-md">ลูกค้า</span>
           </Link>
@@ -73,7 +127,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <span className="material-symbols-outlined">leaderboard</span>
             <span className="text-body-md font-body-md">สถิติ</span>
           </a>
-          <Link href="/admin/operating-hours" className={getNavClass("/admin/operating-hours")}>
+          <Link
+            href="/admin/operating-hours"
+            className={getNavClass("/admin/operating-hours")}
+            onClick={handleNavClick("/admin/operating-hours")}
+          >
             <span className="material-symbols-outlined">settings</span>
             <span className="text-body-md font-body-md">ตั้งค่าระบบ</span>
           </Link>
@@ -166,6 +224,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <Link
           href="/admin/dashboard"
           className={getMobileNavClass("/admin/dashboard")}
+          onClick={handleNavClick("/admin/dashboard")}
         >
           <span className="material-symbols-outlined text-[26px]">dashboard</span>
           <span className="text-[10px] leading-tight mt-1">หน้าหลัก</span>
@@ -174,6 +233,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <Link
           href="/admin/availability"
           className={getMobileNavClass("/admin/availability")}
+          onClick={handleNavClick("/admin/availability")}
         >
           <span className="material-symbols-outlined text-[26px]">
             calendar_today
@@ -183,6 +243,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <Link
           href="/admin/all-bookings"
           className={getMobileNavClass("/admin/all-bookings")}
+          onClick={handleNavClick("/admin/all-bookings")}
         >
           <span className="material-symbols-outlined text-[26px]">
             list_alt
@@ -193,6 +254,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <Link
           href="/admin/courts"
           className={getMobileNavClass("/admin/courts")}
+          onClick={handleNavClick("/admin/courts")}
         >
           <span className="material-symbols-outlined text-[26px]">
             sports_soccer
@@ -203,11 +265,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <Link
           href="/admin/operating-hours"
           className={getMobileNavClass("/admin/operating-hours")}
+          onClick={handleNavClick("/admin/operating-hours")}
         >
           <span className="material-symbols-outlined text-[26px]">settings</span>
           <span className="text-[10px] leading-tight mt-1">ตั้งค่า</span>
         </Link>
       </nav>
+
+      <AdminRouteLoadingOverlay
+        open={isRouteLoading}
+      />
 
       {/* FAB */}
       {/* <Link href="/admin/availability" className="fixed bottom-20 right-6 md:bottom-10 md:right-10 w-14 h-14 bg-primary text-on-primary rounded-full shadow-2xl flex items-center justify-center active:scale-90 transition-all group z-50 pitch-green-glow">

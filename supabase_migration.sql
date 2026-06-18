@@ -188,6 +188,9 @@ CREATE INDEX "bookings_organizationId_idx" ON "bookings"("organizationId");
 CREATE INDEX "bookings_userId_idx" ON "bookings"("userId");
 
 -- CreateIndex
+CREATE INDEX "bookings_userId_createdAt_idx" ON "bookings"("userId", "createdAt");
+
+-- CreateIndex
 CREATE INDEX "booking_items_bookingId_idx" ON "booking_items"("bookingId");
 
 -- CreateIndex
@@ -234,4 +237,3 @@ ALTER TABLE "payments" ADD CONSTRAINT "payments_bookingId_fkey" FOREIGN KEY ("bo
 
 -- AddForeignKey
 ALTER TABLE "payments" ADD CONSTRAINT "payments_verifiedById_fkey" FOREIGN KEY ("verifiedById") REFERENCES "admins"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
