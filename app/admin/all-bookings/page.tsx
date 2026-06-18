@@ -233,30 +233,30 @@ export default async function AdminAllBookingsPage({
   });
 
   const serializedBookings: Booking[] = bookings.map(
-    (booking) => ({
-      id: booking.id,
-      totalPrice: Number(booking.totalPrice),
-      status: booking.status,
-      user: {
-        id: booking.user.id,
-        displayName: booking.user.displayName,
-        phone: booking.user.phone,
-        pictureUrl: booking.user.pictureUrl,
-      },
-      items: booking.items.map((item) => ({
-        id: item.id,
-        date: item.date.toISOString(),
-        startTime: item.startTime,
-        endTime: item.endTime,
-        court: item.court
-          ? {
-              id: item.court.id,
-              name: item.court.name,
-            }
-          : null,
-      })),
-    }),
-  );
+  (booking: any) => ({
+    id: booking.id,
+    totalPrice: Number(booking.totalPrice),
+    status: booking.status,
+    user: {
+      id: booking.user.id,
+      displayName: booking.user.displayName,
+      phone: booking.user.phone,
+      pictureUrl: booking.user.pictureUrl,
+    },
+    items: booking.items.map((item: any) => ({
+      id: item.id,
+      date: item.date.toISOString(),
+      startTime: item.startTime,
+      endTime: item.endTime,
+      court: item.court
+        ? {
+            id: item.court.id,
+            name: item.court.name,
+          }
+        : null,
+    })),
+  }),
+);
 
   return (
     <AllBookingsView
