@@ -6,12 +6,14 @@ import {
 interface DateSelectorProps {
     dates: Date[];
     selectedDate: Date;
+    loading?: boolean;
     onSelectDate: (date: Date) => void;
 }
 
 export default function DateSelector({
     dates,
     selectedDate,
+    loading = false,
     onSelectDate,
 }: DateSelectorProps) {
     return (
@@ -26,11 +28,12 @@ export default function DateSelector({
                         key={date.toISOString()}
                         type="button"
                         onClick={() => onSelectDate(date)}
+                        disabled={loading}
                         className={`
               flex h-20 min-w-[4.5rem] shrink-0
               flex-col items-center justify-center
               gap-0.5 rounded-2xl border
-              transition-all duration-200
+              transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60
               ${isSelected
                                 ? "border-indigo-500 bg-indigo-500/[0.08] text-indigo-300"
                                 : "border-white/[0.05] bg-white/[0.01] text-white/45 hover:bg-white/[0.03]"

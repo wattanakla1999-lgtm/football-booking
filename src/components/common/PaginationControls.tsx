@@ -7,6 +7,7 @@ interface PaginationControlsProps {
   total: number;
   limit: number;
   totalPages: number;
+  loading?: boolean;
   onPageChange: (page: number) => void;
 }
 
@@ -15,6 +16,7 @@ export function PaginationControls({
   total,
   limit,
   totalPages,
+  loading = false,
   onPageChange,
 }: PaginationControlsProps) {
   if (total === 0) {
@@ -50,7 +52,7 @@ export function PaginationControls({
         <button
           type="button"
           onClick={() => onPageChange(page - 1)}
-          disabled={page <= 1}
+          disabled={loading || page <= 1}
           className="inline-flex h-10 items-center justify-center gap-1 rounded-xl border border-outline-variant/20 bg-surface-container-low px-3 text-label-md font-bold text-on-surface transition-all hover:bg-surface-container-high active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
         >
           ก่อนหน้า
@@ -77,6 +79,7 @@ export function PaginationControls({
                 onClick={() =>
                   onPageChange(pageNumber)
                 }
+                disabled={loading}
                 className={`inline-flex h-10 min-w-10 items-center justify-center rounded-xl px-3 text-label-md font-bold transition-all active:scale-95 ${
                   pageNumber === page
                     ? "bg-primary text-on-primary"
@@ -92,7 +95,7 @@ export function PaginationControls({
         <button
           type="button"
           onClick={() => onPageChange(page + 1)}
-          disabled={page >= totalPages}
+          disabled={loading || page >= totalPages}
           className="inline-flex h-10 items-center justify-center gap-1 rounded-xl border border-outline-variant/20 bg-surface-container-low px-3 text-label-md font-bold text-on-surface transition-all hover:bg-surface-container-high active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
         >
           ถัดไป

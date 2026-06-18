@@ -9,6 +9,7 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 
+import { AdminRouteLoadingOverlay } from "@/src/components/common/AdminRouteLoadingOverlay";
 import { searchAdminCustomers } from "@/src/services/adminCustomers";
 import AvailabilityGrid from "./components/AvailabilityGrid";
 import BookedSlotModal from "./components/BookedSlotModal";
@@ -373,9 +374,12 @@ export default function AdminAvailabilityView({
 
   return (
     <div className="relative min-h-[60vh]">
+      <AdminRouteLoadingOverlay open={loading} />
+
       <DateSelector
         dates={dates}
         selectedDate={selectedDate}
+        loading={loading}
         onSelectDate={setSelectedDate}
       />
 

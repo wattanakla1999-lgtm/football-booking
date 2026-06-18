@@ -1,13 +1,15 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // GET /api/auth/logout
 // Clears the session cookie and redirects to the login page.
 // ─────────────────────────────────────────────────────────────────────────────
 
-export async function GET(): Promise<NextResponse> {
+export async function GET(
+  request: NextRequest,
+): Promise<NextResponse> {
   const response = NextResponse.redirect(
-    new URL("/", process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000")
+    new URL("/", request.url)
   );
 
   response.cookies.set("session_user_id", "", {

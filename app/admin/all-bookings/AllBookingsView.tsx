@@ -5,6 +5,7 @@ import {
   useEffect,
   useRef,
   useState,
+  useTransition,
 } from "react";
 import {
   usePathname,
@@ -12,6 +13,7 @@ import {
 } from "next/navigation";
 
 import { countActiveFilters } from "../../../utils/bookingStatus";
+import { AdminRouteLoadingOverlay } from "@/src/components/common/AdminRouteLoadingOverlay";
 import { PaginationControls } from "@/src/components/common/PaginationControls";
 import type { PaginationMeta } from "@/src/types/pagination";
 import { updateAdminBookingStatus } from "@/src/services/adminBookings";
@@ -60,6 +62,8 @@ export default function AllBookingsView({
 }: AllBookingsViewProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const [isPending, startTransition] =
+    useTransition();
   const actionMenuRef =
     useRef<HTMLDivElement | null>(null);
   const [activeActionMenuId, setActiveActionMenuId] =
@@ -113,11 +117,13 @@ export default function AllBookingsView({
         params.set("page", String(nextPage));
       }
 
-      router.push(
-        params.size
-          ? `${pathname}?${params.toString()}`
-          : pathname,
-      );
+      startTransition(() => {
+        router.push(
+          params.size
+            ? `${pathname}?${params.toString()}`
+            : pathname,
+        );
+      });
     },
     [
       initialFilters.courtFilter,
@@ -194,7 +200,9 @@ export default function AllBookingsView({
   const resetFilters = () => {
     setSearchKeyword("");
     setActiveActionMenuId(null);
-    router.push(pathname);
+    startTransition(() => {
+      router.push(pathname);
+    });
   };
 
   const updateStatus = async (
@@ -234,6 +242,8 @@ export default function AllBookingsView({
 
   return (
     <div className="w-full min-w-0 max-w-full space-y-5 overflow-x-hidden">
+      <AdminRouteLoadingOverlay open={isPending} />
+
       <BookingPageHeader
         title={title}
         searchKeyword={searchKeyword}
@@ -339,6 +349,7 @@ export default function AllBookingsView({
         total={pagination.total}
         limit={pagination.limit}
         totalPages={pagination.totalPages}
+        loading={isPending}
         onPageChange={(page) =>
           pushQuery({
             nextPage: page,

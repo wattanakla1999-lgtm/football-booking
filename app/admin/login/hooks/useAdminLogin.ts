@@ -5,6 +5,22 @@ import { useRouter } from "next/navigation";
 
 import { loginAdmin } from "../services/adminAuthService";
 
+function waitForNextFrame() {
+  return new Promise<void>((resolve) => {
+    requestAnimationFrame(() => {
+      resolve();
+    });
+  });
+}
+
+function wait(ms: number) {
+  return new Promise<void>((resolve) => {
+    window.setTimeout(() => {
+      resolve();
+    }, ms);
+  });
+}
+
 export function useAdminLogin() {
   const router = useRouter();
 
@@ -29,14 +45,19 @@ export function useAdminLogin() {
       setLoading(true);
       setError("");
 
+      await waitForNextFrame();
+
       await loginAdmin({
         email: email.trim(),
         password,
       });
 
+      await wait(250);
+
       router.push("/admin/dashboard");
       router.refresh();
     } catch (requestError) {
+      await wait(250);
       setLoading(false);
 
       console.error(
