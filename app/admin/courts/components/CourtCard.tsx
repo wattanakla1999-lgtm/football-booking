@@ -83,7 +83,7 @@ export default function CourtCard({
             <span style={{ fontSize: "0.65rem", color: "rgba(255,255,255,0.4)", display: "block" }}>
               ราคาต่อชั่วโมง
             </span>
-            <span style={{ fontSize: "1.1rem", fontWeight: 800, color: "#a5b4fc" }}>
+            <span style={{ fontSize: "1.1rem", fontWeight: 800, color: "#4ade80" }}>
               ฿{Number(court.pricePerHour).toLocaleString("th-TH")}
             </span>
           </div>

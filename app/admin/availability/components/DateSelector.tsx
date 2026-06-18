@@ -35,7 +35,7 @@ export default function DateSelector({
               gap-0.5 rounded-2xl border
               transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60
               ${isSelected
-                                ? "border-indigo-500 bg-indigo-500/[0.08] text-indigo-300"
+                                ? "border-green-500 bg-green-500/[0.08] text-green-300"
                                 : "border-white/[0.05] bg-white/[0.01] text-white/45 hover:bg-white/[0.03]"
                             }
             `}

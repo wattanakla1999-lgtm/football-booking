@@ -14,7 +14,8 @@ export default function CourtsHeader({
         type="button"
         onClick={onAddCourt}
         style={{
-          background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+          background:
+            "linear-gradient(135deg, var(--color-primary), var(--color-primary-dark))",
           border: "none",
           borderRadius: "10px",
           color: "#fff",
@@ -22,7 +23,7 @@ export default function CourtsHeader({
           fontSize: "0.85rem",
           padding: "0.55rem 1.25rem",
           cursor: "pointer",
-          boxShadow: "0 4px 12px rgba(99, 102, 241, 0.25)",
+          boxShadow: "0 4px 12px rgba(6, 199, 85, 0.25)",
           transition: "all 0.2s",
         }}
       >

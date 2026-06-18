@@ -65,9 +65,9 @@ export default function AvailabilityGrid({
 
                                 const style = isSelected
                                     ? {
-                                        borderColor: "#6366f1",
+                                        borderColor: "#22c55e",
                                         background:
-                                            "rgba(99,102,241,0.12)",
+                                            "rgba(34,197,94,0.12)",
                                     }
                                     : slot.isAvailable
                                         ? {
@@ -108,7 +108,7 @@ export default function AvailabilityGrid({
                                                     ? "0.25rem"
                                                     : 0,
                                                 color: isSelected
-                                                    ? "#c7d2fe"
+                                                    ? "#bbf7d0"
                                                     : slot.isAvailable
                                                         ? "#10b981"
                                                         : statusColor.text,
@@ -122,7 +122,7 @@ export default function AvailabilityGrid({
                                                 className="text-[0.7rem]"
                                                 style={{
                                                     color: isSelected
-                                                        ? "#a5b4fc"
+                                                        ? "#86efac"
                                                         : "rgba(16,185,129,0.65)",
                                                 }}
                                             >

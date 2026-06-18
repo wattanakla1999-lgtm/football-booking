@@ -1,13 +1,14 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 
 import CourtsEmptyState from "./components/CourtsEmptyState";
 import CourtFormModal from "./components/CourtFormModal";
 import CourtsGrid from "./components/CourtsGrid";
 import CourtsHeader from "./components/CourtsHeader";
 import { useCourtForm } from "./hooks/useCourtForm";
+import { AdminRouteLoadingOverlay } from "@/src/components/common/AdminRouteLoadingOverlay";
 import { PaginationControls } from "@/src/components/common/PaginationControls";
 import { LoadingSpinner } from "@/src/components/ui";
 import type { PaginationMeta } from "@/src/types/pagination";
@@ -33,8 +34,10 @@ export default function CourtsListView({
   pagination,
 }: CourtsListViewProps) {
   const router = useRouter();
-  const [courts] = useState<Court[]>(initialCourts);
   const [submitting, setSubmitting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [isPending, startTransition] =
+    useTransition();
   const {
     showModal,
     editingCourt,
@@ -78,9 +81,10 @@ export default function CourtsListView({
         await createAdminCourt(payload);
       }
 
-      alert("บันทึกข้อมูลสนามบอลสำเร็จ!");
       closeModal();
-      router.refresh();
+      startTransition(() => {
+        router.refresh();
+      });
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "เกิดข้อผิดพลาด");
     } finally {
@@ -92,11 +96,15 @@ export default function CourtsListView({
     if (!confirm(`คุณแน่ใจหรือไม่ที่จะลบสนาม "${courtName}"?`)) return;
 
     try {
+      setDeleting(true);
       await deleteAdminCourt(courtId);
-      alert("ลบสนามบอลสำเร็จ!");
-      router.refresh();
+      startTransition(() => {
+        router.refresh();
+      });
     } catch (err: unknown) {
       alert(err instanceof Error ? err.message : "เกิดข้อผิดพลาดในการลบสนาม");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -107,25 +115,31 @@ export default function CourtsListView({
       params.set("page", String(page));
     }
 
-    router.push(
-      params.size
-        ? `/admin/courts?${params.toString()}`
-        : "/admin/courts",
-    );
+    startTransition(() => {
+      router.push(
+        params.size
+          ? `/admin/courts?${params.toString()}`
+          : "/admin/courts",
+      );
+    });
   };
 
   return (
     <div className="space-y-6">
+      <AdminRouteLoadingOverlay
+        open={submitting || deleting || isPending}
+      />
+
       <CourtsHeader onAddCourt={openAddModal} />
 
-      {submitting && courts.length === 0 ? (
+      {submitting && initialCourts.length === 0 ? (
         <LoadingSpinner />
-      ) : courts.length === 0 ? (
+      ) : initialCourts.length === 0 ? (
         <CourtsEmptyState />
       ) : (
         <>
           <CourtsGrid
-            courts={courts}
+            courts={initialCourts}
             onEditCourt={openEditModal}
             onDeleteCourt={handleDelete}
           />
@@ -135,6 +149,7 @@ export default function CourtsListView({
             total={pagination.total}
             limit={pagination.limit}
             totalPages={pagination.totalPages}
+            loading={submitting || deleting || isPending}
             onPageChange={handlePageChange}
           />
         </>

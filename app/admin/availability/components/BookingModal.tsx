@@ -386,7 +386,7 @@ export default function BookingModal({
           <Button
             type="submit"
             loading={isSubmitting}
-            className="flex-1 bg-gradient-to-br from-indigo-500 to-violet-500 py-3 shadow-lg shadow-indigo-500/20"
+            className="flex-1 bg-gradient-to-br from-primary to-[var(--color-primary-dark)] py-3 shadow-lg shadow-green-500/20"
           >
             {isSubmitting
               ? "กำลังบันทึก..."
@@ -419,10 +419,10 @@ function SummaryRow({
         {label}
       </span>
 
-      <span
-        className={`text-right font-bold ${
+        <span
+          className={`text-right font-bold ${
           highlight
-            ? "text-indigo-300"
+            ? "text-green-300"
             : "text-white"
         }`}
       >

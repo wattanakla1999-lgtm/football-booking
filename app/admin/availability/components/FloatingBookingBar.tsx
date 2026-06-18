@@ -35,7 +35,7 @@ export default function FloatingBookingBar({
                 <button
                     type="button"
                     onClick={onConfirm}
-                    className="rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 px-5 py-2 text-sm font-bold text-white shadow-lg shadow-indigo-500/25"
+                    className="rounded-xl bg-gradient-to-br from-primary to-[var(--color-primary-dark)] px-5 py-2 text-sm font-bold text-white shadow-lg shadow-green-500/25"
                 >
                     จองสนาม (Admin)
                 </button>
