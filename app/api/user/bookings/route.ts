@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/src/lib/prisma";
 import { cookies } from "next/headers";
+import { getHistoryBookingsByUserId } from "@/app/history/bookingHistoryData";
 
 export async function GET() {
   try {
@@ -12,30 +12,8 @@ export async function GET() {
     }
 
     // Fetch bookings for the logged-in user
-    const bookings = await prisma.booking.findMany({
-      where: {
-        userId: sessionUserId,
-      },
-      include: {
-        items: {
-          include: {
-            court: {
-              select: {
-                name: true,
-                surface: true,
-              }
-            }
-          },
-          orderBy: {
-            startTime: 'asc'
-          }
-        },
-        payment: true,
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
+    const bookings =
+      await getHistoryBookingsByUserId(sessionUserId);
 
     return NextResponse.json({ bookings });
   } catch (error) {

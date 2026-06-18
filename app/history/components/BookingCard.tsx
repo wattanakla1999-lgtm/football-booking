@@ -99,7 +99,7 @@ export function BookingCard({
           </div>
 
           <div className="divide-y divide-white/10">
-            {booking.items.map((item : any) => (
+            {booking.items.map((item) => (
               <BookingTimeRow
                 key={item.id}
                 item={item}

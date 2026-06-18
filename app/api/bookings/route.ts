@@ -1,10 +1,19 @@
 import { prisma } from "@/src/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 type BookingSlotPayload = {
   startTime: string;
   endTime: string;
+};
+
+type CreateBookingBody = {
+  courtId?: string;
+  date?: string;
+  slots?: BookingSlotPayload[];
+  phone?: string;
+  paymentMethod?: string;
 };
 
 export async function POST(request: Request) {
@@ -16,7 +25,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await request.json();
+    const body =
+      (await request.json()) as CreateBookingBody;
     const { courtId, date, slots } = body;
 
     if (!courtId || !date || !slots || slots.length === 0) {
@@ -129,7 +139,7 @@ export async function POST(request: Request) {
       const slotStart = parseInt(slot.startTime.split(":")[0]);
       const slotEnd = parseInt(slot.endTime.split(":")[0]);
 
-      const isConflict = existingItems.some((item: any) => {
+      const isConflict = existingItems.some((item) => {
         const itemStart = parseInt(item.startTime.split(":")[0]);
         const itemEnd = parseInt(item.endTime.split(":")[0]);
         return slotStart < itemEnd && slotEnd > itemStart;
@@ -150,7 +160,7 @@ export async function POST(request: Request) {
     const totalPrice = slots.length * pricePerHour;
 
     // 5. Create Booking, update User details, and create Payment in a transaction
-    const booking = await prisma.$transaction(async (tx : any) => {
+    const booking = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       // Update phone number in user profile if provided
       if (phone) {
         await tx.user.update({

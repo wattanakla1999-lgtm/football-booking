@@ -75,7 +75,7 @@ export async function GET(request: Request) {
     const existingItems = await prisma.bookingItem.findMany({
       where: {
         date: targetDate,
-        courtId: { in: courts.map((c : any) => c.id) },
+        courtId: { in: courts.map((court) => court.id) },
         booking: { status: { not: "cancelled" } },
       },
       include: {
@@ -102,7 +102,7 @@ export async function GET(request: Request) {
       closeHour += 24;
     }
 
-    const courtsWithSlots = courts.map((court : any) => {
+    const courtsWithSlots = courts.map((court) => {
       const slots = [];
       for (let h = openHour; h < closeHour; h++) {
         const displayStartH = h % 24;
@@ -111,7 +111,7 @@ export async function GET(request: Request) {
         const endTime = `${displayEndH.toString().padStart(2, "0")}:00`;
 
         // Find matching booking item
-        const matchedItem = existingItems.find((item : any) => {
+        const matchedItem = existingItems.find((item) => {
           if (item.courtId !== court.id) return false;
           const itemStart = parseInt(item.startTime.split(":")[0]);
           let itemEnd = parseInt(item.endTime.split(":")[0]);

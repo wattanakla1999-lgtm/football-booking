@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import type { Prisma } from "@prisma/client";
 
 import { prisma } from "@/src/lib/prisma";
 
@@ -51,7 +52,7 @@ export default async function AdminCustomersPage({
     redirect("/admin/login");
   }
 
-const where: Record<string, any> = {
+  const where: Prisma.UserWhereInput = {
     organizationId: admin.organizationId,
     ...(searchQuery
       ? {
@@ -182,23 +183,29 @@ const where: Record<string, any> = {
     }),
   ]);
 
-  const customers: CustomerSummary[] = users.map((user : any) => {
+  const customers: CustomerSummary[] = users.map((user) => {
     const lastBooking = [...user.bookings].sort(
       (left, right) =>
         right.createdAt.getTime() - left.createdAt.getTime(),
     )[0];
 
-const courtCounts = user.bookings
-  .flatMap((booking: any) =>
-    booking.items.map((item: any) => item.court.name),
-  )
-  .reduce(
-    (map: Map<string, number>, courtName: string) => {
-      map.set(courtName, (map.get(courtName) || 0) + 1);
-      return map;
-    },
-    new Map<string, number>(),
-  );
+    const courtCounts = user.bookings
+      .flatMap((booking) =>
+        booking.items.map((item) => item.court.name),
+      )
+      .reduce(
+        (
+          map: Map<string, number>,
+          courtName: string,
+        ) => {
+          map.set(
+            courtName,
+            (map.get(courtName) || 0) + 1,
+          );
+          return map;
+        },
+        new Map<string, number>(),
+      );
 
     const favoriteCourt =
       [...courtCounts.entries()].sort(
@@ -206,29 +213,29 @@ const courtCounts = user.bookings
       )[0]?.[0] || null;
 
     const activeBookings = user.bookings.filter(
-      (booking : { status: string }) =>
+      (booking) =>
         booking.status === "pending" ||
         booking.status === "paid" ||
         booking.status === "confirmed",
     ).length;
 
     const completedBookings = user.bookings.filter(
-      (booking : { status: string }) => booking.status === "completed",
+      (booking) => booking.status === "completed",
     ).length;
 
     const cancelledBookings = user.bookings.filter(
-      (booking : { status: string }) => booking.status === "cancelled",
+      (booking) => booking.status === "cancelled",
     ).length;
 
-const totalSpent = user.bookings.reduce(
-  (sum: number, booking: { status: string; totalPrice: string }) =>
-    booking.status === "paid" ||
-    booking.status === "confirmed" ||
-    booking.status === "completed"
-      ? sum + Number(booking.totalPrice)
-      : sum,
-  0,
-);
+    const totalSpent = user.bookings.reduce(
+      (sum: number, booking) =>
+        booking.status === "paid" ||
+        booking.status === "confirmed" ||
+        booking.status === "completed"
+          ? sum + Number(booking.totalPrice)
+          : sum,
+      0,
+    );
     return {
       id: user.id,
       displayName: user.displayName,

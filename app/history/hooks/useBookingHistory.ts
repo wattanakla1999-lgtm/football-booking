@@ -4,14 +4,18 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { getUserBookings } from "../services/bookingHistoryService";
 import type {
   Booking,
+  BookingItem,
   BookingStatusSummary,
   StatusFilter,
 } from "../types/booking";
 import { EMPTY_STATUS_SUMMARY } from "../utils/booking";
 
-export function useBookingHistory() {
-  const [bookings, setBookings] = useState<Booking[]>([]);
-  const [loading, setLoading] = useState(true);
+export function useBookingHistory(initialBookings: Booking[] = []) {
+  const [bookings, setBookings] =
+    useState<Booking[]>(initialBookings);
+  const [loading, setLoading] = useState(
+    initialBookings.length === 0,
+  );
   const [error, setError] = useState("");
   const [searchKeyword, setSearchKeyword] = useState("");
   const [statusFilter, setStatusFilter] =
@@ -47,6 +51,10 @@ export function useBookingHistory() {
   }, []);
 
   useEffect(() => {
+    if (initialBookings.length > 0) {
+      return;
+    }
+
     const controller = new AbortController();
 
     queueMicrotask(() => {
@@ -56,7 +64,7 @@ export function useBookingHistory() {
     return () => {
       controller.abort();
     };
-  }, [fetchBookings]);
+  }, [fetchBookings, initialBookings.length]);
 
   const statusSummary = useMemo<BookingStatusSummary>(() => {
     return bookings.reduce<BookingStatusSummary>(
@@ -76,14 +84,19 @@ export function useBookingHistory() {
       const bookingId = booking.id.toLowerCase();
 
       const fieldNames = booking.items
-        .map((item : { court?: { name: string } }    ) => item.court?.name || "")
+        .map(
+          (item: BookingItem) => item.court?.name || "",
+        )
         .join(" ")
         .toLowerCase();
 
       const surfaces = booking.items
-        .map((item : any) => item.court?.surface || "")
+        .map(
+          (item: BookingItem) =>
+            item.court?.surface || "",
+        )
         .join(" ")
-        .toLowerCase(); 
+        .toLowerCase();
 
       const matchesSearch =
         keyword === "" ||

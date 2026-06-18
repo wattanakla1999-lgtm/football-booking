@@ -97,7 +97,7 @@ export async function GET(request: Request) {
 
       // Check if this slot overlaps with any existing booking item
       // An existing item is booked if its startTime is exactly this slot's startTime
-      const isBooked = existingBookingItems.some((item :any) => {
+      const isBooked = existingBookingItems.some((item) => {
         const itemStart = parseInt(item.startTime.split(":")[0]);
         let itemEnd = parseInt(item.endTime.split(":")[0]);
 

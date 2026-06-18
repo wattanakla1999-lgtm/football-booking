@@ -1,4 +1,5 @@
 import { prisma } from "@/src/lib/prisma";
+import type { Prisma } from "@prisma/client";
 import {
   createPaginationMeta,
   parsePageParam,
@@ -233,30 +234,30 @@ export default async function AdminAllBookingsPage({
   });
 
   const serializedBookings: Booking[] = bookings.map(
-  (booking: any) => ({
-    id: booking.id,
-    totalPrice: Number(booking.totalPrice),
-    status: booking.status,
-    user: {
-      id: booking.user.id,
-      displayName: booking.user.displayName,
-      phone: booking.user.phone,
-      pictureUrl: booking.user.pictureUrl,
-    },
-    items: booking.items.map((item: any) => ({
-      id: item.id,
-      date: item.date.toISOString(),
-      startTime: item.startTime,
-      endTime: item.endTime,
-      court: item.court
-        ? {
-            id: item.court.id,
-            name: item.court.name,
-          }
-        : null,
-    })),
-  }),
-);
+    (booking) => ({
+      id: booking.id,
+      totalPrice: Number(booking.totalPrice),
+      status: booking.status,
+      user: {
+        id: booking.user.id,
+        displayName: booking.user.displayName,
+        phone: booking.user.phone,
+        pictureUrl: booking.user.pictureUrl,
+      },
+      items: booking.items.map((item) => ({
+        id: item.id,
+        date: item.date.toISOString(),
+        startTime: item.startTime,
+        endTime: item.endTime,
+        court: item.court
+          ? {
+              id: item.court.id,
+              name: item.court.name,
+            }
+          : null,
+      })),
+    }),
+  );
 
   return (
     <AllBookingsView
@@ -271,12 +272,14 @@ export default async function AdminAllBookingsPage({
         startDateFilter,
         endDateFilter,
       }}
-courtOptions={courtOptions.map(
-  (court: { id: string; name: string }) => ({
-    value: court.id,
-    label: court.name,
-  }),
-)}
+        courtOptions={courtOptions.map(
+          (court: Prisma.CourtGetPayload<{
+            select: { id: true; name: true };
+          }>) => ({
+            value: court.id,
+            label: court.name,
+          }),
+        )}
       summaryCounts={{
         all: allCount,
         pending: pendingCount,

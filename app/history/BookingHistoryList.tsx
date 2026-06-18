@@ -11,7 +11,13 @@ import { useBookingHistory } from "./hooks/useBookingHistory";
 import type { Booking } from "./types/booking";
 import { shortBookingId } from "./utils/booking";
 
-export default function BookingHistoryList() {
+type BookingHistoryListProps = {
+  initialBookings: Booking[];
+};
+
+export default function BookingHistoryList({
+  initialBookings,
+}: BookingHistoryListProps) {
   const {
     bookings,
     filteredBookings,
@@ -25,7 +31,7 @@ export default function BookingHistoryList() {
     setStatusFilter,
     clearFilters,
     fetchBookings,
-  } = useBookingHistory();
+  } = useBookingHistory(initialBookings);
 
   const handlePayment = (booking: Booking) => {
     /*

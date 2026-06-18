@@ -1,4 +1,5 @@
 import { prisma } from "@/src/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
@@ -138,7 +139,7 @@ export async function POST(request: Request) {
       const slotStart = parseInt(slot.startTime.split(":")[0]);
       const slotEnd = parseInt(slot.endTime.split(":")[0]);
 
-      const isConflict = existingItems.some((item: any) => {
+      const isConflict = existingItems.some((item) => {
         const itemStart = parseInt(item.startTime.split(":")[0]);
         const itemEnd = parseInt(item.endTime.split(":")[0]);
         return slotStart < itemEnd && slotEnd > itemStart;  
@@ -197,7 +198,7 @@ export async function POST(request: Request) {
     const totalPrice = slots.length * pricePerHour;
 
     // 5. Create Booking and BookingItems in transaction
-    const booking = await prisma.$transaction(async (tx : any) => {
+    const booking = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const newBooking = await tx.booking.create({
         data: {
           userId: customerUser.id,

@@ -79,7 +79,7 @@ export async function GET(request: Request) {
     });
 
     return NextResponse.json({
-      customers: customers.map((customer : any) => ({
+      customers: customers.map((customer) => ({
         ...customer,
         createdAt: customer.createdAt.toISOString(),
       })),

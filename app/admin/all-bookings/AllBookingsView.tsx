@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  useCallback,
   useEffect,
   useRef,
   useState,
@@ -70,11 +71,64 @@ export default function AllBookingsView({
   const [searchKeyword, setSearchKeyword] =
     useState(initialFilters.searchKeyword);
 
-  useEffect(() => {
-    setSearchKeyword(
-      initialFilters.searchKeyword,
-    );
-  }, [initialFilters.searchKeyword]);
+  const pushQuery = useCallback(
+    ({
+      nextPage = 1,
+      nextSearchKeyword = searchKeyword.trim(),
+      nextStatus = initialFilters.statusFilter,
+      nextCourt = initialFilters.courtFilter,
+      nextStartDate = initialFilters.startDateFilter,
+      nextEndDate = initialFilters.endDateFilter,
+    }: {
+      nextPage?: number;
+      nextSearchKeyword?: string;
+      nextStatus?: StatusFilter;
+      nextCourt?: string;
+      nextStartDate?: string;
+      nextEndDate?: string;
+    }) => {
+      const params = new URLSearchParams();
+
+      if (nextSearchKeyword) {
+        params.set("q", nextSearchKeyword);
+      }
+
+      if (nextStatus !== "all") {
+        params.set("status", nextStatus);
+      }
+
+      if (nextCourt !== "all") {
+        params.set("court", nextCourt);
+      }
+
+      if (nextStartDate) {
+        params.set("startDate", nextStartDate);
+      }
+
+      if (nextEndDate) {
+        params.set("endDate", nextEndDate);
+      }
+
+      if (nextPage > 1) {
+        params.set("page", String(nextPage));
+      }
+
+      router.push(
+        params.size
+          ? `${pathname}?${params.toString()}`
+          : pathname,
+      );
+    },
+    [
+      initialFilters.courtFilter,
+      initialFilters.endDateFilter,
+      initialFilters.startDateFilter,
+      initialFilters.statusFilter,
+      pathname,
+      router,
+      searchKeyword,
+    ],
+  );
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
@@ -99,6 +153,7 @@ export default function AllBookingsView({
     };
   }, [
     initialFilters.searchKeyword,
+    pushQuery,
     searchKeyword,
   ]);
 
@@ -128,54 +183,6 @@ export default function AllBookingsView({
       );
     };
   }, []);
-
-  const pushQuery = ({
-    nextPage = 1,
-    nextSearchKeyword = searchKeyword.trim(),
-    nextStatus = initialFilters.statusFilter,
-    nextCourt = initialFilters.courtFilter,
-    nextStartDate = initialFilters.startDateFilter,
-    nextEndDate = initialFilters.endDateFilter,
-  }: {
-    nextPage?: number;
-    nextSearchKeyword?: string;
-    nextStatus?: StatusFilter;
-    nextCourt?: string;
-    nextStartDate?: string;
-    nextEndDate?: string;
-  }) => {
-    const params = new URLSearchParams();
-
-    if (nextSearchKeyword) {
-      params.set("q", nextSearchKeyword);
-    }
-
-    if (nextStatus !== "all") {
-      params.set("status", nextStatus);
-    }
-
-    if (nextCourt !== "all") {
-      params.set("court", nextCourt);
-    }
-
-    if (nextStartDate) {
-      params.set("startDate", nextStartDate);
-    }
-
-    if (nextEndDate) {
-      params.set("endDate", nextEndDate);
-    }
-
-    if (nextPage > 1) {
-      params.set("page", String(nextPage));
-    }
-
-    router.push(
-      params.size
-        ? `${pathname}?${params.toString()}`
-        : pathname,
-    );
-  };
 
   const hasActiveFilters =
     Boolean(initialFilters.searchKeyword) ||

@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import BookingHistoryList from "./BookingHistoryList";
+import { getHistoryBookingsByUserId } from "./bookingHistoryData";
 
 export const metadata: Metadata = {
   title: "ประวัติการจอง — Football Booking",
@@ -16,6 +17,9 @@ export default async function HistoryPage() {
     redirect("/");
   }
 
+  const initialBookings =
+    await getHistoryBookingsByUserId(sessionUserId);
+
   return (
     <main className="min-h-screen bg-[#0f172a] text-white">
       {/* Header */}
@@ -29,7 +33,9 @@ export default async function HistoryPage() {
       </header>
 
       {/* Client Component */}
-      <BookingHistoryList />
+      <BookingHistoryList
+        initialBookings={initialBookings}
+      />
     </main>
   );
 }

@@ -45,7 +45,7 @@ export function CourtSelectionStep({
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {courts.map((court :any) => (
+          {courts.map((court: Court) => (
             <CourtCard
               key={court.id}
               court={court}

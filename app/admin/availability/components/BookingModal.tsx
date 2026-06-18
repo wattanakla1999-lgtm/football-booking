@@ -217,7 +217,7 @@ export default function BookingModal({
                   </div>
                 )}
 
-              {customerResults.map((customer : any) => {
+              {customerResults.map((customer: CustomerSearchItem) => {
                 const isSelected =
                   selectedCustomer?.id ===
                   customer.id;

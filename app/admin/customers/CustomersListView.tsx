@@ -211,7 +211,7 @@ export default function CustomersListView({
               <span>ล่าสุด</span>
             </div>
 
-            {customers.map((customer : any) => (
+            {customers.map((customer: CustomerSummary) => (
               <article
                 key={customer.id}
                 className="grid grid-cols-[2.2fr_1.1fr_1fr_1fr_1fr_1fr] gap-4 border-b border-outline-variant/10 px-5 py-4 last:border-b-0"

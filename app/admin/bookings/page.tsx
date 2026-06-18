@@ -1,4 +1,5 @@
 import { prisma } from "@/src/lib/prisma";
+import type { Prisma } from "@prisma/client";
 import {
   createPaginationMeta,
   parsePageParam,
@@ -63,7 +64,7 @@ export default async function AdminBookingsPage({
     redirect("/admin/login");
   }
 
-const baseWhere: Record<string, any> = {
+  const baseWhere: Prisma.BookingWhereInput = {
     organizationId: admin.organizationId,
     ...(searchQuery
       ? {
@@ -113,7 +114,7 @@ const baseWhere: Record<string, any> = {
       : {}),
   };
 
-const where: Record<string, any> = {
+  const where: Prisma.BookingWhereInput = {
     ...baseWhere,
     ...(bookingStatusFilter
       ? { status: bookingStatusFilter }
@@ -193,7 +194,7 @@ const where: Record<string, any> = {
     take: PAGE_LIMIT,
   });
 
-const serializedBookings = bookings.map((booking: any) => ({
+  const serializedBookings = bookings.map((booking) => ({
     id: booking.id,
     totalPrice: booking.totalPrice.toString(),
     status: booking.status,
@@ -205,7 +206,7 @@ const serializedBookings = bookings.map((booking: any) => ({
       lineUserId: booking.user.lineUserId,
       phone: booking.user.phone,
     },
-    items: booking.items.map((item: any) => ({
+    items: booking.items.map((item) => ({
       id: item.id,
       date: item.date.toISOString(),
       startTime: item.startTime,

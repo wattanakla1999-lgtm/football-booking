@@ -1,4 +1,5 @@
 import { prisma } from "@/src/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
@@ -62,7 +63,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "กรุณาระบุชื่อสนามและราคาต่อชั่วโมง" }, { status: 400 });
     }
 
-    const court = await prisma.$transaction(async (tx : any) => {
+    const court = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       // 1. Create court
       const newCourt = await tx.court.create({
         data: {
@@ -123,7 +124,7 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: "ไม่พบสนามบอลที่ระบุ" }, { status: 404 });
     }
 
-    const court = await prisma.$transaction(async (tx : any) => {
+    const court = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       // 1. Update court details
       const updatedCourt = await tx.court.update({
         where: { id: courtId },  
