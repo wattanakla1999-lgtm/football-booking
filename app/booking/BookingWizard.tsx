@@ -43,6 +43,8 @@ export default function BookingWizard({
   const [phoneError, setPhoneError] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isRouteLoading, setIsRouteLoading] =
+    useState(false);
   const [successfulBookingId, setSuccessfulBookingId] =
     useState("");
 
@@ -155,6 +157,13 @@ export default function BookingWizard({
     }
   };
 
+  const navigateWithLoading = (
+    href: string,
+  ) => {
+    setIsRouteLoading(true);
+    window.location.assign(href);
+  };
+
   return (
     <>
       <div className="flex-1 flex flex-col">
@@ -220,13 +229,14 @@ export default function BookingWizard({
                   `${slot.startTime.slice(0, 5)}-${slot.endTime.slice(0, 5)}`,
               )}
               totalPrice={totalPrice}
+              isNavigating={isRouteLoading}
               onViewBookingDetail={() =>
-                router.push(
+                navigateWithLoading(
                   `/history?bookingId=${successfulBookingId}`,
                 )
               }
               onViewHistory={() =>
-                router.push("/history")
+                navigateWithLoading("/history")
               }
             />
           )}
@@ -241,7 +251,9 @@ export default function BookingWizard({
       )}
       </div>
 
-      <AdminRouteLoadingOverlay open={isSubmitting} />
+      <AdminRouteLoadingOverlay
+        open={isSubmitting || isRouteLoading}
+      />
     </>
   );
 }

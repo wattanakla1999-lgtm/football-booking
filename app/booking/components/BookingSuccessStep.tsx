@@ -6,6 +6,7 @@ type BookingSuccessStepProps = {
   bookingDateLabel: string;
   slotLabels: string[];
   totalPrice: number;
+  isNavigating?: boolean;
   onViewHistory: () => void;
   onViewBookingDetail: () => void;
 };
@@ -20,6 +21,7 @@ export function BookingSuccessStep({
   bookingDateLabel,
   slotLabels,
   totalPrice,
+  isNavigating = false,
   onViewHistory,
   onViewBookingDetail,
 }: BookingSuccessStepProps) {
@@ -109,7 +111,8 @@ export function BookingSuccessStep({
         <button
           type="button"
           onClick={onViewBookingDetail}
-          className="w-full rounded-2xl bg-green-500 py-4 text-base font-bold text-white transition-all duration-150 hover:bg-green-600 active:scale-[0.98]"
+          disabled={isNavigating}
+          className="w-full rounded-2xl bg-green-500 py-4 text-base font-bold text-white transition-all duration-150 hover:bg-green-600 active:scale-[0.98] disabled:cursor-wait disabled:opacity-70"
         >
           ดูรายละเอียดการจอง
         </button>
@@ -117,7 +120,8 @@ export function BookingSuccessStep({
         <button
           type="button"
           onClick={onViewHistory}
-          className="w-full rounded-2xl border border-white/10 bg-white/[0.03] py-4 text-sm font-semibold text-white/80 transition-all duration-150 hover:bg-white/[0.06] active:scale-[0.98]"
+          disabled={isNavigating}
+          className="w-full rounded-2xl border border-white/10 bg-white/[0.03] py-4 text-sm font-semibold text-white/80 transition-all duration-150 hover:bg-white/[0.06] active:scale-[0.98] disabled:cursor-wait disabled:opacity-70"
         >
           ดูการจองทั้งหมดของฉัน
         </button>

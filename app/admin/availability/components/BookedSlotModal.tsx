@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { updateAdminBookingStatus } from "@/src/services/adminBookings";
 
 import type { SelectedBookedSlot } from "../types/availability";
 
@@ -21,6 +22,8 @@ export default function BookedSlotModal({
     onClose,
 }: BookedSlotModalProps) {
     const [isRouteLoading, setIsRouteLoading] =
+        useState(false);
+    const [isCancelling, setIsCancelling] =
         useState(false);
     const statusColor = getStatusColor(
         slot.bookingStatus,
@@ -101,20 +104,67 @@ export default function BookedSlotModal({
                     </div>
 
                     <div className="mt-6">
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setIsRouteLoading(true);
-                                window.location.assign(
-                                    targetHref,
-                                );
-                            }}
-                            className="block w-full rounded-xl bg-white/[0.05] p-3 text-center text-sm font-semibold text-white transition-colors hover:bg-white/10"
-                        >
-                            {slot.bookingId
-                                ? "ดูรายละเอียดการจอง"
-                                : "ดูการจองทั้งหมด"}
-                        </button>
+                        <div className="space-y-3">
+                            {slot.bookingId &&
+                                slot.bookingStatus !==
+                                    "cancelled" &&
+                                slot.bookingStatus !==
+                                    "completed" && (
+                                    <button
+                                        type="button"
+                                        onClick={async () => {
+                                            const confirmed =
+                                                window.confirm(
+                                                    "ต้องการยกเลิกรายการจองนี้ใช่หรือไม่",
+                                                );
+
+                                            if (!confirmed) {
+                                                return;
+                                            }
+
+                                            try {
+                                                setIsCancelling(
+                                                    true,
+                                                );
+                                                await updateAdminBookingStatus(
+                                                    slot.bookingId!,
+                                                    "cancelled",
+                                                );
+                                                window.location.reload();
+                                            } catch {
+                                                window.alert(
+                                                    "ไม่สามารถยกเลิกรายการจองได้",
+                                                );
+                                            } finally {
+                                                setIsCancelling(
+                                                    false,
+                                                );
+                                            }
+                                        }}
+                                        disabled={isCancelling}
+                                        className="block w-full rounded-xl bg-red-500/10 p-3 text-center text-sm font-semibold text-red-300 transition-colors hover:bg-red-500/20 disabled:cursor-wait disabled:opacity-60"
+                                    >
+                                        {isCancelling
+                                            ? "กำลังยกเลิก..."
+                                            : "ยกเลิกการจอง"}
+                                    </button>
+                                )}
+
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setIsRouteLoading(true);
+                                    window.location.assign(
+                                        targetHref,
+                                    );
+                                }}
+                                className="block w-full rounded-xl bg-white/[0.05] p-3 text-center text-sm font-semibold text-white transition-colors hover:bg-white/10"
+                            >
+                                {slot.bookingId
+                                    ? "ดูรายละเอียดการจอง"
+                                    : "ดูการจองทั้งหมด"}
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

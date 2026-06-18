@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useState } from "react";
 
 import { BookingCard } from "./components/BookingCard";
 import { BookingHistoryHeader } from "./components/BookingHistoryHeader";
@@ -11,6 +12,7 @@ import { EmptyState } from "./components/EmptyState";
 import { ErrorState } from "./components/ErrorState";
 import { StatusFilters } from "./components/StatusFilters";
 import { useBookingHistory } from "./hooks/useBookingHistory";
+import { updateUserBookingStatus } from "./services/bookingHistoryService";
 import type {
   Booking,
   BookingHistoryPageData,
@@ -27,6 +29,8 @@ export default function BookingHistoryList({
   initialData,
   highlightedBookingId = "",
 }: BookingHistoryListProps) {
+  const [cancellingBookingId, setCancellingBookingId] =
+    useState("");
   const {
     bookings,
     pagination,
@@ -53,6 +57,38 @@ export default function BookingHistoryList({
     alert(
       `แจ้งชำระเงินสำหรับรายการ #${shortBookingId(booking.id)}`,
     );
+  };
+
+  const handleCancelBooking = async (
+    booking: Booking,
+  ) => {
+    const confirmed = window.confirm(
+      `ต้องการยกเลิกรายการ #${shortBookingId(booking.id)} ใช่หรือไม่`,
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      setCancellingBookingId(booking.id);
+      await updateUserBookingStatus(
+        booking.id,
+        "cancelled",
+      );
+
+      await fetchBookings(undefined, {
+        page: currentPage,
+      });
+    } catch (requestError) {
+      window.alert(
+        requestError instanceof Error
+          ? requestError.message
+          : "ไม่สามารถยกเลิกรายการจองได้",
+      );
+    } finally {
+      setCancellingBookingId("");
+    }
   };
 
   const highlightedBooking =
@@ -87,7 +123,10 @@ export default function BookingHistoryList({
   return (
     <div>
       <AdminRouteLoadingOverlay
-        open={loading && totalBookings > 0}
+        open={
+          (loading && totalBookings > 0) ||
+          Boolean(cancellingBookingId)
+        }
       />
 
       <div className="mx-auto w-full max-w-7xl space-y-5">
@@ -180,6 +219,13 @@ export default function BookingHistoryList({
                     highlighted={
                       booking.id ===
                       highlightedBookingId
+                    }
+                    isCancelling={
+                      booking.id ===
+                      cancellingBookingId
+                    }
+                    onCancelBooking={
+                      handleCancelBooking
                     }
                     onPayment={handlePayment}
                   />

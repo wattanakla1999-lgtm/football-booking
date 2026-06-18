@@ -45,3 +45,17 @@ export async function getUserBookings(
 
   return response.data;
 }
+
+export async function updateUserBookingStatus(
+  bookingId: string,
+  status: Booking["status"],
+) {
+  const response = await apiClient.patch<{
+    success: boolean;
+  }>("/user/bookings", {
+    bookingId,
+    status,
+  });
+
+  return response.data;
+}

@@ -28,6 +28,16 @@ export type AdminBookingNotificationPayload = {
   paymentStatus: PaymentStatus;
 };
 
+export type AdminBookingCancelledNotificationPayload = {
+  bookingId: string;
+  customerName: string;
+  customerPhone?: string | null;
+  courtName: string;
+  bookingDate: string;
+  slots: BookingTimeSlot[];
+  totalPrice: number;
+};
+
 const LINE_PUSH_API_URL =
   "https://api.line.me/v2/bot/message/push";
 
@@ -220,6 +230,100 @@ function buildAdminBookingFlexMessage(
   };
 }
 
+function buildAdminBookingCancelledFlexMessage(
+  payload: AdminBookingCancelledNotificationPayload
+) {
+  const adminBookingDetailUrl =
+    buildAdminBookingDetailUrl(payload.bookingId);
+
+  return {
+    type: "flex" as const,
+    altText: `ลูกค้ายกเลิกการจอง: ${payload.customerName} ยกเลิก ${payload.courtName} วันที่ ${payload.bookingDate}`,
+    contents: {
+      type: "bubble" as const,
+      size: "giga" as const,
+      header: {
+        type: "box" as const,
+        layout: "vertical" as const,
+        backgroundColor: "#DC2626",
+        paddingAll: "20px",
+        contents: [
+          {
+            type: "text" as const,
+            text: "ลูกค้ายกเลิกการจอง",
+            color: "#FFFFFF",
+            weight: "bold" as const,
+            size: "xl" as const,
+          },
+          {
+            type: "text" as const,
+            text: `รหัสการจอง ${payload.bookingId.slice(-8).toUpperCase()}`,
+            color: "#FEE2E2",
+            size: "xs" as const,
+            margin: "md" as const,
+          },
+        ],
+      },
+      body: {
+        type: "box" as const,
+        layout: "vertical" as const,
+        spacing: "md" as const,
+        paddingAll: "20px",
+        contents: [
+          {
+            type: "text" as const,
+            text: payload.courtName,
+            weight: "bold" as const,
+            size: "lg" as const,
+            color: "#111827",
+            wrap: true,
+          },
+          {
+            type: "separator" as const,
+            margin: "sm" as const,
+          },
+          buildInfoRow("ลูกค้า", payload.customerName),
+          buildInfoRow(
+            "เบอร์โทร",
+            payload.customerPhone?.trim() || "-"
+          ),
+          buildInfoRow("วันที่", payload.bookingDate),
+          buildInfoRow(
+            "เวลา",
+            formatTimeSlots(payload.slots)
+          ),
+          buildInfoRow(
+            "ยอดชำระ",
+            formatPrice(payload.totalPrice)
+          ),
+          buildInfoRow("สถานะล่าสุด", "ยกเลิกโดยลูกค้า"),
+        ],
+      },
+      footer: adminBookingDetailUrl
+        ? {
+            type: "box" as const,
+            layout: "vertical" as const,
+            spacing: "sm" as const,
+            paddingAll: "20px",
+            contents: [
+              {
+                type: "button" as const,
+                style: "primary" as const,
+                height: "sm" as const,
+                color: "#DC2626",
+                action: {
+                  type: "uri" as const,
+                  label: "ดูรายละเอียดการจอง",
+                  uri: adminBookingDetailUrl,
+                },
+              },
+            ],
+          }
+        : undefined,
+    },
+  };
+}
+
 export async function sendAdminBookingNotification(
   payload: AdminBookingNotificationPayload
 ) {
@@ -242,6 +346,43 @@ export async function sendAdminBookingNotification(
       to: adminLineUserId,
       messages: [
         buildAdminBookingFlexMessage(payload),
+      ],
+    }),
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `LINE push request failed (${response.status}): ${errorText}`
+    );
+  }
+}
+
+export async function sendAdminBookingCancelledNotification(
+  payload: AdminBookingCancelledNotificationPayload
+) {
+  const adminLineUserId =
+    process.env.ADMIN_LINE_USER_ID?.trim();
+  const channelAccessToken =
+    process.env.LINE_CHANNEL_ACCESS_TOKEN?.trim();
+
+  if (!adminLineUserId || !channelAccessToken) {
+    return;
+  }
+
+  const response = await fetch(LINE_PUSH_API_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${channelAccessToken}`,
+    },
+    body: JSON.stringify({
+      to: adminLineUserId,
+      messages: [
+        buildAdminBookingCancelledFlexMessage(
+          payload
+        ),
       ],
     }),
     cache: "no-store",
