@@ -103,12 +103,17 @@ export function getPaymentLabel(booking: Booking) {
   }
 
   switch (booking.payment.status.toLowerCase()) {
+    case "unpaid":
+      return "ยังไม่ชำระเงิน";
     case "pending":
+    case "pending_verify":
       return "กำลังรอตรวจสอบการชำระเงิน";
     case "paid":
+    case "verified":
     case "success":
     case "completed":
       return "ชำระเงินแล้ว";
+    case "rejected":
     case "failed":
       return "การชำระเงินไม่สำเร็จ";
     case "cancelled":

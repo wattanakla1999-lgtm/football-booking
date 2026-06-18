@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { cookies } from "next/headers";
+import { sendCustomerBookingCancelledByAdminNotification } from "@/src/services/lineNotificationService";
 
 export const dynamic = "force-dynamic";
 
@@ -92,6 +93,26 @@ export async function PATCH(request: Request) {
         id: bookingId,
         organizationId: admin.organizationId,
       },
+      include: {
+        user: {
+          select: {
+            lineUserId: true,
+          },
+        },
+        items: {
+          include: {
+            court: {
+              select: {
+                name: true,
+              },
+            },
+          },
+          orderBy: [
+            { date: "asc" },
+            { startTime: "asc" },
+          ],
+        },
+      },
     });
 
     if (!booking) {
@@ -102,6 +123,55 @@ export async function PATCH(request: Request) {
       where: { id: bookingId },
       data: { status },
     });
+
+    if (
+      status === "cancelled" &&
+      booking.status !== "cancelled"
+    ) {
+      const firstItem = booking.items[0];
+      const uniqueCourtNames = Array.from(
+        new Set(
+          booking.items.map(
+            (item) => item.court.name,
+          ),
+        ),
+      );
+
+      const courtName =
+        uniqueCourtNames.length <= 1
+          ? uniqueCourtNames[0] ||
+            "ไม่ระบุสนาม"
+          : `${uniqueCourtNames[0]} +${
+              uniqueCourtNames.length - 1
+            } สนาม`;
+
+      try {
+        await sendCustomerBookingCancelledByAdminNotification(
+          {
+            lineUserId:
+              booking.user.lineUserId,
+            bookingId: booking.id,
+            courtName,
+            bookingDate: firstItem
+              ? firstItem.date
+                  .toISOString()
+                  .slice(0, 10)
+              : "-",
+            slots: booking.items.map(
+              (item) => ({
+                startTime: item.startTime,
+                endTime: item.endTime,
+              }),
+            ),
+          },
+        );
+      } catch (notificationError) {
+        console.error(
+          "Failed to send LINE customer cancellation notification:",
+          notificationError,
+        );
+      }
+    }
 
     return NextResponse.json({ success: true, booking: updatedBooking });
   } catch (error) {

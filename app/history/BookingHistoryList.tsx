@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useState } from "react";
 
 import { BookingCard } from "./components/BookingCard";
+import { BookingDetailModal } from "./components/BookingDetailModal";
 import { BookingHistoryHeader } from "./components/BookingHistoryHeader";
 import { HistoryPagination } from "./components/HistoryPagination";
 import { BookingResultHeader } from "./components/BookingResultHeader";
@@ -31,6 +32,10 @@ export default function BookingHistoryList({
 }: BookingHistoryListProps) {
   const [cancellingBookingId, setCancellingBookingId] =
     useState("");
+  const [detailLoadingId, setDetailLoadingId] =
+    useState("");
+  const [selectedDetailBooking, setSelectedDetailBooking] =
+    useState<Booking | null>(null);
   const {
     bookings,
     pagination,
@@ -48,16 +53,6 @@ export default function BookingHistoryList({
     clearFilters,
     fetchBookings,
   } = useBookingHistory(initialData);
-
-  const handlePayment = (booking: Booking) => {
-    /*
-     * Replace this with a modal or router.push()
-     * when the payment flow is ready.
-     */
-    alert(
-      `แจ้งชำระเงินสำหรับรายการ #${shortBookingId(booking.id)}`,
-    );
-  };
 
   const handleCancelBooking = async (
     booking: Booking,
@@ -89,6 +84,17 @@ export default function BookingHistoryList({
     } finally {
       setCancellingBookingId("");
     }
+  };
+
+  const handleViewDetails = (
+    booking: Booking,
+  ) => {
+    setDetailLoadingId(booking.id);
+
+    window.setTimeout(() => {
+      setSelectedDetailBooking(booking);
+      setDetailLoadingId("");
+    }, 180);
   };
 
   const highlightedBooking =
@@ -125,7 +131,8 @@ export default function BookingHistoryList({
       <AdminRouteLoadingOverlay
         open={
           (loading && totalBookings > 0) ||
-          Boolean(cancellingBookingId)
+          Boolean(cancellingBookingId) ||
+          Boolean(detailLoadingId)
         }
       />
 
@@ -227,7 +234,9 @@ export default function BookingHistoryList({
                     onCancelBooking={
                       handleCancelBooking
                     }
-                    onPayment={handlePayment}
+                    onViewDetails={
+                      handleViewDetails
+                    }
                   />
                 ),
               )}
@@ -244,6 +253,15 @@ export default function BookingHistoryList({
           </>
         )}
       </div>
+
+      {selectedDetailBooking && (
+        <BookingDetailModal
+          booking={selectedDetailBooking}
+          onClose={() =>
+            setSelectedDetailBooking(null)
+          }
+        />
+      )}
     </div>
   );
 }

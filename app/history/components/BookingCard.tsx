@@ -15,7 +15,7 @@ type BookingCardProps = {
   highlighted?: boolean;
   isCancelling?: boolean;
   onCancelBooking: (booking: Booking) => void;
-  onPayment: (booking: Booking) => void;
+  onViewDetails: (booking: Booking) => void;
 };
 
 export function BookingCard({
@@ -23,7 +23,7 @@ export function BookingCard({
   highlighted = false,
   isCancelling = false,
   onCancelBooking,
-  onPayment,
+  onViewDetails,
 }: BookingCardProps) {
   const firstItem = booking.items?.[0];
   const primaryCourtName =
@@ -179,19 +179,6 @@ export function BookingCard({
         </div>
 
         <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
-          {booking.status === "pending" && (
-            <button
-              type="button"
-              onClick={() => onPayment(booking)}
-              className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl border border-green-500/30 bg-green-500/10 px-3 text-xs font-bold text-green-400 transition-all hover:bg-green-500 hover:text-white active:scale-95"
-            >
-              <span className="material-symbols-outlined text-[17px]">
-                upload_file
-              </span>
-              แจ้งชำระเงิน
-            </button>
-          )}
-
           {(booking.status === "pending" ||
             booking.status === "paid" ||
             booking.status === "confirmed") && (
@@ -212,12 +199,16 @@ export function BookingCard({
             </button>
           )}
 
-          <div className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3 text-[11px] font-bold text-white/40">
+          <button
+            type="button"
+            onClick={() => onViewDetails(booking)}
+            className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3 text-[11px] font-bold text-white/55 transition-all hover:bg-white/10 hover:text-white active:scale-95"
+          >
             <span className="material-symbols-outlined text-[16px]">
               receipt_long
             </span>
             ดูรายละเอียด
-          </div>
+          </button>
         </div>
       </div>
     </article>

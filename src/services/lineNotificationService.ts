@@ -38,6 +38,14 @@ export type AdminBookingCancelledNotificationPayload = {
   totalPrice: number;
 };
 
+export type CustomerBookingCancelledByAdminPayload = {
+  lineUserId: string;
+  bookingId: string;
+  courtName: string;
+  bookingDate: string;
+  slots: BookingTimeSlot[];
+};
+
 const LINE_PUSH_API_URL =
   "https://api.line.me/v2/bot/message/push";
 
@@ -101,6 +109,16 @@ export function buildAdminBookingDetailUrl(
   }
 
   return `${appUrl}/admin/bookings/${bookingId}`;
+}
+
+function buildCustomerHistoryUrl() {
+  const appUrl = resolvePublicAppUrl();
+
+  if (!appUrl) {
+    return null;
+  }
+
+  return `${appUrl}/history`;
 }
 
 function buildInfoRow(label: string, value: string) {
@@ -324,15 +342,101 @@ function buildAdminBookingCancelledFlexMessage(
   };
 }
 
-export async function sendAdminBookingNotification(
-  payload: AdminBookingNotificationPayload
+function buildCustomerBookingCancelledByAdminFlexMessage(
+  payload: CustomerBookingCancelledByAdminPayload
 ) {
-  const adminLineUserId =
-    process.env.ADMIN_LINE_USER_ID?.trim();
+  const historyUrl = buildCustomerHistoryUrl();
+
+  return {
+    type: "flex" as const,
+    altText: `รายการจอง ${payload.courtName} ของคุณถูกยกเลิกโดยเจ้าของสนาม`,
+    contents: {
+      type: "bubble" as const,
+      size: "mega" as const,
+      header: {
+        type: "box" as const,
+        layout: "vertical" as const,
+        backgroundColor: "#DC2626",
+        paddingAll: "20px",
+        contents: [
+          {
+            type: "text" as const,
+            text: "รายการจองถูกยกเลิก",
+            color: "#FFFFFF",
+            weight: "bold" as const,
+            size: "xl" as const,
+          },
+          {
+            type: "text" as const,
+            text: "เจ้าของสนามได้ยกเลิกรายการจองของคุณ",
+            color: "#FEE2E2",
+            size: "sm" as const,
+            wrap: true,
+            margin: "md" as const,
+          },
+        ],
+      },
+      body: {
+        type: "box" as const,
+        layout: "vertical" as const,
+        spacing: "md" as const,
+        paddingAll: "20px",
+        contents: [
+          buildInfoRow(
+            "รหัสการจอง",
+            payload.bookingId
+              .slice(-8)
+              .toUpperCase()
+          ),
+          buildInfoRow("สนาม", payload.courtName),
+          buildInfoRow("วันที่", payload.bookingDate),
+          buildInfoRow(
+            "เวลา",
+            formatTimeSlots(payload.slots)
+          ),
+          {
+            type: "text" as const,
+            text: "หากต้องการดูรายการจองล่าสุด สามารถกดปุ่มด้านล่างได้ทันที",
+            wrap: true,
+            size: "sm" as const,
+            color: "#4B5563",
+            margin: "sm" as const,
+          },
+        ],
+      },
+      footer: historyUrl
+        ? {
+            type: "box" as const,
+            layout: "vertical" as const,
+            spacing: "sm" as const,
+            paddingAll: "20px",
+            contents: [
+              {
+                type: "button" as const,
+                style: "primary" as const,
+                height: "sm" as const,
+                color: "#DC2626",
+                action: {
+                  type: "uri" as const,
+                  label: "ดูประวัติการจอง",
+                  uri: historyUrl,
+                },
+              },
+            ],
+          }
+        : undefined,
+    },
+  };
+}
+
+async function sendLinePushMessage(
+  lineUserId: string,
+  messages: unknown[],
+) {
   const channelAccessToken =
     process.env.LINE_CHANNEL_ACCESS_TOKEN?.trim();
 
-  if (!adminLineUserId || !channelAccessToken) {
+  if (!lineUserId || !channelAccessToken) {
     return;
   }
 
@@ -343,10 +447,8 @@ export async function sendAdminBookingNotification(
       Authorization: `Bearer ${channelAccessToken}`,
     },
     body: JSON.stringify({
-      to: adminLineUserId,
-      messages: [
-        buildAdminBookingFlexMessage(payload),
-      ],
+      to: lineUserId,
+      messages,
     }),
     cache: "no-store",
   });
@@ -359,39 +461,52 @@ export async function sendAdminBookingNotification(
   }
 }
 
+export async function sendAdminBookingNotification(
+  payload: AdminBookingNotificationPayload
+) {
+  const adminLineUserId =
+    process.env.ADMIN_LINE_USER_ID?.trim();
+  if (!adminLineUserId) {
+    return;
+  }
+
+  await sendLinePushMessage(adminLineUserId, [
+    buildAdminBookingFlexMessage(payload),
+  ]);
+}
+
 export async function sendAdminBookingCancelledNotification(
   payload: AdminBookingCancelledNotificationPayload
 ) {
   const adminLineUserId =
     process.env.ADMIN_LINE_USER_ID?.trim();
-  const channelAccessToken =
-    process.env.LINE_CHANNEL_ACCESS_TOKEN?.trim();
-
-  if (!adminLineUserId || !channelAccessToken) {
+  if (!adminLineUserId) {
     return;
   }
 
-  const response = await fetch(LINE_PUSH_API_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${channelAccessToken}`,
-    },
-    body: JSON.stringify({
-      to: adminLineUserId,
-      messages: [
-        buildAdminBookingCancelledFlexMessage(
-          payload
-        ),
-      ],
-    }),
-    cache: "no-store",
-  });
+  await sendLinePushMessage(adminLineUserId, [
+    buildAdminBookingCancelledFlexMessage(
+      payload
+    ),
+  ]);
+}
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(
-      `LINE push request failed (${response.status}): ${errorText}`
-    );
+export async function sendCustomerBookingCancelledByAdminNotification(
+  payload: CustomerBookingCancelledByAdminPayload
+) {
+  if (
+    !payload.lineUserId ||
+    payload.lineUserId.startsWith("offline_")
+  ) {
+    return;
   }
+
+  await sendLinePushMessage(
+    payload.lineUserId,
+    [
+      buildCustomerBookingCancelledByAdminFlexMessage(
+        payload
+      ),
+    ],
+  );
 }
