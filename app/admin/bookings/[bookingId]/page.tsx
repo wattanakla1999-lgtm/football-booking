@@ -1,10 +1,11 @@
-import Link from "next/link";
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { prisma } from "@/src/lib/prisma";
 import { bookingStatusMeta } from "@/src/constants/statusColors";
+import { prisma } from "@/src/lib/prisma";
+import { BookingStatusMetaKey } from "../types/booking";
 
 type AdminBookingDetailPageProps = {
   params: Promise<{
@@ -107,7 +108,10 @@ export default async function AdminBookingDetailPage({
     redirect("/admin/bookings");
   }
 
-  const bookingStatus = bookingStatusMeta[booking.status];
+
+
+const bookingStatus =
+  bookingStatusMeta[booking.status as BookingStatusMetaKey];
   const paymentStatus = booking.payment
     ? paymentStatusMeta[booking.payment.status]
     : paymentStatusMeta.unpaid;

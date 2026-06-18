@@ -1,3 +1,5 @@
+import { bookingStatusMeta } from "@/src/constants/statusColors";
+
 export type BookingStatus =
   | "pending"
   | "paid"
@@ -40,3 +42,5 @@ export type Booking = {
   items: BookingItem[];
   payment: Payment;
 };
+
+ export type BookingStatusMetaKey = keyof typeof bookingStatusMeta;
