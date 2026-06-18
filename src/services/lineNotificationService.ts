@@ -46,6 +46,14 @@ export type CustomerBookingCancelledByAdminPayload = {
   slots: BookingTimeSlot[];
 };
 
+export type CustomerBookingConfirmedByAdminPayload = {
+  lineUserId: string;
+  bookingId: string;
+  courtName: string;
+  bookingDate: string;
+  slots: BookingTimeSlot[];
+};
+
 const LINE_PUSH_API_URL =
   "https://api.line.me/v2/bot/message/push";
 
@@ -429,6 +437,93 @@ function buildCustomerBookingCancelledByAdminFlexMessage(
   };
 }
 
+function buildCustomerBookingConfirmedByAdminFlexMessage(
+  payload: CustomerBookingConfirmedByAdminPayload
+) {
+  const historyUrl = buildCustomerHistoryUrl();
+
+  return {
+    type: "flex" as const,
+    altText: `รายการจอง ${payload.courtName} ของคุณได้รับการยืนยันแล้ว`,
+    contents: {
+      type: "bubble" as const,
+      size: "mega" as const,
+      header: {
+        type: "box" as const,
+        layout: "vertical" as const,
+        backgroundColor: "#16A34A",
+        paddingAll: "20px",
+        contents: [
+          {
+            type: "text" as const,
+            text: "ยืนยันการจองแล้ว",
+            color: "#FFFFFF",
+            weight: "bold" as const,
+            size: "xl" as const,
+          },
+          {
+            type: "text" as const,
+            text: "เจ้าของสนามได้ยืนยันรายการจองของคุณแล้ว",
+            color: "#DCFCE7",
+            size: "sm" as const,
+            wrap: true,
+            margin: "md" as const,
+          },
+        ],
+      },
+      body: {
+        type: "box" as const,
+        layout: "vertical" as const,
+        spacing: "md" as const,
+        paddingAll: "20px",
+        contents: [
+          buildInfoRow(
+            "รหัสการจอง",
+            payload.bookingId
+              .slice(-8)
+              .toUpperCase()
+          ),
+          buildInfoRow("สนาม", payload.courtName),
+          buildInfoRow("วันที่", payload.bookingDate),
+          buildInfoRow(
+            "เวลา",
+            formatTimeSlots(payload.slots)
+          ),
+          {
+            type: "text" as const,
+            text: "คุณสามารถตรวจสอบสถานะล่าสุดได้จากประวัติการจอง",
+            wrap: true,
+            size: "sm" as const,
+            color: "#4B5563",
+            margin: "sm" as const,
+          },
+        ],
+      },
+      footer: historyUrl
+        ? {
+            type: "box" as const,
+            layout: "vertical" as const,
+            spacing: "sm" as const,
+            paddingAll: "20px",
+            contents: [
+              {
+                type: "button" as const,
+                style: "primary" as const,
+                height: "sm" as const,
+                color: "#16A34A",
+                action: {
+                  type: "uri" as const,
+                  label: "ดูประวัติการจอง",
+                  uri: historyUrl,
+                },
+              },
+            ],
+          }
+        : undefined,
+    },
+  };
+}
+
 async function sendLinePushMessage(
   lineUserId: string,
   messages: unknown[],
@@ -505,6 +600,26 @@ export async function sendCustomerBookingCancelledByAdminNotification(
     payload.lineUserId,
     [
       buildCustomerBookingCancelledByAdminFlexMessage(
+        payload
+      ),
+    ],
+  );
+}
+
+export async function sendCustomerBookingConfirmedByAdminNotification(
+  payload: CustomerBookingConfirmedByAdminPayload
+) {
+  if (
+    !payload.lineUserId ||
+    payload.lineUserId.startsWith("offline_")
+  ) {
+    return;
+  }
+
+  await sendLinePushMessage(
+    payload.lineUserId,
+    [
+      buildCustomerBookingConfirmedByAdminFlexMessage(
         payload
       ),
     ],
