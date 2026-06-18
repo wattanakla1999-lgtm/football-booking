@@ -2,7 +2,10 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import BookingHistoryList from "./BookingHistoryList";
-import { getHistoryBookingsByUserId } from "./bookingHistoryData";
+import {
+  getHistoryBookingPageByUserId,
+} from "./bookingHistoryData";
+import { HISTORY_PAGE_LIMIT } from "./constants";
 
 export const metadata: Metadata = {
   title: "ประวัติการจอง — Football Booking",
@@ -17,8 +20,13 @@ export default async function HistoryPage() {
     redirect("/");
   }
 
-  const initialBookings =
-    await getHistoryBookingsByUserId(sessionUserId);
+  const initialData =
+    await getHistoryBookingPageByUserId(sessionUserId, {
+      page: 1,
+      limit: HISTORY_PAGE_LIMIT,
+      searchKeyword: "",
+      statusFilter: "all",
+    });
 
   return (
     <main className="min-h-screen bg-[#0f172a] text-white">
@@ -34,7 +42,7 @@ export default async function HistoryPage() {
 
       {/* Client Component */}
       <BookingHistoryList
-        initialBookings={initialBookings}
+        initialData={initialData}
       />
     </main>
   );

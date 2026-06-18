@@ -4,6 +4,7 @@ import { FormError } from "./components/FormError";
 import { FormField } from "./components/FormField";
 import { SubmitButton } from "./components/SubmitButton";
 import { useAdminLogin } from "./hooks/useAdminLogin";
+import { AdminRouteLoadingOverlay } from "@/src/components/common/AdminRouteLoadingOverlay";
 
 export default function AdminLoginForm() {
   const {
@@ -17,41 +18,45 @@ export default function AdminLoginForm() {
   } = useAdminLogin();
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: "1rem",
-      }}
-    >
-      <FormError message={error} />
+    <>
+      <AdminRouteLoadingOverlay open={loading} />
 
-      <FormField
-        id="email"
-        label="อีเมล"
-        type="email"
-        value={email}
-        placeholder="admin@example.com"
-        autoComplete="email"
-        onChange={(event) =>
-          setEmail(event.target.value)
-        }
-      />
+      <form
+        onSubmit={handleSubmit}
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "1rem",
+        }}
+      >
+        <FormError message={error} />
 
-      <FormField
-        id="password"
-        label="รหัสผ่าน"
-        type="password"
-        value={password}
-        placeholder="••••••••"
-        autoComplete="current-password"
-        onChange={(event) =>
-          setPassword(event.target.value)
-        }
-      />
+        <FormField
+          id="email"
+          label="อีเมล"
+          type="email"
+          value={email}
+          placeholder="admin@example.com"
+          autoComplete="email"
+          onChange={(event) =>
+            setEmail(event.target.value)
+          }
+        />
 
-      <SubmitButton loading={loading} />
-    </form>
+        <FormField
+          id="password"
+          label="รหัสผ่าน"
+          type="password"
+          value={password}
+          placeholder="••••••••"
+          autoComplete="current-password"
+          onChange={(event) =>
+            setPassword(event.target.value)
+          }
+        />
+
+        <SubmitButton loading={loading} />
+      </form>
+    </>
   );
 }

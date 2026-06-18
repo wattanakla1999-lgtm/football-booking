@@ -5,6 +5,7 @@ type HistoryPaginationProps = {
   total: number;
   limit: number;
   totalPages: number;
+  loading?: boolean;
   onPageChange: (page: number) => void;
 };
 
@@ -13,6 +14,7 @@ export function HistoryPagination({
   total,
   limit,
   totalPages,
+  loading = false,
   onPageChange,
 }: HistoryPaginationProps) {
   if (total <= limit) {
@@ -48,7 +50,7 @@ export function HistoryPagination({
         <button
           type="button"
           onClick={() => onPageChange(page - 1)}
-          disabled={page <= 1}
+          disabled={loading || page <= 1}
           className="inline-flex h-10 items-center justify-center rounded-xl border border-white/10 bg-black/20 px-3 text-sm font-bold text-white transition-all hover:border-green-500/30 hover:bg-green-500/10 disabled:cursor-not-allowed disabled:opacity-40"
         >
           ก่อนหน้า
@@ -75,6 +77,7 @@ export function HistoryPagination({
                 onClick={() =>
                   onPageChange(pageNumber)
                 }
+                disabled={loading}
                 className={`inline-flex h-10 min-w-10 items-center justify-center rounded-xl px-3 text-sm font-bold transition-all ${
                   pageNumber === page
                     ? "bg-green-500 text-white"
@@ -90,7 +93,7 @@ export function HistoryPagination({
         <button
           type="button"
           onClick={() => onPageChange(page + 1)}
-          disabled={page >= totalPages}
+          disabled={loading || page >= totalPages}
           className="inline-flex h-10 items-center justify-center rounded-xl border border-white/10 bg-black/20 px-3 text-sm font-bold text-white transition-all hover:border-green-500/30 hover:bg-green-500/10 disabled:cursor-not-allowed disabled:opacity-40"
         >
           ถัดไป

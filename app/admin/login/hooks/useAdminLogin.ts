@@ -37,6 +37,8 @@ export function useAdminLogin() {
       router.push("/admin/dashboard");
       router.refresh();
     } catch (requestError) {
+      setLoading(false);
+
       console.error(
         "Admin login error:",
         requestError,
@@ -47,8 +49,6 @@ export function useAdminLogin() {
           ? requestError.message
           : "ไม่สามารถเข้าสู่ระบบได้",
       );
-    } finally {
-      setLoading(false);
     }
   };
 

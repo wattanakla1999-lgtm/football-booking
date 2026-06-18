@@ -41,3 +41,15 @@ export type StatusOption = {
 };
 
 export type BookingStatusSummary = Record<StatusFilter, number>;
+
+export type BookingHistoryPageData = {
+  bookings: Booking[];
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+  totalBookings: number;
+  statusSummary: BookingStatusSummary;
+};

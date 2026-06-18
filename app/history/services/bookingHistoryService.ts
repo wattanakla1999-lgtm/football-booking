@@ -1,34 +1,47 @@
 import apiClient from "@/lib/apiClient";
 
-import type { Booking } from "../types/booking";
+import type {
+  Booking,
+  BookingStatusSummary,
+  StatusFilter,
+} from "../types/booking";
+import type { PaginationMeta } from "@/src/types/pagination";
 
 export interface BookingHistoryResponse {
   bookings: Booking[];
+  pagination: PaginationMeta;
+  totalBookings: number;
+  statusSummary: BookingStatusSummary;
   message?: string;
 }
 
-type BookingHistoryApiResponse =
-  | Booking[]
-  | BookingHistoryResponse;
-
 export async function getUserBookings(
+  {
+    limit,
+    page,
+    searchKeyword,
+    statusFilter,
+  }: {
+    limit: number;
+    page: number;
+    searchKeyword: string;
+    statusFilter: StatusFilter;
+  },
   signal?: AbortSignal,
-): Promise<Booking[]> {
+): Promise<BookingHistoryResponse> {
   const response =
-    await apiClient.get<BookingHistoryApiResponse>(
+    await apiClient.get<BookingHistoryResponse>(
       "/user/bookings",
       {
+        params: {
+          limit,
+          page,
+          search: searchKeyword,
+          status: statusFilter,
+        },
         signal,
       },
     );
 
-  const data = response.data;
-
-  if (Array.isArray(data)) {
-    return data;
-  }
-
-  return Array.isArray(data.bookings)
-    ? data.bookings
-    : [];
+  return response.data;
 }

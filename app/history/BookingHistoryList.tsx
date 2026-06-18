@@ -1,7 +1,5 @@
 "use client";
 
-import { useMemo, useState } from "react";
-
 import { BookingCard } from "./components/BookingCard";
 import { BookingHistoryHeader } from "./components/BookingHistoryHeader";
 import { HistoryPagination } from "./components/HistoryPagination";
@@ -11,53 +9,37 @@ import { EmptyState } from "./components/EmptyState";
 import { ErrorState } from "./components/ErrorState";
 import { StatusFilters } from "./components/StatusFilters";
 import { useBookingHistory } from "./hooks/useBookingHistory";
-import type { Booking } from "./types/booking";
+import type {
+  Booking,
+  BookingHistoryPageData,
+} from "./types/booking";
 import { shortBookingId } from "./utils/booking";
-import { createPaginationMeta } from "@/src/utils/pagination";
+import { AdminRouteLoadingOverlay } from "@/src/components/common/AdminRouteLoadingOverlay";
 
 type BookingHistoryListProps = {
-  initialBookings: Booking[];
+  initialData: BookingHistoryPageData;
 };
 
-const PAGE_LIMIT = 5;
-
 export default function BookingHistoryList({
-  initialBookings,
+  initialData,
 }: BookingHistoryListProps) {
   const {
     bookings,
-    filteredBookings,
+    pagination,
     loading,
     error,
     searchKeyword,
     statusFilter,
     statusSummary,
+    totalBookings,
+    currentPage,
     hasActiveFilters,
     setSearchKeyword,
     setStatusFilter,
+    setCurrentPage,
     clearFilters,
     fetchBookings,
-  } = useBookingHistory(initialBookings);
-  const [requestedPage, setRequestedPage] =
-    useState(1);
-
-  const pagination = useMemo(
-    () =>
-      createPaginationMeta({
-        total: filteredBookings.length,
-        page: requestedPage,
-        limit: PAGE_LIMIT,
-      }),
-    [filteredBookings.length, requestedPage],
-  );
-
-  const paginatedBookings = useMemo(() => {
-    const start =
-      (pagination.page - 1) * PAGE_LIMIT;
-    const end = start + PAGE_LIMIT;
-
-    return filteredBookings.slice(start, end);
-  }, [filteredBookings, pagination.page]);
+  } = useBookingHistory(initialData);
 
   const handlePayment = (booking: Booking) => {
     /*
@@ -71,20 +53,28 @@ export default function BookingHistoryList({
 
   return (
     <div>
+      <AdminRouteLoadingOverlay
+        open={loading && totalBookings > 0}
+      />
+
       <div className="mx-auto w-full max-w-7xl space-y-5">
         <BookingHistoryHeader
-          totalBookings={bookings.length}
+          totalBookings={totalBookings}
           loading={loading}
           searchKeyword={searchKeyword}
           onSearchChange={(value) => {
             setSearchKeyword(value);
-            setRequestedPage(1);
+            setCurrentPage(1);
           }}
           onClearSearch={() => {
             setSearchKeyword("");
-            setRequestedPage(1);
+            setCurrentPage(1);
           }}
-          onRefresh={() => void fetchBookings()}
+          onRefresh={() =>
+            void fetchBookings(undefined, {
+              page: currentPage,
+            })
+          }
         />
 
         <StatusFilters
@@ -92,18 +82,17 @@ export default function BookingHistoryList({
           summary={statusSummary}
           onChange={(value) => {
             setStatusFilter(value);
-            setRequestedPage(1);
+            setCurrentPage(1);
           }}
         />
 
-        {!loading && !error && bookings.length > 0 && (
+        {!loading && !error && totalBookings > 0 && (
           <BookingResultHeader
-            resultCount={filteredBookings.length}
-            totalCount={bookings.length}
+            resultCount={pagination.total}
+            totalCount={totalBookings}
             hasActiveFilters={hasActiveFilters}
             onClearFilters={() => {
               clearFilters();
-              setRequestedPage(1);
             }}
           />
         )}
@@ -113,15 +102,19 @@ export default function BookingHistoryList({
         ) : error ? (
           <ErrorState
             message={error}
-            onRetry={() => void fetchBookings()}
+            onRetry={() =>
+              void fetchBookings(undefined, {
+                page: currentPage,
+              })
+            }
           />
-        ) : bookings.length === 0 ? (
+        ) : totalBookings === 0 ? (
           <EmptyState
             title="คุณยังไม่มีประวัติการจอง"
             description="เมื่อคุณจองสนาม รายการจองจะปรากฏอยู่ในหน้านี้"
             icon="event_busy"
           />
-        ) : filteredBookings.length === 0 ? (
+        ) : pagination.total === 0 ? (
           <EmptyState
             title="ไม่พบรายการที่ค้นหา"
             description="ลองเปลี่ยนคำค้นหา หรือเลือกสถานะอื่น"
@@ -129,13 +122,12 @@ export default function BookingHistoryList({
             actionLabel="ล้างตัวกรอง"
             onAction={() => {
               clearFilters();
-              setRequestedPage(1);
             }}
           />
         ) : (
           <>
             <div className="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2">
-              {paginatedBookings.map(
+              {bookings.map(
                 (booking: Booking) => (
                   <BookingCard
                     key={booking.id}
@@ -151,7 +143,8 @@ export default function BookingHistoryList({
               total={pagination.total}
               limit={pagination.limit}
               totalPages={pagination.totalPages}
-              onPageChange={setRequestedPage}
+              loading={loading}
+              onPageChange={setCurrentPage}
             />
           </>
         )}
