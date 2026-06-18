@@ -1,16 +1,13 @@
-import type {
-  BookingStatus as PrismaBookingStatus,
-  Prisma,
-} from "@prisma/client";
 import { prisma } from "@/src/lib/prisma";
-import type { Metadata } from "next";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
-import AdminBookingsTable from "./AdminBookingsTable";
 import {
   createPaginationMeta,
   parsePageParam,
 } from "@/src/utils/pagination";
+import type { Metadata } from "next";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { PrismaBookingStatus } from "../all-bookings/types/booking";
+import AdminBookingsTable from "./AdminBookingsTable";
 
 export const metadata: Metadata = {
   title: "รายการจองทั้งหมด — Admin",
@@ -66,7 +63,7 @@ export default async function AdminBookingsPage({
     redirect("/admin/login");
   }
 
-  const baseWhere: Prisma.BookingWhereInput = {
+const baseWhere: Record<string, any> = {
     organizationId: admin.organizationId,
     ...(searchQuery
       ? {
@@ -116,7 +113,7 @@ export default async function AdminBookingsPage({
       : {}),
   };
 
-  const where: Prisma.BookingWhereInput = {
+const where: Record<string, any> = {
     ...baseWhere,
     ...(bookingStatusFilter
       ? { status: bookingStatusFilter }
@@ -196,7 +193,7 @@ export default async function AdminBookingsPage({
     take: PAGE_LIMIT,
   });
 
-  const serializedBookings = bookings.map((booking) => ({
+const serializedBookings = bookings.map((booking: any) => ({
     id: booking.id,
     totalPrice: booking.totalPrice.toString(),
     status: booking.status,
@@ -208,7 +205,7 @@ export default async function AdminBookingsPage({
       lineUserId: booking.user.lineUserId,
       phone: booking.user.phone,
     },
-    items: booking.items.map((item) => ({
+    items: booking.items.map((item: any) => ({
       id: item.id,
       date: item.date.toISOString(),
       startTime: item.startTime,
