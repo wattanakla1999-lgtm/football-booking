@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+
 import { BookingCard } from "./components/BookingCard";
 import { BookingHistoryHeader } from "./components/BookingHistoryHeader";
 import { HistoryPagination } from "./components/HistoryPagination";
@@ -18,10 +20,12 @@ import { AdminRouteLoadingOverlay } from "@/src/components/common/AdminRouteLoad
 
 type BookingHistoryListProps = {
   initialData: BookingHistoryPageData;
+  highlightedBookingId?: string;
 };
 
 export default function BookingHistoryList({
   initialData,
+  highlightedBookingId = "",
 }: BookingHistoryListProps) {
   const {
     bookings,
@@ -50,6 +54,35 @@ export default function BookingHistoryList({
       `แจ้งชำระเงินสำหรับรายการ #${shortBookingId(booking.id)}`,
     );
   };
+
+  const highlightedBooking =
+    highlightedBookingId
+      ? bookings.find(
+          (booking) =>
+            booking.id === highlightedBookingId,
+        )
+      : null;
+
+  useEffect(() => {
+    if (!highlightedBookingId || loading) {
+      return;
+    }
+
+    const element = document.getElementById(
+      `booking-card-${highlightedBookingId}`,
+    );
+
+    if (!element) {
+      return;
+    }
+
+    window.setTimeout(() => {
+      element.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }, 150);
+  }, [bookings, highlightedBookingId, loading]);
 
   return (
     <div>
@@ -97,6 +130,18 @@ export default function BookingHistoryList({
           />
         )}
 
+        {highlightedBooking && (
+          <div className="rounded-2xl border border-green-500/20 bg-green-500/[0.08] px-4 py-3 text-sm text-green-200">
+            <span className="font-bold">
+              รายการจองล่าสุดของคุณ
+            </span>{" "}
+            คือรหัส #
+            {shortBookingId(
+              highlightedBooking.id,
+            )}
+          </div>
+        )}
+
         {loading ? (
           <BookingSkeleton />
         ) : error ? (
@@ -132,6 +177,10 @@ export default function BookingHistoryList({
                   <BookingCard
                     key={booking.id}
                     booking={booking}
+                    highlighted={
+                      booking.id ===
+                      highlightedBookingId
+                    }
                     onPayment={handlePayment}
                   />
                 ),

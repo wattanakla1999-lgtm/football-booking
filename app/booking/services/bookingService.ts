@@ -45,7 +45,10 @@ export async function createBooking({
   phone: string;
 }) {
   const response =
-    await apiClient.post<{ success?: boolean }>(
+    await apiClient.post<{
+      success?: boolean;
+      bookingId?: string;
+    }>(
       "/bookings",
       {
         courtId,

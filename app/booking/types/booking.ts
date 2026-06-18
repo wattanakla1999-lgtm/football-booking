@@ -20,4 +20,4 @@ export type BookingUser = {
   phone: string | null;
 };
 
-export type BookingStep = 1 | 2 | 3;
+export type BookingStep = 1 | 2 | 3 | 4;

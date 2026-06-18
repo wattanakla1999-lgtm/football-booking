@@ -12,11 +12,13 @@ import { StatusBadge } from "./StatusBadge";
 
 type BookingCardProps = {
   booking: Booking;
+  highlighted?: boolean;
   onPayment: (booking: Booking) => void;
 };
 
 export function BookingCard({
   booking,
+  highlighted = false,
   onPayment,
 }: BookingCardProps) {
   const firstItem = booking.items?.[0];
@@ -37,7 +39,14 @@ export function BookingCard({
   );
 
   return (
-    <article className="group flex min-w-0 flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] transition-all duration-200 hover:-translate-y-0.5 hover:border-green-500/20 hover:bg-white/[0.055]">
+    <article
+      id={`booking-card-${booking.id}`}
+      className={`group flex min-w-0 flex-col overflow-hidden rounded-2xl border bg-white/[0.04] transition-all duration-200 hover:-translate-y-0.5 hover:border-green-500/20 hover:bg-white/[0.055] ${
+        highlighted
+          ? "border-green-400/40 shadow-[0_0_0_1px_rgba(74,222,128,0.25),0_18px_48px_rgba(34,197,94,0.18)]"
+          : "border-white/10"
+      }`}
+    >
       <div className="flex min-w-0 items-start justify-between gap-3 border-b border-white/10 p-4">
         <div className="flex min-w-0 items-center gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-green-500/10 text-green-400">
@@ -47,6 +56,12 @@ export function BookingCard({
           </div>
 
           <div className="min-w-0">
+            {highlighted && (
+              <div className="mb-2 inline-flex rounded-full border border-green-400/20 bg-green-500/10 px-2.5 py-1 text-[10px] font-bold text-green-300">
+                รายการที่เพิ่งจอง
+              </div>
+            )}
+
             <h3 className="truncate text-base font-bold text-green-400">
               {primaryCourtName}
             </h3>

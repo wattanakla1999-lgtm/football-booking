@@ -12,9 +12,19 @@ export const metadata: Metadata = {
   description: "ดูประวัติการจองสนามฟุตบอลของคุณ",
 };
 
-export default async function HistoryPage() {
+type HistoryPageProps = {
+  searchParams: Promise<{
+    bookingId?: string;
+  }>;
+};
+
+export default async function HistoryPage({
+  searchParams,
+}: HistoryPageProps) {
   const cookieStore = await cookies();
   const sessionUserId = cookieStore.get("session_user_id")?.value;
+  const resolvedSearchParams =
+    await searchParams;
 
   if (!sessionUserId) {
     redirect("/");
@@ -43,6 +53,10 @@ export default async function HistoryPage() {
       {/* Client Component */}
       <BookingHistoryList
         initialData={initialData}
+        highlightedBookingId={
+          resolvedSearchParams.bookingId?.trim() ||
+          ""
+        }
       />
     </main>
   );

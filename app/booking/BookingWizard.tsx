@@ -3,6 +3,7 @@
 import { AdminRouteLoadingOverlay } from "@/src/components/common/AdminRouteLoadingOverlay";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
+import { BookingSuccessStep } from "./components/BookingSuccessStep";
 import { BookingSummaryStep } from "./components/BookingSummaryStep";
 import { CourtSelectionStep } from "./components/CourtSelectionStep";
 import { DateTimeSelectionStep } from "./components/DateTimeSelectionStep";
@@ -42,6 +43,8 @@ export default function BookingWizard({
   const [phoneError, setPhoneError] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [successfulBookingId, setSuccessfulBookingId] =
+    useState("");
 
   const dates = useMemo(() => getBookingDates(14), []);
   const { courts, loadingCourts, courtsError } =
@@ -126,14 +129,22 @@ export default function BookingWizard({
     setError("");
 
     try {
-      await createBooking({
+      const response = await createBooking({
         courtId: selectedCourt.id,
         date: formatApiDate(selectedDate),
         slots: selectedSlots,
         phone: phoneCheck.digits,
       });
 
-      router.push("/history");
+      if (!response.bookingId) {
+        throw new Error(
+          "ไม่พบรหัสการจองหลังจากบันทึกสำเร็จ",
+        );
+      }
+
+      setSuccessfulBookingId(response.bookingId);
+      setStep(4);
+      setIsSubmitting(false);
     } catch (requestError) {
       setError(
         requestError instanceof Error
@@ -189,6 +200,36 @@ export default function BookingWizard({
             onConfirm={handleConfirm}
           />
         )}
+
+        {step === 4 &&
+          selectedCourt &&
+          successfulBookingId && (
+            <BookingSuccessStep
+              bookingId={successfulBookingId}
+              courtName={selectedCourt.name}
+              bookingDateLabel={selectedDate.toLocaleDateString(
+                "th-TH",
+                {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                },
+              )}
+              slotLabels={selectedSlots.map(
+                (slot) =>
+                  `${slot.startTime.slice(0, 5)}-${slot.endTime.slice(0, 5)}`,
+              )}
+              totalPrice={totalPrice}
+              onViewBookingDetail={() =>
+                router.push(
+                  `/history?bookingId=${successfulBookingId}`,
+                )
+              }
+              onViewHistory={() =>
+                router.push("/history")
+              }
+            />
+          )}
       </div>
 
       {step === 2 && selectedSlots.length > 0 && (
