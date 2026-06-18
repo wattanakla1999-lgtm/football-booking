@@ -5,7 +5,6 @@ import { redirect } from "next/navigation";
 
 import { bookingStatusMeta } from "@/src/constants/statusColors";
 import { prisma } from "@/src/lib/prisma";
-import { BookingStatusMetaKey } from "../types/booking";
 
 type AdminBookingDetailPageProps = {
   params: Promise<{
@@ -108,13 +107,20 @@ export default async function AdminBookingDetailPage({
     redirect("/admin/bookings");
   }
 
-
+  type BookingStatusMetaKey = keyof typeof bookingStatusMeta;
 
 const bookingStatus =
   bookingStatusMeta[booking.status as BookingStatusMetaKey];
-  const paymentStatus = booking.payment
-    ? paymentStatusMeta[booking.payment.status]
-    : paymentStatusMeta.unpaid;
+
+
+type PaymentStatusMetaKey = keyof typeof paymentStatusMeta;
+
+const paymentStatusKey = booking.payment
+  ?.status as PaymentStatusMetaKey | undefined;
+
+const paymentStatus = paymentStatusKey
+  ? paymentStatusMeta[paymentStatusKey] ?? paymentStatusMeta.unpaid
+  : paymentStatusMeta.unpaid;
 
   return (
     <div className="space-y-6">

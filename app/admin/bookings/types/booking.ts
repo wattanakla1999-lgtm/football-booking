@@ -44,3 +44,4 @@ export type Booking = {
 };
 
  export type BookingStatusMetaKey = keyof typeof bookingStatusMeta;
+export type PaymentStatusMetaKey = keyof typeof paymentStatusMeta;
