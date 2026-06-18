@@ -2,22 +2,23 @@
 
 import { BookingCharts } from "./components/BookingCharts";
 import { BookingDashboardError } from "./components/BookingDashboardError";
-import { BookingDashboardSkeleton } from "./components/BookingDashboardSkeleton";
 import { BookingStatistics } from "./components/BookingStatistics";
 import { useAdminBookings } from "./hooks/useAdminBookings";
+import type { AdminBooking } from "./types/adminBooking";
 
-export default function AdminBookingList() {
+type AdminBookingListProps = {
+  initialBookings: AdminBooking[];
+};
+
+export default function AdminBookingList({
+  initialBookings,
+}: AdminBookingListProps) {
   const {
-    loading,
     error,
     statistics,
     chartSeries,
     fetchBookings,
-  } = useAdminBookings();
-
-  if (loading) {
-    return <BookingDashboardSkeleton />;
-  }
+  } = useAdminBookings(initialBookings);
 
   if (error) {
     return (

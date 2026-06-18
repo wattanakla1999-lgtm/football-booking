@@ -24,9 +24,13 @@ import {
 
 type BookingWizardProps = {
   user: BookingUser;
+  initialCourts: Court[];
 };
 
-export default function BookingWizard({ user }: BookingWizardProps) {
+export default function BookingWizard({
+  user,
+  initialCourts,
+}: BookingWizardProps) {
   const router = useRouter();
 
   const [step, setStep] = useState<BookingStep>(1);
@@ -39,7 +43,8 @@ export default function BookingWizard({ user }: BookingWizardProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const dates = useMemo(() => getBookingDates(14), []);
-  const { courts, loadingCourts, courtsError } = useCourts();
+  const { courts, loadingCourts, courtsError } =
+    useCourts(initialCourts);
 
   const clearSelectedSlots = useCallback(() => {
     setSelectedSlots([]);

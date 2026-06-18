@@ -4,11 +4,11 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { useRouter } from "next/navigation";
 
-import { LoadingSpinner } from "@/src/components/ui";
 import { searchAdminCustomers } from "@/src/services/adminCustomers";
 import AvailabilityGrid from "./components/AvailabilityGrid";
 import BookedSlotModal from "./components/BookedSlotModal";
@@ -36,16 +36,28 @@ import {
 
 const CUSTOMER_SEARCH_MIN_LENGTH = 2;
 
-export default function AdminAvailabilityView() {
+type AdminAvailabilityViewProps = {
+  initialSelectedDate: string;
+  initialCourts: CourtAvailability[];
+  initialMessage: string;
+};
+
+export default function AdminAvailabilityView({
+  initialSelectedDate,
+  initialCourts,
+  initialMessage,
+}: AdminAvailabilityViewProps) {
   const router = useRouter();
-  const [mounted, setMounted] = useState(false);
   const [selectedDate, setSelectedDate] =
-    useState<Date | null>(null);
+    useState<Date | null>(
+      new Date(initialSelectedDate),
+    );
   const [courts, setCourts] = useState<
     CourtAvailability[]
-  >([]);
-  const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState("");
+  >(initialCourts);
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] =
+    useState(initialMessage);
   const [selectedCourtId, setSelectedCourtId] =
     useState<string | null>(null);
   const [selectedSlots, setSelectedSlots] = useState<string[]>([]);
@@ -71,6 +83,9 @@ export default function AdminAvailabilityView() {
   const [selectedBookedSlot, setSelectedBookedSlot] =
     useState<SelectedBookedSlot | null>(null);
   const dates = useMemo(() => createUpcomingDates(14), []);
+  const hasHydratedInitialData = useRef(
+    Boolean(initialSelectedDate),
+  );
 
   const selectedCourt = useMemo(
     () => courts.find((court) => court.id === selectedCourtId),
@@ -118,14 +133,12 @@ export default function AdminAvailabilityView() {
   }, [selectedDate]);
 
   useEffect(() => {
-    queueMicrotask(() => {
-      setSelectedDate(new Date());
-      setMounted(true);
-    });
-  }, []);
-
-  useEffect(() => {
     if (!selectedDate) {
+      return;
+    }
+
+    if (hasHydratedInitialData.current) {
+      hasHydratedInitialData.current = false;
       return;
     }
 
@@ -134,7 +147,10 @@ export default function AdminAvailabilityView() {
       setSelectedCourtId(null);
       setSelectedSlots([]);
     });
-  }, [selectedDate, fetchAvailability]);
+  }, [
+    fetchAvailability,
+    selectedDate,
+  ]);
 
   useEffect(() => {
     if (
@@ -365,10 +381,6 @@ export default function AdminAvailabilityView() {
     }
   };
 
-  if (!mounted || !selectedDate) {
-    return <LoadingSpinner fullHeight />;
-  }
-
   return (
     <div className="relative min-h-[60vh]">
       <DateSelector
@@ -376,8 +388,6 @@ export default function AdminAvailabilityView() {
         selectedDate={selectedDate}
         onSelectDate={setSelectedDate}
       />
-
-      {loading && <LoadingSpinner />}
 
       {!loading &&
         message &&

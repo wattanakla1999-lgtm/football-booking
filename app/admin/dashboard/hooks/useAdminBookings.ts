@@ -23,12 +23,14 @@ import {
   getUniqueCourtNames,
 } from "../utils/adminBooking";
 
-export function useAdminBookings() {
+export function useAdminBookings(
+  initialBookings: AdminBooking[] = [],
+) {
   const [bookings, setBookings] =
-    useState<AdminBooking[]>([]);
+    useState<AdminBooking[]>(initialBookings);
 
   const [loading, setLoading] =
-    useState(true);
+    useState(initialBookings.length === 0);
 
   const [error, setError] =
     useState("");
@@ -63,10 +65,14 @@ export function useAdminBookings() {
     }, []);
 
   useEffect(() => {
+    if (initialBookings.length > 0) {
+      return;
+    }
+
     queueMicrotask(() => {
       void fetchBookings();
     });
-  }, [fetchBookings]);
+  }, [fetchBookings, initialBookings.length]);
 
   const updateStatus =
     useCallback(

@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import BookingWizard from "./BookingWizard";
+import { getBookingCourtsByOrganizationId } from "./bookingData";
 
 export const metadata: Metadata = {
   title: "จองสนาม — Football Booking",
@@ -24,12 +25,18 @@ export default async function BookingPage() {
       displayName: true,
       pictureUrl: true,
       phone: true,
+      organizationId: true,
     },
   });
 
   if (!user) {
     redirect("/");
   }
+
+  const initialCourts =
+    await getBookingCourtsByOrganizationId(
+      user.organizationId,
+    );
 
   return (
     <main className="min-h-screen bg-[#0b0f19] text-[#f3f4f6]">
@@ -45,7 +52,10 @@ export default async function BookingPage() {
         </header>
 
         {/* Wizard Client Component */}
-        <BookingWizard user={user} />
+        <BookingWizard
+          user={user}
+          initialCourts={initialCourts}
+        />
       </div>
 
       {/* Slide-up animation keyframes */}

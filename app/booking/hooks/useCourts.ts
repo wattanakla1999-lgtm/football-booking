@@ -4,12 +4,20 @@ import { useEffect, useState } from "react";
 import type { Court } from "../types/booking";
 import { getCourts } from "../services/bookingService";
 
-export function useCourts() {
-  const [courts, setCourts] = useState<Court[]>([]);
-  const [loadingCourts, setLoadingCourts] = useState(true);
+export function useCourts(
+  initialCourts: Court[] = [],
+) {
+  const [courts, setCourts] =
+    useState<Court[]>(initialCourts);
+  const [loadingCourts, setLoadingCourts] =
+    useState(initialCourts.length === 0);
   const [courtsError, setCourtsError] = useState("");
 
   useEffect(() => {
+    if (initialCourts.length > 0) {
+      return;
+    }
+
     const loadCourts = async () => {
       try {
         const courtList = await getCourts();
@@ -27,7 +35,7 @@ export function useCourts() {
     };
 
     void loadCourts();
-  }, []);
+  }, [initialCourts.length]);
 
   return {
     courts,
