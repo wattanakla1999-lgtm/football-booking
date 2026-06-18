@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { cookies, headers } from "next/headers";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
   title: "เข้าสู่ระบบ — Football Booking",
@@ -6,7 +8,37 @@ export const metadata: Metadata = {
     "จองสนามฟุตบอลออนไลน์ง่ายๆ เพียงเข้าสู่ระบบด้วย LINE ของคุณ",
 };
 
-export default function LoginPage() {
+type LoginPageProps = {
+  searchParams: Promise<{
+    error?: string;
+  }>;
+};
+
+export default async function LoginPage({
+  searchParams,
+}: LoginPageProps) {
+  const cookieStore = await cookies();
+  const sessionUserId = cookieStore.get("session_user_id")?.value;
+
+  if (sessionUserId) {
+    redirect("/dashboard");
+  }
+
+  const [{ error }, headersList] = await Promise.all([
+    searchParams,
+    headers(),
+  ]);
+
+  const userAgent =
+    headersList.get("user-agent") || "";
+  const isLineInAppBrowser =
+    /Line\//i.test(userAgent) ||
+    /LIFF/i.test(userAgent);
+
+  if (!error && isLineInAppBrowser) {
+    redirect("/api/auth/line");
+  }
+
   return (
     <main className="login-root">
       {/* ── Animated background ── */}
