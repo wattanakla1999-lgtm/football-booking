@@ -111,7 +111,7 @@ export async function GET(request: Request) {
         const endTime = `${displayEndH.toString().padStart(2, "0")}:00`;
 
         // Find matching booking item
-        const matchedItem = existingItems.find((item) => {
+        const matchedItem = existingItems.find((item : any) => {
           if (item.courtId !== court.id) return false;
           const itemStart = parseInt(item.startTime.split(":")[0]);
           let itemEnd = parseInt(item.endTime.split(":")[0]);
