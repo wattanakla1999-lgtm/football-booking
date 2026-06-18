@@ -1,5 +1,6 @@
 "use client";
 
+import { AdminRouteLoadingOverlay } from "@/src/components/common/AdminRouteLoadingOverlay";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 import { BookingSummaryStep } from "./components/BookingSummaryStep";
@@ -144,7 +145,8 @@ export default function BookingWizard({
   };
 
   return (
-    <div className="flex-1 flex flex-col">
+    <>
+      <div className="flex-1 flex flex-col">
       <div className="flex-1 px-6 pb-10 overflow-y-auto">
         {step === 1 && (
           <CourtSelectionStep
@@ -196,6 +198,9 @@ export default function BookingWizard({
           onClick={() => setStep(3)}
         />
       )}
-    </div>
+      </div>
+
+      <AdminRouteLoadingOverlay open={isSubmitting} />
+    </>
   );
 }
