@@ -150,7 +150,7 @@ export async function POST(request: Request) {
     const totalPrice = slots.length * pricePerHour;
 
     // 5. Create Booking, update User details, and create Payment in a transaction
-    const booking = await prisma.$transaction(async (tx) => {
+    const booking = await prisma.$transaction(async (tx : any) => {
       // Update phone number in user profile if provided
       if (phone) {
         await tx.user.update({

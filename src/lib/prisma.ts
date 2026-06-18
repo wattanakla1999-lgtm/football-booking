@@ -1,21 +1,18 @@
-import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
+import { PrismaClient } from "@prisma/client";
 import { Pool } from "pg";
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Global singleton pattern to avoid exhausting the connection pool
-// when Next.js reloads modules in development (hot-reload).
-//
-// Prisma v7 requires an explicit adapter instead of a datasource URL
-// in the schema file.
-// ─────────────────────────────────────────────────────────────────────────────
-
 const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined;
+  prisma?: PrismaClient;
 };
 
 function createPrismaClient(): PrismaClient {
-  const connectionString = process.env.DATABASE_URL!;
+  const connectionString = process.env.DATABASE_URL;
+
+  if (!connectionString) {
+    throw new Error("DATABASE_URL is not set");
+  }
+
   const pool = new Pool({ connectionString });
   const adapter = new PrismaPg(pool);
 
@@ -28,7 +25,8 @@ function createPrismaClient(): PrismaClient {
   });
 }
 
-export const prisma = globalForPrisma.prisma ?? createPrismaClient();
+export const prisma =
+  globalForPrisma.prisma ?? createPrismaClient();
 
 if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prisma = prisma;

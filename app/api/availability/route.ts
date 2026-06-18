@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
   try {
@@ -97,7 +97,7 @@ export async function GET(request: Request) {
 
       // Check if this slot overlaps with any existing booking item
       // An existing item is booked if its startTime is exactly this slot's startTime
-      const isBooked = existingBookingItems.some(item => {
+      const isBooked = existingBookingItems.some((item :any) => {
         const itemStart = parseInt(item.startTime.split(":")[0]);
         let itemEnd = parseInt(item.endTime.split(":")[0]);
 

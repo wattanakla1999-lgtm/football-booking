@@ -197,7 +197,7 @@ export async function POST(request: Request) {
     const totalPrice = slots.length * pricePerHour;
 
     // 5. Create Booking and BookingItems in transaction
-    const booking = await prisma.$transaction(async (tx) => {
+    const booking = await prisma.$transaction(async (tx : any) => {
       const newBooking = await tx.booking.create({
         data: {
           userId: customerUser.id,
