@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
 
 type BookingSlotPayload = {
   startTime: string;
@@ -129,7 +129,7 @@ export async function POST(request: Request) {
       const slotStart = parseInt(slot.startTime.split(":")[0]);
       const slotEnd = parseInt(slot.endTime.split(":")[0]);
 
-      const isConflict = existingItems.some(item => {
+      const isConflict = existingItems.some((item: any) => {
         const itemStart = parseInt(item.startTime.split(":")[0]);
         const itemEnd = parseInt(item.endTime.split(":")[0]);
         return slotStart < itemEnd && slotEnd > itemStart;
