@@ -45,7 +45,7 @@ export default function FilterSelect({
           focus:ring-4 focus:ring-primary/10
         "
             >
-                {options.map((option) => (
+                {options.map((option : { value: string; label: string }) => (
                     <option
                         key={option.value}
                         value={option.value}

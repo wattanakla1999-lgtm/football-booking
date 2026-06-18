@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
 
 // Helper: verify admin session
 async function getAdmin() {
@@ -58,7 +58,7 @@ export async function PATCH(request: Request) {
 
     // Perform database operations in transaction
     const updatedHours = await prisma.$transaction(
-      hours.map((hour) => {
+      hours.map((hour : { dayOfWeek: number, openTime: string, closeTime: string, isClosed: boolean }) => {
         const { dayOfWeek, openTime, closeTime, isClosed } = hour;
 
         return prisma.operatingHour.upsert({

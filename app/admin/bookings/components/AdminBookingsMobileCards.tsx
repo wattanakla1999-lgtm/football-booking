@@ -1,16 +1,17 @@
 import Link from "next/link";
 
-import BookingCustomerAvatar from "./BookingCustomerAvatar";
-import BookingStatusBadge from "./BookingStatusBadge";
 import {
   formatBookingPrice,
   formatThaiDate,
   getFirstBookingItem,
   isOfflineBooking,
 } from "../utils/bookingHelpers";
+import BookingCustomerAvatar from "./BookingCustomerAvatar";
+import BookingStatusBadge from "./BookingStatusBadge";
 
 import type {
   Booking,
+  BookingItem,
   BookingStatus,
 } from "../types/booking";
 
@@ -34,7 +35,7 @@ export default function AdminBookingsMobileCards({
 }: AdminBookingsMobileCardsProps) {
   return (
     <div className="md:hidden" style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-      {bookings.map((booking) => {
+      {bookings.map((booking : Booking) => {
         const firstItem = getFirstBookingItem(booking);
         const isOffline = isOfflineBooking(booking);
         const isExpanded = expandedId === booking.id;
@@ -106,7 +107,7 @@ export default function AdminBookingsMobileCards({
               </div>
 
               <div style={{ display: "flex", flexWrap: "wrap", gap: "0.25rem" }}>
-                {booking.items.map((item) => (
+                {booking.items.map((item : BookingItem) => (
                   <span
                     key={item.id}
                     style={{

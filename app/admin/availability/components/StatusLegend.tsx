@@ -24,7 +24,7 @@ const LEGEND_ITEMS = [
 export default function StatusLegend() {
     return (
         <div className="mt-8 flex flex-wrap gap-4 border-t border-white/[0.03] pt-4">
-            {LEGEND_ITEMS.map((item) => (
+            {LEGEND_ITEMS.map((item : { label: string; background: string; border: string }) => (
                 <div
                     key={item.label}
                     className="flex items-center gap-2 text-[0.7rem] text-white/40"

@@ -1,17 +1,18 @@
 import Link from "next/link";
 
-import BookingActionsMenu from "./BookingActionsMenu";
-import BookingCustomerAvatar from "./BookingCustomerAvatar";
-import BookingStatusBadge from "./BookingStatusBadge";
 import {
   formatBookingPrice,
   formatThaiDate,
   getFirstBookingItem,
   isOfflineBooking,
 } from "../utils/bookingHelpers";
+import BookingActionsMenu from "./BookingActionsMenu";
+import BookingCustomerAvatar from "./BookingCustomerAvatar";
+import BookingStatusBadge from "./BookingStatusBadge";
 
 import type {
   Booking,
+  BookingItem,
   BookingStatus,
 } from "../types/booking";
 
@@ -46,7 +47,7 @@ export default function AdminBookingsDesktopTable({
       <table style={{ width: "100%", borderCollapse: "collapse" }}>
         <thead>
           <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
-            {["ลูกค้า", "สนาม / วันที่", "เวลา", "ราคารวม", "สถานะ", "จัดการ"].map((heading) => (
+            {["ลูกค้า", "สนาม / วันที่", "เวลา", "ราคารวม", "สถานะ", "จัดการ"].map((heading : string) => (
               <th
                 key={heading}
                 style={{
@@ -66,7 +67,7 @@ export default function AdminBookingsDesktopTable({
         </thead>
 
         <tbody>
-          {bookings.map((booking) => {
+          {bookings.map((booking : Booking) => {
             const firstItem = getFirstBookingItem(booking);
             const isOffline = isOfflineBooking(booking);
 
@@ -119,7 +120,7 @@ export default function AdminBookingsDesktopTable({
 
                 <td style={{ padding: "0.85rem 1rem" }}>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem" }}>
-                    {booking.items.map((item) => (
+                    {booking.items.map((item : BookingItem) => (
                       <span
                         key={item.id}
                         style={{

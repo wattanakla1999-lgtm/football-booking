@@ -76,14 +76,14 @@ export function useBookingHistory() {
       const bookingId = booking.id.toLowerCase();
 
       const fieldNames = booking.items
-        .map((item) => item.court?.name || "")
+        .map((item : { court?: { name: string } }    ) => item.court?.name || "")
         .join(" ")
         .toLowerCase();
 
       const surfaces = booking.items
-        .map((item) => item.court?.surface || "")
+        .map((item : any) => item.court?.surface || "")
         .join(" ")
-        .toLowerCase();
+        .toLowerCase(); 
 
       const matchesSearch =
         keyword === "" ||

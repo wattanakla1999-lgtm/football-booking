@@ -36,7 +36,7 @@ export function DatePicker({
         ref={dateListRef}
         className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-6 px-6 snap-x snap-mandatory"
       >
-        {dates.map((date, index) => {
+        {dates.map((date : Date, index : number) => {
           const isToday = index === 0;
           const isSelected =
             date.toDateString() === selectedDate.toDateString();

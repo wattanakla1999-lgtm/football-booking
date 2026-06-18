@@ -27,7 +27,7 @@ export function CourtSelectionStep({
 
       {loading ? (
         <div className="space-y-4">
-          {[1, 2, 3].map((item) => (
+          {[1, 2, 3].map((item : number) => (
             <div
               key={item}
               className="h-[140px] rounded-2xl bg-white/[0.03] animate-pulse"
@@ -45,7 +45,7 @@ export function CourtSelectionStep({
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {courts.map((court) => (
+          {courts.map((court :any) => (
             <CourtCard
               key={court.id}
               court={court}

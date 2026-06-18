@@ -17,7 +17,7 @@ export function StatusFilters({
 }: StatusFiltersProps) {
   return (
     <section className="flex w-full gap-2 overflow-x-auto pb-1">
-      {STATUS_OPTIONS.map((option) => {
+      {STATUS_OPTIONS.map((option : { value: StatusFilter, label: string }) => {
         const isActive = activeFilter === option.value;
 
         return (

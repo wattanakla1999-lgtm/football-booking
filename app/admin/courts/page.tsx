@@ -1,12 +1,12 @@
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
-import type { Metadata } from "next";
 import { prisma } from "@/src/lib/prisma";
-import CourtsListView from "./CourtsListView";
 import {
   createPaginationMeta,
   parsePageParam,
 } from "@/src/utils/pagination";
+import type { Metadata } from "next";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import CourtsListView from "./CourtsListView";
 
 export const metadata: Metadata = {
   title: "จัดการสนามฟุตบอล — Admin",
@@ -77,7 +77,7 @@ export default async function AdminCourtsPage({
     take: PAGE_LIMIT,
   });
 
-  const serializedCourts = courts.map((court) => ({
+  const serializedCourts = courts.map((court: any) => ({
     id: court.id,
     name: court.name,
     description: court.description,
@@ -85,7 +85,7 @@ export default async function AdminCourtsPage({
     maxPlayers: court.maxPlayers,
     pricePerHour: court.pricePerHour.toString(),
     isActive: court.isActive,
-    images: court.images.map((image) => ({
+    images: court.images.map((image: any) => ({
       id: image.id,
       url: image.url,
     })),

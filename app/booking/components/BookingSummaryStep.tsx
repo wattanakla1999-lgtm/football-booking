@@ -82,7 +82,7 @@ export function BookingSummaryStep({
             <div>
               <p className="text-xs text-white/40">เวลา</p>
               <div className="flex flex-wrap gap-2 mt-1.5">
-                {selectedSlots.map((slot) => (
+                {selectedSlots.map((slot : { startTime: string, endTime: string }) => (
                   <span
                     key={slot.startTime}
                     className="inline-block bg-green-500/10 text-green-400 text-sm font-medium px-3 py-1.5 rounded-xl"

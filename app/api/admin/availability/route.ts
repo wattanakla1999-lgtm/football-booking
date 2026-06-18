@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
   try {
@@ -75,7 +75,7 @@ export async function GET(request: Request) {
     const existingItems = await prisma.bookingItem.findMany({
       where: {
         date: targetDate,
-        courtId: { in: courts.map((c) => c.id) },
+        courtId: { in: courts.map((c : any) => c.id) },
         booking: { status: { not: "cancelled" } },
       },
       include: {
@@ -102,7 +102,7 @@ export async function GET(request: Request) {
       closeHour += 24;
     }
 
-    const courtsWithSlots = courts.map((court) => {
+    const courtsWithSlots = courts.map((court : any) => {
       const slots = [];
       for (let h = openHour; h < closeHour; h++) {
         const displayStartH = h % 24;

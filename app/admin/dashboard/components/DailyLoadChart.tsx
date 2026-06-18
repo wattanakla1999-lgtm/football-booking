@@ -15,7 +15,7 @@ export function DailyLoadChart({
   weeklyTotal,
 }: DailyLoadChartProps) {
   const maxValue = Math.max(
-    ...data.map((item) => item.value),
+    ...data.map((item : DashboardChartPoint) => item.value),
     1,
   );
 
@@ -50,7 +50,7 @@ export function DailyLoadChart({
       </div>
 
       <div className="flex h-40 items-end justify-between gap-3 px-1">
-        {data.map((item) => (
+        {data.map((item : DashboardChartPoint) => (
           <div
             key={item.dateKey}
             className="group relative flex w-full flex-col items-center gap-2"
@@ -83,7 +83,7 @@ export function DailyLoadChart({
       </div>
 
       <div className="grid grid-cols-7 mt-4 text-center">
-        {data.map((item) => (
+        {data.map((item : DashboardChartPoint) => (
           <span
             key={item.dateKey}
             className="text-label-sm text-on-surface-variant"

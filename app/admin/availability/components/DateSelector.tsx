@@ -16,7 +16,7 @@ export default function DateSelector({
 }: DateSelectorProps) {
     return (
         <div className="admin-scroll mb-8 flex gap-2 overflow-x-auto border-b border-white/[0.03] pb-3">
-            {dates.map((date) => {
+            {dates.map((date : Date) => {
                 const isSelected =
                     date.toDateString() ===
                     selectedDate.toDateString();

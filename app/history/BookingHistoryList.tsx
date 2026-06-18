@@ -87,7 +87,7 @@ export default function BookingHistoryList() {
           />
         ) : (
           <div className="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2">
-            {filteredBookings.map((booking) => (
+            {filteredBookings.map((booking : Booking) => (
               <BookingCard
                 key={booking.id}
                 booking={booking}

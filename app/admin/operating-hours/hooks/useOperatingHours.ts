@@ -91,7 +91,7 @@ export function useOperatingHours() {
   const toggleClosed = useCallback(
     (dayOfWeek: number) => {
       setHours((currentHours) =>
-        currentHours.map((item) =>
+        currentHours.map((item : OperatingHourRow) =>
           item.dayOfWeek === dayOfWeek
             ? {
                 ...item,
@@ -111,7 +111,7 @@ export function useOperatingHours() {
       value: string,
     ) => {
       setHours((currentHours) =>
-        currentHours.map((item) =>
+        currentHours.map((item : OperatingHourRow) =>
           item.dayOfWeek === dayOfWeek
             ? {
                 ...item,

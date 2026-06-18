@@ -21,7 +21,7 @@ export default function CourtsGrid({
         gap: "1.25rem",
       }}
     >
-      {courts.map((court) => (
+      {courts.map((court : Court) => (
         <CourtCard
           key={court.id}
           court={court}

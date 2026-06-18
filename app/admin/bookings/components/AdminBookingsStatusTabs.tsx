@@ -32,7 +32,7 @@ export default function AdminBookingsStatusTabs({
         paddingBottom: "0.25rem",
       }}
     >
-      {FILTER_TABS.map((tab) => {
+      {FILTER_TABS.map((tab : { key: StatusFilter; label: string }) => {
         const isActive = statusFilter === tab.key;
         const count = counts[tab.key];
 

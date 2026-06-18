@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
 
 import { prisma } from "@/src/lib/prisma";
 
@@ -79,7 +79,7 @@ export async function GET(request: Request) {
     });
 
     return NextResponse.json({
-      customers: customers.map((customer) => ({
+      customers: customers.map((customer : any) => ({
         ...customer,
         createdAt: customer.createdAt.toISOString(),
       })),

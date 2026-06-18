@@ -217,7 +217,7 @@ export default function BookingModal({
                   </div>
                 )}
 
-              {customerResults.map((customer) => {
+              {customerResults.map((customer : any) => {
                 const isSelected =
                   selectedCustomer?.id ===
                   customer.id;
@@ -329,7 +329,7 @@ export default function BookingModal({
                 )
               }
             >
-              {bookingStatusOptions.map((option) => (
+              {bookingStatusOptions.map((option : { value: string; label: string }) => (
                 <option
                   key={option.value}
                   value={option.value}
@@ -354,7 +354,7 @@ export default function BookingModal({
                 )
               }
             >
-              {paymentStatusOptions.map((option) => (
+              {paymentStatusOptions.map((option : { value: string; label: string }) => (
                 <option
                   key={option.value}
                   value={option.value}

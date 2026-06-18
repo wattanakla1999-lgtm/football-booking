@@ -57,7 +57,7 @@ export function OperatingHoursForm({
           marginBottom: "1.5rem",
         }}
       >
-        {hours.map((row) => (
+        {hours.map((row : OperatingHourRowType) => (
           <OperatingHourRow
             key={row.dayOfWeek}
             row={row}

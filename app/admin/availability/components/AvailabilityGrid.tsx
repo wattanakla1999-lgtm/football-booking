@@ -28,9 +28,9 @@ export default function AvailabilityGrid({
             className={`flex flex-col gap-6 ${selectedSlots.length > 0 ? "pb-24" : ""
                 }`}
         >
-            {courts.map((court) => {
+            {courts.map((court : CourtAvailability) => {
                 const availableCount = court.slots.filter(
-                    (slot) => slot.isAvailable,
+                    (slot : Slot) => slot.isAvailable,
                 ).length;
 
                 return (
@@ -54,7 +54,7 @@ export default function AvailabilityGrid({
                         </div>
 
                         <div className="grid grid-cols-[repeat(auto-fill,minmax(130px,1fr))] gap-2.5">
-                            {court.slots.map((slot) => {
+                            {court.slots.map((slot : Slot) => {
                                 const statusColor = getStatusColor(
                                     slot.bookingStatus,
                                 );

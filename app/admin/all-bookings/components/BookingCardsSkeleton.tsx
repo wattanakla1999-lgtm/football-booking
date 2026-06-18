@@ -1,7 +1,7 @@
 export default function BookingCardsSkeleton() {
     return (
         <section className="grid min-w-0 grid-cols-1 gap-3 md:grid-cols-2">
-            {Array.from({ length: 6 }).map((_, index) => (
+            {Array.from({ length: 6 }).map((_ :any, index: number) => (
                 <div
                     key={index}
                     className="glass-card animate-pulse overflow-hidden rounded-xl"

@@ -30,7 +30,7 @@ export function BookingCard({
   const additionalCourtCount = Math.max(
     new Set(
       booking.items
-        .map((item) => item.court?.name)
+        .map((item : { court?: { name: string } }) => item.court?.name)
         .filter(Boolean),
     ).size - 1,
     0,
@@ -99,7 +99,7 @@ export function BookingCard({
           </div>
 
           <div className="divide-y divide-white/10">
-            {booking.items.map((item) => (
+            {booking.items.map((item : any) => (
               <BookingTimeRow
                 key={item.id}
                 item={item}

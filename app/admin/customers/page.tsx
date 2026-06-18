@@ -1,17 +1,17 @@
+import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import type { Metadata } from "next";
 
 import { prisma } from "@/src/lib/prisma";
 
-import CustomersListView from "./CustomersListView";
-import type { CustomerSummary } from "./types/customer";
-import type { Prisma } from "@prisma/client";
 import type { PaginationMeta } from "@/src/types/pagination";
 import {
   createPaginationMeta,
   parsePageParam,
 } from "@/src/utils/pagination";
+import type { Prisma } from "@prisma/client";
+import CustomersListView from "./CustomersListView";
+import type { CustomerSummary } from "./types/customer";
 
 export const metadata: Metadata = {
   title: "รายชื่อลูกค้า — Admin",

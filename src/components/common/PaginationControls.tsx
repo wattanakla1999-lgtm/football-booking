@@ -56,7 +56,7 @@ export function PaginationControls({
           ก่อนหน้า
         </button>
 
-        {pageRange.map((pageNumber, index) => {
+        {pageRange.map((pageNumber : number, index : number) => {
           const previousPage =
             pageRange[index - 1];
 

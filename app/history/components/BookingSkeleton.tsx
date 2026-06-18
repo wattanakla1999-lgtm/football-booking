@@ -1,7 +1,7 @@
 export function BookingSkeleton() {
   return (
     <div className="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2">
-      {Array.from({ length: 4 }).map((_, index) => (
+      {Array.from({ length: 4 }).map((_ , index : number) => (
         <div
           key={index}
           className="animate-pulse overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04]"

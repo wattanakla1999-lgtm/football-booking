@@ -31,7 +31,7 @@ export function TimeSlotGrid({
 
       {loading ? (
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
-          {Array.from({ length: 12 }).map((_, index) => (
+          {Array.from({ length: 12 }).map((_ , index : number) => (
             <div
               key={index}
               className="h-[4.5rem] rounded-2xl bg-white/[0.03] animate-pulse"
@@ -51,7 +51,7 @@ export function TimeSlotGrid({
       ) : (
         <>
           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
-            {slots.map((slot) => {
+            {slots.map((slot : { startTime: string, endTime: string, isAvailable: boolean }) => {
               const isSelected = selectedSlots.some(
                 (selected) => selected.startTime === slot.startTime,
               );

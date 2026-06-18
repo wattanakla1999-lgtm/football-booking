@@ -59,7 +59,7 @@ function getInitials(name: string) {
     .trim()
     .split(/\s+/)
     .slice(0, 2)
-    .map((part) => part.charAt(0).toUpperCase())
+    .map((part : string) => part.charAt(0).toUpperCase())
     .join("") || "?";
 }
 
@@ -211,7 +211,7 @@ export default function CustomersListView({
               <span>ล่าสุด</span>
             </div>
 
-            {customers.map((customer) => (
+            {customers.map((customer : any) => (
               <article
                 key={customer.id}
                 className="grid grid-cols-[2.2fr_1.1fr_1fr_1fr_1fr_1fr] gap-4 border-b border-outline-variant/10 px-5 py-4 last:border-b-0"
@@ -270,7 +270,7 @@ export default function CustomersListView({
           </section>
 
           <section className="grid grid-cols-1 gap-md xl:hidden">
-            {customers.map((customer) => (
+            {customers.map((customer : CustomerSummary) => (
               <article
                 key={customer.id}
                 className="rounded-2xl border border-outline-variant/10 bg-surface-container-low p-4"

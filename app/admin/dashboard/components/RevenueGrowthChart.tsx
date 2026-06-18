@@ -20,7 +20,7 @@ function buildAreaPath(points: DashboardChartPoint[]) {
   }
 
   const maxValue = Math.max(
-    ...points.map((point) => point.value),
+    ...points.map((point : DashboardChartPoint) => point.value),
     1,
   );
 
@@ -43,7 +43,7 @@ function buildAreaPath(points: DashboardChartPoint[]) {
   );
 
   const line = coordinates
-    .map((point, index) =>
+    .map((point : { x: number; y: number }, index : number) =>
       `${index === 0 ? "M" : "L"} ${point.x} ${point.y}`,
     )
     .join(" ");
@@ -101,7 +101,7 @@ export function RevenueGrowthChart({
 
       <div className="relative mt-4 h-52 w-full overflow-hidden rounded-xl border border-outline-variant/10 bg-gradient-to-b from-primary/5 to-transparent">
         <div className="pointer-events-none absolute inset-x-0 bottom-0 top-0 grid grid-rows-4">
-          {[0, 1, 2, 3].map((row) => (
+          {[0, 1, 2, 3].map((row : number) => (
             <div
               key={row}
               className="border-b border-outline-variant/10 last:border-b-0"
@@ -234,7 +234,7 @@ export function RevenueGrowthChart({
       </div>
 
       <div className="mt-4 grid grid-cols-7 text-center">
-        {data.map((point) => (
+        {data.map((point : DashboardChartPoint) => (
             <span
               key={point.dateKey}
               className="text-label-sm text-on-surface-variant"

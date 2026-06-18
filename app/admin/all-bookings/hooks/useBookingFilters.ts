@@ -85,7 +85,7 @@ export function useBookingFilters(bookings: Booking[]) {
                 });
 
             const bookingDates = booking.items
-                .map((item) => normalizeDate(item.date))
+                .map((item : { date: string }) => normalizeDate(item.date))
                 .filter(
                     (date): date is number =>
                         date !== null

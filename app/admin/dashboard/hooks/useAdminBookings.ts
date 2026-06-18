@@ -84,7 +84,7 @@ export function useAdminBookings() {
             });
 
           setBookings((currentBookings) =>
-            currentBookings.map((booking) =>
+            currentBookings.map((booking : AdminBooking) =>
               booking.id === bookingId
                 ? response.booking ?? {
                     ...booking,

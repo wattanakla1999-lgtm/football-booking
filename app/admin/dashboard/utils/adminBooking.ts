@@ -1,9 +1,9 @@
 import type {
   AdminBooking,
+  BookingStatistics,
   DashboardChartPoint,
   DashboardChartSeries,
   DashboardTrend,
-  BookingStatistics,
 } from "../types/adminBooking";
 
 const REVENUE_STATUSES = new Set([
@@ -98,7 +98,7 @@ export function getUniqueCourtNames(
   return Array.from(
     new Set(
       bookings
-        .flatMap((booking) =>
+        .flatMap((booking : AdminBooking) =>
           booking.items.map(
             (item) => item.court?.name,
           ),
