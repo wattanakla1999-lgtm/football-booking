@@ -6,6 +6,30 @@ export type BookingStatus =
     | "cancelled"
     | null;
 
+export type ManualBookingStatus =
+    | "pending"
+    | "confirmed"
+    | "cancelled"
+    | "completed";
+
+export type ManualPaymentStatus =
+    | "unpaid"
+    | "pending_verify"
+    | "verified";
+
+export type CustomerMode =
+    | "existing"
+    | "new";
+
+export type CustomerSearchItem = {
+    id: string;
+    displayName: string;
+    phone: string | null;
+    pictureUrl: string | null;
+    lineUserId: string;
+    createdAt: string;
+};
+
 export type Slot = {
     startTime: string;
     endTime: string;

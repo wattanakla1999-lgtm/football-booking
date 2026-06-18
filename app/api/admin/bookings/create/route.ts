@@ -7,6 +7,18 @@ type BookingSlotPayload = {
   endTime: string;
 };
 
+type CreateBookingBody = {
+  courtId?: string;
+  date?: string;
+  slots?: BookingSlotPayload[];
+  customerMode?: "existing" | "new";
+  existingCustomerId?: string;
+  customerName?: string;
+  customerPhone?: string;
+  bookingStatus?: "pending" | "confirmed" | "cancelled" | "completed";
+  paymentStatus?: "unpaid" | "pending_verify" | "verified";
+};
+
 // Helper: verify admin session
 async function getAdmin() {
   const cookieStore = await cookies();
@@ -29,11 +41,77 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { courtId, date, slots, customerName, customerPhone } = body;
+    const body =
+      (await request.json()) as CreateBookingBody;
 
-    if (!courtId || !date || !slots || slots.length === 0 || !customerName) {
+    const {
+      courtId,
+      date,
+      slots,
+      customerMode = "new",
+      existingCustomerId,
+      customerName,
+      customerPhone,
+      bookingStatus = "confirmed",
+      paymentStatus = "unpaid",
+    } = body;
+
+    if (
+      !courtId ||
+      !date ||
+      !slots ||
+      slots.length === 0 ||
+      !bookingStatus ||
+      !paymentStatus
+    ) {
       return NextResponse.json({ error: "ข้อมูลไม่ครบถ้วน" }, { status: 400 });
+    }
+
+    if (
+      customerMode === "existing" &&
+      !existingCustomerId
+    ) {
+      return NextResponse.json(
+        { error: "กรุณาเลือกลูกค้าเดิม" },
+        { status: 400 },
+      );
+    }
+
+    if (
+      customerMode === "new" &&
+      (!customerName?.trim() || !customerPhone?.trim())
+    ) {
+      return NextResponse.json(
+        { error: "กรุณากรอกชื่อลูกค้าและเบอร์โทรศัพท์" },
+        { status: 400 },
+      );
+    }
+
+    const validBookingStatuses = [
+      "pending",
+      "confirmed",
+      "cancelled",
+      "completed",
+    ];
+
+    if (!validBookingStatuses.includes(bookingStatus)) {
+      return NextResponse.json(
+        { error: "สถานะการจองไม่ถูกต้อง" },
+        { status: 400 },
+      );
+    }
+
+    const validPaymentStatuses = [
+      "unpaid",
+      "pending_verify",
+      "verified",
+    ];
+
+    if (!validPaymentStatuses.includes(paymentStatus)) {
+      return NextResponse.json(
+        { error: "สถานะการชำระเงินไม่ถูกต้อง" },
+        { status: 400 },
+      );
     }
 
     const targetDate = new Date(date);
@@ -74,29 +152,44 @@ export async function POST(request: Request) {
       }
     }
 
-    // 3. Find or create the Customer User
-    // If a phone is provided, try to find a user with lineUserId starting with offline_ and matching phone
+    // 3. Resolve or create customer
     let customerUser = null;
-    if (customerPhone) {
+
+    if (customerMode === "existing") {
+      customerUser = await prisma.user.findFirst({
+        where: {
+          id: existingCustomerId,
+          organizationId: admin.organizationId,
+        },
+      });
+
+      if (!customerUser) {
+        return NextResponse.json(
+          { error: "ไม่พบลูกค้าที่เลือก" },
+          { status: 404 },
+        );
+      }
+    } else {
       customerUser = await prisma.user.findFirst({
         where: {
           organizationId: admin.organizationId,
-          phone: customerPhone,
-          lineUserId: { startsWith: "offline_" }
-        }
+          phone: customerPhone!.trim(),
+        },
       });
-    }
 
-    if (!customerUser) {
-      const uniqueSuffix = customerPhone ? customerPhone : `temp_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
-      customerUser = await prisma.user.create({
-        data: {
-          lineUserId: `offline_${uniqueSuffix}`,
-          displayName: customerName,
-          phone: customerPhone || null,
-          organizationId: admin.organizationId,
-        }
-      });
+      if (!customerUser) {
+        const uniqueSuffix =
+          `${customerPhone!.trim()}_${Date.now()}`;
+
+        customerUser = await prisma.user.create({
+          data: {
+            lineUserId: `offline_${uniqueSuffix}`,
+            displayName: customerName!.trim(),
+            phone: customerPhone!.trim(),
+            organizationId: admin.organizationId,
+          },
+        });
+      }
     }
 
     // 4. Calculate price
@@ -110,8 +203,11 @@ export async function POST(request: Request) {
           userId: customerUser.id,
           organizationId: admin.organizationId,
           totalPrice,
-          status: "confirmed", // Admins book directly with confirmed status
-          notes: "จองโดยผู้ดูแลระบบ (สายโทรเข้า / วอล์กอิน)",
+          status: bookingStatus,
+          notes:
+            customerMode === "existing"
+              ? "จองโดยผู้ดูแลระบบ (ลูกค้าเดิม)"
+              : "จองโดยผู้ดูแลระบบ (ลูกค้าใหม่ / โทรจอง)",
           items: {
             create: slots.map((slot: BookingSlotPayload) => ({
               courtId,
@@ -123,6 +219,23 @@ export async function POST(request: Request) {
           }
         }
       });
+
+      await tx.payment.create({
+        data: {
+          bookingId: newBooking.id,
+          amount: totalPrice,
+          status: paymentStatus,
+          verifiedAt:
+            paymentStatus === "verified"
+              ? new Date()
+              : null,
+          verifiedById:
+            paymentStatus === "verified"
+              ? admin.id
+              : null,
+        },
+      });
+
       return newBooking;
     });
 

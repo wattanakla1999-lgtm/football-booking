@@ -6,15 +6,35 @@ import { prisma } from "@/src/lib/prisma";
 
 import CustomersListView from "./CustomersListView";
 import type { CustomerSummary } from "./types/customer";
+import type { Prisma } from "@prisma/client";
+import type { PaginationMeta } from "@/src/types/pagination";
+import {
+  createPaginationMeta,
+  parsePageParam,
+} from "@/src/utils/pagination";
 
 export const metadata: Metadata = {
   title: "รายชื่อลูกค้า — Admin",
   description: "ดูรายชื่อลูกค้าและประวัติการใช้งาน",
 };
 
-export default async function AdminCustomersPage() {
+const PAGE_LIMIT = 10;
+
+type AdminCustomersPageProps = {
+  searchParams: Promise<{
+    page?: string;
+    q?: string;
+  }>;
+};
+
+export default async function AdminCustomersPage({
+  searchParams,
+}: AdminCustomersPageProps) {
   const cookieStore = await cookies();
   const adminId = cookieStore.get("admin_session_id")?.value;
+  const resolvedSearchParams = await searchParams;
+  const searchQuery =
+    resolvedSearchParams.q?.trim() || "";
 
   if (!adminId) {
     redirect("/admin/login");
@@ -32,10 +52,69 @@ export default async function AdminCustomersPage() {
     redirect("/admin/login");
   }
 
+  const where: Prisma.UserWhereInput = {
+    organizationId: admin.organizationId,
+    ...(searchQuery
+      ? {
+          OR: [
+            {
+              displayName: {
+                contains: searchQuery,
+                mode: "insensitive" as const,
+              },
+            },
+            {
+              phone: {
+                contains: searchQuery,
+                mode: "insensitive" as const,
+              },
+            },
+            {
+              email: {
+                contains: searchQuery,
+                mode: "insensitive" as const,
+              },
+            },
+            {
+              bookings: {
+                some: {
+                  items: {
+                    some: {
+                      court: {
+                        is: {
+                          name: {
+                            contains: searchQuery,
+                            mode: "insensitive" as const,
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          ],
+        }
+      : {}),
+  };
+
+  const total = await prisma.user.count({
+    where,
+  });
+
+  const requestedPage = parsePageParam(
+    resolvedSearchParams.page,
+  );
+
+  const pagination: PaginationMeta =
+    createPaginationMeta({
+      total,
+      page: requestedPage,
+      limit: PAGE_LIMIT,
+    });
+
   const users = await prisma.user.findMany({
-    where: {
-      organizationId: admin.organizationId,
-    },
+    where,
     include: {
       bookings: {
         select: {
@@ -58,7 +137,51 @@ export default async function AdminCustomersPage() {
     orderBy: {
       createdAt: "desc",
     },
+    skip: (pagination.page - 1) * PAGE_LIMIT,
+    take: PAGE_LIMIT,
   });
+
+  const [
+    totalCustomers,
+    activeCustomers,
+    offlineCustomers,
+    revenueAggregate,
+  ] = await Promise.all([
+    prisma.user.count({
+      where: {
+        organizationId: admin.organizationId,
+      },
+    }),
+    prisma.user.count({
+      where: {
+        organizationId: admin.organizationId,
+        isActive: true,
+      },
+    }),
+    prisma.user.count({
+      where: {
+        organizationId: admin.organizationId,
+        lineUserId: {
+          startsWith: "offline_",
+        },
+      },
+    }),
+    prisma.booking.aggregate({
+      where: {
+        organizationId: admin.organizationId,
+        status: {
+          in: [
+            "paid",
+            "confirmed",
+            "completed",
+          ],
+        },
+      },
+      _sum: {
+        totalPrice: true,
+      },
+    }),
+  ]);
 
   const customers: CustomerSummary[] = users.map((user) => {
     const lastBooking = [...user.bookings].sort(
@@ -132,7 +255,20 @@ export default async function AdminCustomersPage() {
 
   return (
     <div className="flex flex-col gap-lg">
-      <CustomersListView customers={customers} />
+      <CustomersListView
+        key={`${searchQuery}:${pagination.page}`}
+        customers={customers}
+        pagination={pagination}
+        initialSearchQuery={searchQuery}
+        summary={{
+          total: totalCustomers,
+          active: activeCustomers,
+          offline: offlineCustomers,
+          revenue: Number(
+            revenueAggregate._sum.totalPrice || 0,
+          ),
+        }}
+      />
     </div>
   );
 }

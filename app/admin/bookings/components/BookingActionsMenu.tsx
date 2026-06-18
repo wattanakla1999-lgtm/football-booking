@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import type {
   Booking,
   BookingStatus,
@@ -56,6 +58,16 @@ export default function BookingActionsMenu({
             boxShadow: "0 12px 32px rgba(0,0,0,0.5)",
           }}
         >
+          <Link
+            href={`/admin/bookings/${booking.id}`}
+            style={{
+              ...menuBtnStyle("#a5b4fc"),
+              textDecoration: "none",
+            }}
+          >
+            🔎 ดูรายละเอียด
+          </Link>
+
           {booking.status !== "confirmed" && (
             <button
               type="button"

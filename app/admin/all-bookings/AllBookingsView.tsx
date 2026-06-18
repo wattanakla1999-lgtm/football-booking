@@ -1,199 +1,343 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { usePagination } from "@/hooks/usePagination";
+import {
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import {
+  usePathname,
+  useRouter,
+} from "next/navigation";
+
 import { countActiveFilters } from "../../../utils/bookingStatus";
+import { PaginationControls } from "@/src/components/common/PaginationControls";
+import type { PaginationMeta } from "@/src/types/pagination";
+import { updateAdminBookingStatus } from "@/src/services/adminBookings";
 import BookingCardsGrid from "./components/BookingCardsGrid";
-import BookingCardsSkeleton from "./components/BookingCardsSkeleton";
 import BookingFiltersPanel from "./components/BookingFiltersPanel";
 import BookingPageHeader from "./components/BookingPageHeader";
-import BookingPagination from "./components/BookingPagination";
 import BookingSummary from "./components/BookingSummary";
 import EmptyBookings from "./components/EmptyBookings";
-import { useBookingFilters } from "./hooks/useBookingFilters";
-import type { Booking, BookingStatus, } from "./types/booking";
+import type {
+  Booking,
+  BookingStatus,
+  StatusFilter,
+} from "./types/booking";
 
-interface RecentBookingsTableProps {
-    bookings: Booking[];
-    loading?: boolean;
-    itemsPerPage?: number;
-    title?: string;
-    onUpdateStatus: (
-        bookingId: string,
-        status: BookingStatus
-    ) => Promise<void> | void;
-    onViewAll?: () => void;
+interface CourtOption {
+  value: string;
+  label: string;
 }
 
-export default function RecentBookingsTable({
-    bookings,
-    loading = false,
-    itemsPerPage = 8,
-    title = "All Bookings",
-    onUpdateStatus,
-    onViewAll,
-}: RecentBookingsTableProps) {
-    const actionMenuRef = useRef<HTMLDivElement | null>(null);
-    const [activeActionMenuId, setActiveActionMenuId] = useState<string | null>(null);
-    const [updatingId, setUpdatingId] = useState<string | null>(null);
-    const [showFilters, setShowFilters] = useState(false);
-    const filters = useBookingFilters(bookings);
+interface AllBookingsViewProps {
+  bookings: Booking[];
+  pagination: PaginationMeta;
+  title: string;
+  initialFilters: {
+    searchKeyword: string;
+    statusFilter: StatusFilter;
+    courtFilter: string;
+    startDateFilter: string;
+    endDateFilter: string;
+  };
+  courtOptions: CourtOption[];
+  summaryCounts: Record<
+    StatusFilter,
+    number
+  > &
+    Record<BookingStatus, number>;
+}
 
-    const {
-        currentPage,
-        totalPages,
-        totalItems,
-        startIndex,
-        endIndex,
-        paginatedItems: paginatedBookings,
-        goToPreviousPage,
-        goToNextPage,
-        resetPage,
-    } = usePagination(
-        filters.filteredBookings,
-        itemsPerPage
+export default function AllBookingsView({
+  bookings,
+  pagination,
+  title,
+  initialFilters,
+  courtOptions,
+  summaryCounts,
+}: AllBookingsViewProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const actionMenuRef =
+    useRef<HTMLDivElement | null>(null);
+  const [activeActionMenuId, setActiveActionMenuId] =
+    useState<string | null>(null);
+  const [updatingId, setUpdatingId] =
+    useState<string | null>(null);
+  const [showFilters, setShowFilters] =
+    useState(false);
+  const [searchKeyword, setSearchKeyword] =
+    useState(initialFilters.searchKeyword);
+
+  useEffect(() => {
+    setSearchKeyword(
+      initialFilters.searchKeyword,
     );
+  }, [initialFilters.searchKeyword]);
 
-    useEffect(() => {
-        resetPage();
-    }, [
-        filters.searchKeyword,
-        filters.statusFilter,
-        filters.courtFilter,
-        filters.startDateFilter,
-        filters.endDateFilter,
-        resetPage,
-    ]);
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      const trimmedKeyword =
+        searchKeyword.trim();
 
-    useEffect(() => {
-        const handleClickOutside = (
-            event: MouseEvent
-        ) => {
-            if (actionMenuRef.current && !actionMenuRef.current.contains(event.target as Node)) {
-                setActiveActionMenuId(null);
-            }
-        };
+      if (
+        trimmedKeyword ===
+        initialFilters.searchKeyword
+      ) {
+        return;
+      }
 
-        document.addEventListener(
-            "mousedown",
-            handleClickOutside
-        );
+      pushQuery({
+        nextSearchKeyword: trimmedKeyword,
+        nextPage: 1,
+      });
+    }, 300);
 
-        return () => {
-            document.removeEventListener(
-                "mousedown",
-                handleClickOutside
-            );
-        };
-    }, []);
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [
+    initialFilters.searchKeyword,
+    searchKeyword,
+  ]);
 
-    const resetFilters = () => {
-        filters.resetFilters();
+  useEffect(() => {
+    const handleClickOutside = (
+      event: MouseEvent,
+    ) => {
+      if (
+        actionMenuRef.current &&
+        !actionMenuRef.current.contains(
+          event.target as Node,
+        )
+      ) {
         setActiveActionMenuId(null);
-        onViewAll?.();
+      }
     };
 
-    const updateStatus = async (
-        bookingId: string,
-        status: BookingStatus
-    ) => {
-        if (updatingId) return;
-
-        try {
-            setUpdatingId(bookingId);
-            setActiveActionMenuId(null);
-
-            await onUpdateStatus(bookingId, status);
-        } catch (error) {
-            console.error(
-                "Unable to update booking status:",
-                error
-            );
-        } finally {
-            setUpdatingId(null);
-        }
-    };
-
-    const toggleActionMenu = (
-        bookingId: string
-    ) => {
-        setActiveActionMenuId((currentId) =>
-            currentId === bookingId
-                ? null
-                : bookingId
-        );
-    };
-
-    return (
-        <div className="w-full min-w-0 max-w-full space-y-5 overflow-x-hidden">
-            <BookingPageHeader
-                title={title}
-                searchKeyword={filters.searchKeyword}
-                showFilters={showFilters}
-                hasActiveFilters={filters.hasActiveFilters}
-                activeFilterCount={countActiveFilters({
-                    searchKeyword: filters.searchKeyword,
-                    statusFilter: filters.statusFilter,
-                    courtFilter: filters.courtFilter,
-                    startDateFilter: filters.startDateFilter,
-                    endDateFilter: filters.endDateFilter,
-                })}
-                onSearchChange={filters.setSearchKeyword}
-                onToggleFilters={() => setShowFilters((current) => !current)}
-                onReset={resetFilters}
-            />
-
-            <BookingSummary
-                bookings={bookings}
-                statusFilter={filters.statusFilter}
-                onStatusChange={filters.setStatusFilter}
-            />
-
-            <BookingFiltersPanel
-                visible={showFilters}
-                hasActiveFilters={filters.hasActiveFilters}
-                statusFilter={filters.statusFilter}
-                courtFilter={filters.courtFilter}
-                startDateFilter={filters.startDateFilter}
-                endDateFilter={filters.endDateFilter}
-                courtOptions={filters.courtOptions}
-                onStatusChange={filters.setStatusFilter}
-                onCourtChange={filters.setCourtFilter}
-                onStartDateChange={filters.setStartDateFilter}
-                onEndDateChange={filters.setEndDateFilter}
-                onReset={resetFilters}
-            />
-
-            {loading ? (
-                <BookingCardsSkeleton />
-            ) : paginatedBookings.length === 0 ? (
-                <EmptyBookings
-                    hasActiveFilters={filters.hasActiveFilters}
-                    onReset={resetFilters}
-                />
-            ) : (
-                <BookingCardsGrid
-                    bookings={paginatedBookings}
-                    updatingId={updatingId}
-                    activeActionMenuId={activeActionMenuId}
-                    actionMenuRef={actionMenuRef}
-                    onToggleMenu={toggleActionMenu}
-                    onCloseMenu={() => setActiveActionMenuId(null)}
-                    onUpdateStatus={updateStatus}
-                />
-            )}
-
-            {!loading && (
-                <BookingPagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    totalItems={totalItems}
-                    startIndex={startIndex}
-                    endIndex={endIndex}
-                    onPrevious={goToPreviousPage}
-                    onNext={goToNextPage}
-                />
-            )}
-        </div>
+    document.addEventListener(
+      "mousedown",
+      handleClickOutside,
     );
+
+    return () => {
+      document.removeEventListener(
+        "mousedown",
+        handleClickOutside,
+      );
+    };
+  }, []);
+
+  const pushQuery = ({
+    nextPage = 1,
+    nextSearchKeyword = searchKeyword.trim(),
+    nextStatus = initialFilters.statusFilter,
+    nextCourt = initialFilters.courtFilter,
+    nextStartDate = initialFilters.startDateFilter,
+    nextEndDate = initialFilters.endDateFilter,
+  }: {
+    nextPage?: number;
+    nextSearchKeyword?: string;
+    nextStatus?: StatusFilter;
+    nextCourt?: string;
+    nextStartDate?: string;
+    nextEndDate?: string;
+  }) => {
+    const params = new URLSearchParams();
+
+    if (nextSearchKeyword) {
+      params.set("q", nextSearchKeyword);
+    }
+
+    if (nextStatus !== "all") {
+      params.set("status", nextStatus);
+    }
+
+    if (nextCourt !== "all") {
+      params.set("court", nextCourt);
+    }
+
+    if (nextStartDate) {
+      params.set("startDate", nextStartDate);
+    }
+
+    if (nextEndDate) {
+      params.set("endDate", nextEndDate);
+    }
+
+    if (nextPage > 1) {
+      params.set("page", String(nextPage));
+    }
+
+    router.push(
+      params.size
+        ? `${pathname}?${params.toString()}`
+        : pathname,
+    );
+  };
+
+  const hasActiveFilters =
+    Boolean(initialFilters.searchKeyword) ||
+    initialFilters.statusFilter !== "all" ||
+    initialFilters.courtFilter !== "all" ||
+    initialFilters.startDateFilter !== "" ||
+    initialFilters.endDateFilter !== "";
+
+  const resetFilters = () => {
+    setSearchKeyword("");
+    setActiveActionMenuId(null);
+    router.push(pathname);
+  };
+
+  const updateStatus = async (
+    bookingId: string,
+    status: BookingStatus,
+  ) => {
+    if (updatingId) return;
+
+    try {
+      setUpdatingId(bookingId);
+      setActiveActionMenuId(null);
+
+      await updateAdminBookingStatus(
+        bookingId,
+        status,
+      );
+      router.refresh();
+    } catch (error) {
+      console.error(
+        "Unable to update booking status:",
+        error,
+      );
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const toggleActionMenu = (
+    bookingId: string,
+  ) => {
+    setActiveActionMenuId((currentId) =>
+      currentId === bookingId
+        ? null
+        : bookingId,
+    );
+  };
+
+  return (
+    <div className="w-full min-w-0 max-w-full space-y-5 overflow-x-hidden">
+      <BookingPageHeader
+        title={title}
+        searchKeyword={searchKeyword}
+        showFilters={showFilters}
+        hasActiveFilters={hasActiveFilters}
+        activeFilterCount={countActiveFilters({
+          searchKeyword:
+            initialFilters.searchKeyword,
+          statusFilter:
+            initialFilters.statusFilter,
+          courtFilter:
+            initialFilters.courtFilter,
+          startDateFilter:
+            initialFilters.startDateFilter,
+          endDateFilter:
+            initialFilters.endDateFilter,
+        })}
+        onSearchChange={setSearchKeyword}
+        onToggleFilters={() =>
+          setShowFilters((current) => !current)
+        }
+        onReset={resetFilters}
+      />
+
+      <BookingSummary
+        counts={summaryCounts}
+        statusFilter={
+          initialFilters.statusFilter
+        }
+        onStatusChange={(status) =>
+          pushQuery({
+            nextStatus: status,
+            nextPage: 1,
+          })
+        }
+      />
+
+      <BookingFiltersPanel
+        visible={showFilters}
+        hasActiveFilters={hasActiveFilters}
+        statusFilter={
+          initialFilters.statusFilter
+        }
+        courtFilter={
+          initialFilters.courtFilter
+        }
+        startDateFilter={
+          initialFilters.startDateFilter
+        }
+        endDateFilter={
+          initialFilters.endDateFilter
+        }
+        courtOptions={courtOptions}
+        onStatusChange={(value) =>
+          pushQuery({
+            nextStatus:
+              value as StatusFilter,
+            nextPage: 1,
+          })
+        }
+        onCourtChange={(value) =>
+          pushQuery({
+            nextCourt: value,
+            nextPage: 1,
+          })
+        }
+        onStartDateChange={(value) =>
+          pushQuery({
+            nextStartDate: value,
+            nextPage: 1,
+          })
+        }
+        onEndDateChange={(value) =>
+          pushQuery({
+            nextEndDate: value,
+            nextPage: 1,
+          })
+        }
+        onReset={resetFilters}
+      />
+
+      {bookings.length === 0 ? (
+        <EmptyBookings
+          hasActiveFilters={hasActiveFilters}
+          onReset={resetFilters}
+        />
+      ) : (
+        <BookingCardsGrid
+          bookings={bookings}
+          updatingId={updatingId}
+          activeActionMenuId={activeActionMenuId}
+          actionMenuRef={actionMenuRef}
+          onToggleMenu={toggleActionMenu}
+          onCloseMenu={() =>
+            setActiveActionMenuId(null)
+          }
+          onUpdateStatus={updateStatus}
+        />
+      )}
+
+      <PaginationControls
+        page={pagination.page}
+        total={pagination.total}
+        limit={pagination.limit}
+        totalPages={pagination.totalPages}
+        onPageChange={(page) =>
+          pushQuery({
+            nextPage: page,
+          })
+        }
+      />
+    </div>
+  );
 }

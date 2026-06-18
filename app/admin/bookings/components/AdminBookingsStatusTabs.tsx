@@ -1,26 +1,27 @@
 import {
   FILTER_TABS,
-  getStatusCounts,
 } from "../utils/bookingConstants";
 
 import type {
-  Booking,
+  BookingStatus,
   StatusFilter,
 } from "../types/booking";
 
 interface AdminBookingsStatusTabsProps {
-  bookings: Booking[];
+  counts: Record<
+    StatusFilter,
+    number
+  > &
+    Record<BookingStatus, number>;
   statusFilter: StatusFilter;
   onStatusChange: (status: StatusFilter) => void;
 }
 
 export default function AdminBookingsStatusTabs({
-  bookings,
+  counts,
   statusFilter,
   onStatusChange,
 }: AdminBookingsStatusTabsProps) {
-  const counts = getStatusCounts(bookings);
-
   return (
     <div
       className="admin-scroll"

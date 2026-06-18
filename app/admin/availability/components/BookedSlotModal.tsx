@@ -86,10 +86,14 @@ export default function BookedSlotModal({
 
                 <div className="mt-6">
                     <Link
-                        href="/admin/all-bookings"
+                        href={slot.bookingId
+                            ? `/admin/bookings/${slot.bookingId}`
+                            : "/admin/all-bookings"}
                         className="block w-full rounded-xl bg-white/[0.05] p-3 text-center text-sm font-semibold text-white transition-colors hover:bg-white/10"
                     >
-                        ดูการจองทั้งหมด
+                        {slot.bookingId
+                            ? "ดูรายละเอียดการจอง"
+                            : "ดูการจองทั้งหมด"}
                     </Link>
                 </div>
             </div>

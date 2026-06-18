@@ -1,108 +1,310 @@
-"use client";
+import type {
+  BookingStatus as PrismaBookingStatus,
+  Prisma,
+} from "@prisma/client";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
-import { useCallback, useEffect, useState } from "react";
-
-import RecentBookingsTable, {
-} from "./AllBookingsView";
-import { Booking, BookingStatus } from "./types/booking";
+import { prisma } from "@/src/lib/prisma";
 import {
-    fetchAdminBookings,
-    updateAdminBookingStatus,
-} from "@/src/services/adminBookings";
+  createPaginationMeta,
+  parsePageParam,
+} from "@/src/utils/pagination";
+import AllBookingsView from "./AllBookingsView";
+import type {
+  Booking,
+  StatusFilter,
+} from "./types/booking";
 
+const PAGE_LIMIT = 10;
 
-export default function AdminBookingsPage() {
-    const [bookings, setBookings] = useState<Booking[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+type AdminAllBookingsPageProps = {
+  searchParams: Promise<{
+    page?: string;
+    q?: string;
+    status?: string;
+    court?: string;
+    startDate?: string;
+    endDate?: string;
+  }>;
+};
 
-    const fetchBookings = useCallback(async () => {
-        try {
-            setLoading(true);
-            setError(null);
+export default async function AdminAllBookingsPage({
+  searchParams,
+}: AdminAllBookingsPageProps) {
+  const cookieStore = await cookies();
+  const adminId = cookieStore.get("admin_session_id")?.value;
+  const resolvedSearchParams = await searchParams;
 
-            const bookingList =
-                await fetchAdminBookings<Booking>();
+  if (!adminId) {
+    redirect("/admin/login");
+  }
 
-            setBookings(bookingList);
-        } catch (error) {
-            console.error("Fetch bookings error:", error);
+  const admin = await prisma.admin.findUnique({
+    where: { id: adminId },
+    select: {
+      organizationId: true,
+      isActive: true,
+    },
+  });
 
-            setError(
-                error instanceof Error
-                    ? error.message
-                    : "Unable to load bookings"
-            );
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  if (!admin || !admin.isActive) {
+    redirect("/admin/login");
+  }
 
-    useEffect(() => {
-        queueMicrotask(() => {
-            void fetchBookings();
-        });
-    }, [fetchBookings]);
+  const searchKeyword =
+    resolvedSearchParams.q?.trim() || "";
+  const statusFilter =
+    resolvedSearchParams.status === "pending" ||
+    resolvedSearchParams.status === "paid" ||
+    resolvedSearchParams.status === "confirmed" ||
+    resolvedSearchParams.status === "completed" ||
+    resolvedSearchParams.status === "cancelled"
+      ? resolvedSearchParams.status
+      : "all";
+  const bookingStatusFilter =
+    statusFilter === "all"
+      ? null
+      : (statusFilter as PrismaBookingStatus);
+  const courtFilter =
+    resolvedSearchParams.court?.trim() || "all";
+  const startDateFilter =
+    resolvedSearchParams.startDate?.trim() || "";
+  const endDateFilter =
+    resolvedSearchParams.endDate?.trim() || "";
 
-    const updateBookingStatus = async (
-        bookingId: string,
-        status: BookingStatus
-    ) => {
-        await updateAdminBookingStatus(
-            bookingId,
-            status
-        );
+  const baseWhere: Prisma.BookingWhereInput = {
+    organizationId: admin.organizationId,
+  };
 
-        /*
-         * อัปเดตข้อมูลบนหน้าจอทันที
-         * ไม่ต้องโหลดรายการใหม่ทั้งหมด
-         */
-        setBookings((currentBookings) =>
-            currentBookings.map((booking) =>
-                booking.id === bookingId
-                    ? {
-                        ...booking,
-                        status,
+  if (searchKeyword) {
+    baseWhere.OR = [
+      {
+        id: {
+          contains: searchKeyword,
+        },
+      },
+      {
+        user: {
+          is: {
+            displayName: {
+              contains: searchKeyword,
+              mode: "insensitive",
+            },
+          },
+        },
+      },
+      {
+        user: {
+          is: {
+            phone: {
+              contains: searchKeyword,
+              mode: "insensitive",
+            },
+          },
+        },
+      },
+      {
+        items: {
+          some: {
+            court: {
+              is: {
+                name: {
+                  contains: searchKeyword,
+                  mode: "insensitive",
+                },
+              },
+            },
+          },
+        },
+      },
+    ];
+  }
+
+  if (
+    courtFilter !== "all" ||
+    startDateFilter ||
+    endDateFilter
+  ) {
+    baseWhere.items = {
+      some: {
+        ...(courtFilter !== "all"
+          ? { courtId: courtFilter }
+          : {}),
+        ...((startDateFilter ||
+          endDateFilter)
+          ? {
+              date: {
+                ...(startDateFilter
+                  ? {
+                      gte: new Date(
+                        startDateFilter,
+                      ),
                     }
-                    : booking
-            )
-        );
+                  : {}),
+                ...(endDateFilter
+                  ? {
+                      lte: new Date(
+                        endDateFilter,
+                      ),
+                    }
+                  : {}),
+              },
+            }
+          : {}),
+      },
     };
+  }
 
-    return (
-        <div className="w-full min-w-0 max-w-full space-y-6">
-            <div>
-                <h1 className="text-headline-lg font-headline-lg">
-                    จัดการการจอง
-                </h1>
+  const where: Prisma.BookingWhereInput = {
+    ...baseWhere,
+    ...(bookingStatusFilter
+      ? { status: bookingStatusFilter }
+      : {}),
+  };
 
-                <p className="mt-1 text-body-md text-on-surface-variant">
-                    ดูและจัดการรายการจองสนามทั้งหมด
-                </p>
-            </div>
+  const [
+    total,
+    allCount,
+    pendingCount,
+    paidCount,
+    confirmedCount,
+    completedCount,
+    cancelledCount,
+    courtOptions,
+  ] = await Promise.all([
+    prisma.booking.count({ where }),
+    prisma.booking.count({ where: baseWhere }),
+    prisma.booking.count({
+      where: { ...baseWhere, status: "pending" },
+    }),
+    prisma.booking.count({
+      where: { ...baseWhere, status: "paid" },
+    }),
+    prisma.booking.count({
+      where: {
+        ...baseWhere,
+        status: "confirmed",
+      },
+    }),
+    prisma.booking.count({
+      where: {
+        ...baseWhere,
+        status: "completed",
+      },
+    }),
+    prisma.booking.count({
+      where: {
+        ...baseWhere,
+        status: "cancelled",
+      },
+    }),
+    prisma.court.findMany({
+      where: {
+        organizationId: admin.organizationId,
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+      orderBy: {
+        name: "asc",
+      },
+    }),
+  ]);
 
-            {error && (
-                <div className="flex items-center justify-between gap-4 rounded-xl border border-error/20 bg-error/10 p-4 text-error">
-                    <p>{error}</p>
+  const pagination = createPaginationMeta({
+    total,
+    page: parsePageParam(
+      resolvedSearchParams.page,
+    ),
+    limit: PAGE_LIMIT,
+  });
 
-                    <button
-                        type="button"
-                        onClick={fetchBookings}
-                        className="shrink-0 font-bold hover:underline"
-                    >
-                        ลองใหม่อีกครั้ง
-                    </button>
-                </div>
-            )}
+  const bookings = await prisma.booking.findMany({
+    where,
+    include: {
+      user: {
+        select: {
+          id: true,
+          displayName: true,
+          phone: true,
+          pictureUrl: true,
+        },
+      },
+      items: {
+        include: {
+          court: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+        orderBy: [
+          { date: "asc" },
+          { startTime: "asc" },
+        ],
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+    skip: (pagination.page - 1) * PAGE_LIMIT,
+    take: PAGE_LIMIT,
+  });
 
-            <RecentBookingsTable
-                bookings={bookings}
-                loading={loading}
-                itemsPerPage={10}
-                onUpdateStatus={updateBookingStatus}
-                onViewAll={fetchBookings}
-                title="รายการจองทั้งหมด"
-            />
-        </div>
-    );
+  const serializedBookings: Booking[] =
+    bookings.map((booking) => ({
+      id: booking.id,
+      totalPrice: Number(booking.totalPrice),
+      status: booking.status,
+      user: {
+        id: booking.user.id,
+        displayName: booking.user.displayName,
+        phone: booking.user.phone,
+        pictureUrl: booking.user.pictureUrl,
+      },
+      items: booking.items.map((item) => ({
+        id: item.id,
+        date: item.date.toISOString(),
+        startTime: item.startTime,
+        endTime: item.endTime,
+        court: item.court
+          ? {
+              id: item.court.id,
+              name: item.court.name,
+            }
+          : null,
+      })),
+    }));
+
+  return (
+    <AllBookingsView
+      key={`${searchKeyword}:${statusFilter}:${courtFilter}:${startDateFilter}:${endDateFilter}:${pagination.page}`}
+      bookings={serializedBookings}
+      pagination={pagination}
+      title="รายการจองทั้งหมด"
+      initialFilters={{
+        searchKeyword,
+        statusFilter:
+          statusFilter as StatusFilter,
+        courtFilter,
+        startDateFilter,
+        endDateFilter,
+      }}
+      courtOptions={courtOptions.map((court) => ({
+        value: court.id,
+        label: court.name,
+      }))}
+      summaryCounts={{
+        all: allCount,
+        pending: pendingCount,
+        paid: paidCount,
+        confirmed: confirmedCount,
+        completed: completedCount,
+        cancelled: cancelledCount,
+      }}
+    />
+  );
 }

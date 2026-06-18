@@ -1,3 +1,4 @@
+import Link from "next/link";
 import Image from "next/image";
 import type {
     Booking,
@@ -238,11 +239,23 @@ export default function BookingCard({
                         {statusOptions.find(opt => opt.value === booking.status)?.label || capitalize(booking.status)}
                     </span>
                 </p>
+                <div className="flex flex-wrap items-center gap-2">
+                    <Link
+                        href={`/admin/bookings/${booking.id}`}
+                        className="inline-flex h-8 items-center justify-center gap-1.5 rounded-lg border border-primary/20 bg-primary/10 px-3 text-[10px] font-bold text-primary transition-all hover:brightness-110 active:scale-95"
+                    >
+                        <span className="material-symbols-outlined text-[16px]">
+                            visibility
+                        </span>
 
-                <QuickActionButton
-                    booking={booking}
-                    onUpdateStatus={onUpdateStatus}
-                />
+                        ดูรายละเอียด
+                    </Link>
+
+                    <QuickActionButton
+                        booking={booking}
+                        onUpdateStatus={onUpdateStatus}
+                    />
+                </div>
             </div>
         </article>
     );

@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import BookingActionsMenu from "./BookingActionsMenu";
 import BookingCustomerAvatar from "./BookingCustomerAvatar";
 import BookingStatusBadge from "./BookingStatusBadge";
@@ -147,13 +149,35 @@ export default function AdminBookingsDesktopTable({
                 </td>
 
                 <td style={{ padding: "0.85rem 1rem", position: "relative" }}>
-                  <BookingActionsMenu
-                    booking={booking}
-                    updating={updating}
-                    actionMenuId={actionMenuId}
-                    onToggleMenu={onToggleMenu}
-                    onUpdateStatus={onUpdateStatus}
-                  />
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                    <Link
+                      href={`/admin/bookings/${booking.id}`}
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        padding: "0.35rem 0.7rem",
+                        borderRadius: "8px",
+                        background: "rgba(99,102,241,0.12)",
+                        border: "1px solid rgba(99,102,241,0.2)",
+                        color: "#a5b4fc",
+                        fontSize: "0.75rem",
+                        fontWeight: 700,
+                        textDecoration: "none",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      ดูรายละเอียด
+                    </Link>
+
+                    <BookingActionsMenu
+                      booking={booking}
+                      updating={updating}
+                      actionMenuId={actionMenuId}
+                      onToggleMenu={onToggleMenu}
+                      onUpdateStatus={onUpdateStatus}
+                    />
+                  </div>
                 </td>
               </tr>
             );

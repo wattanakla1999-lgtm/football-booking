@@ -1,7 +1,6 @@
 import SummaryCard from "./SummaryCard";
 
 import type {
-    Booking,
     BookingStatus,
     StatusFilter,
 } from "../types/booking";
@@ -39,7 +38,11 @@ const SUMMARY_ITEMS: Array<{
     ];
 
 interface BookingSummaryProps {
-    bookings: Booking[];
+    counts: Record<
+        StatusFilter,
+        number
+    > &
+        Record<BookingStatus, number>;
     statusFilter: StatusFilter;
     onStatusChange: (
         status: StatusFilter
@@ -47,26 +50,10 @@ interface BookingSummaryProps {
 }
 
 export default function BookingSummary({
-    bookings,
+    counts,
     statusFilter,
     onStatusChange,
 }: BookingSummaryProps) {
-    const summary = bookings.reduce<
-        Record<BookingStatus, number>
-    >(
-        (result, booking) => {
-            result[booking.status] += 1;
-            return result;
-        },
-        {
-            pending: 0,
-            paid: 0,
-            confirmed: 0,
-            completed: 0,
-            cancelled: 0,
-        }
-    );
-
     return (
         <section className="grid min-w-0 grid-cols-2 gap-3 lg:grid-cols-5">
             {SUMMARY_ITEMS.map((item) => (
@@ -74,7 +61,7 @@ export default function BookingSummary({
                     key={item.status}
                     icon={item.icon}
                     label={item.label}
-                    value={summary[item.status]}
+                    value={counts[item.status]}
                     active={
                         statusFilter === item.status
                     }

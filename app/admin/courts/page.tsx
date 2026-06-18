@@ -3,15 +3,30 @@ import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { prisma } from "@/src/lib/prisma";
 import CourtsListView from "./CourtsListView";
+import {
+  createPaginationMeta,
+  parsePageParam,
+} from "@/src/utils/pagination";
 
 export const metadata: Metadata = {
   title: "จัดการสนามฟุตบอล — Admin",
   description: "จัดการสนามฟุตบอล เพิ่ม/แก้ไข/ลบสนาม",
 };
 
-export default async function AdminCourtsPage() {
+const PAGE_LIMIT = 10;
+
+type AdminCourtsPageProps = {
+  searchParams: Promise<{
+    page?: string;
+  }>;
+};
+
+export default async function AdminCourtsPage({
+  searchParams,
+}: AdminCourtsPageProps) {
   const cookieStore = await cookies();
   const adminId = cookieStore.get("admin_session_id")?.value;
+  const resolvedSearchParams = await searchParams;
 
   if (!adminId) {
     redirect("/admin/login");
@@ -31,6 +46,20 @@ export default async function AdminCourtsPage() {
     redirect("/admin/login");
   }
 
+  const total = await prisma.court.count({
+    where: {
+      organizationId: admin.organizationId,
+    },
+  });
+
+  const pagination = createPaginationMeta({
+    total,
+    page: parsePageParam(
+      resolvedSearchParams.page,
+    ),
+    limit: PAGE_LIMIT,
+  });
+
   const courts = await prisma.court.findMany({
     where: {
       organizationId: admin.organizationId,
@@ -44,6 +73,8 @@ export default async function AdminCourtsPage() {
     orderBy: {
       createdAt: "desc",
     },
+    skip: (pagination.page - 1) * PAGE_LIMIT,
+    take: PAGE_LIMIT,
   });
 
   const serializedCourts = courts.map((court) => ({
@@ -65,7 +96,10 @@ export default async function AdminCourtsPage() {
       <div className="p-md flex justify-between items-center border-b border-outline-variant/10 mb-md">
         <h2 className="text-headline-md font-headline-md">จัดการสนามฟุตบอล (Fields)</h2>
       </div>
-      <CourtsListView initialCourts={serializedCourts} />
+      <CourtsListView
+        initialCourts={serializedCourts}
+        pagination={pagination}
+      />
     </div>
   );
 }

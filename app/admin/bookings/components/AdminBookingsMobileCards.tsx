@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import BookingCustomerAvatar from "./BookingCustomerAvatar";
 import BookingStatusBadge from "./BookingStatusBadge";
 import {
@@ -165,6 +167,17 @@ export default function AdminBookingsMobileCards({
                 )}
 
                 <div style={{ display: "flex", gap: "0.4rem", width: "100%", marginTop: "0.35rem" }}>
+                  <Link
+                    href={`/admin/bookings/${booking.id}`}
+                    style={{
+                      ...mobileActionStyle("rgba(99,102,241,0.12)", "#a5b4fc"),
+                      textAlign: "center",
+                      textDecoration: "none",
+                    }}
+                  >
+                    🔎 ดูรายละเอียด
+                  </Link>
+
                   {booking.status !== "confirmed" && (
                     <button
                       type="button"

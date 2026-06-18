@@ -1,15 +1,33 @@
 "use client";
 
 import Image from "next/image";
-import { useMemo, useState } from "react";
+import {
+  usePathname,
+  useRouter,
+} from "next/navigation";
+import {
+  useEffect,
+  useState,
+  useTransition,
+} from "react";
 
 import { EmptyState } from "@/src/components/common";
+import { PaginationControls } from "@/src/components/common/PaginationControls";
 import { Input } from "@/src/components/ui";
+import type { PaginationMeta } from "@/src/types/pagination";
 
 import type { CustomerSummary } from "./types/customer";
 
 type CustomersListViewProps = {
   customers: CustomerSummary[];
+  pagination: PaginationMeta;
+  initialSearchQuery: string;
+  summary: {
+    total: number;
+    active: number;
+    offline: number;
+    revenue: number;
+  };
 };
 
 function formatPrice(value: number) {
@@ -47,47 +65,70 @@ function getInitials(name: string) {
 
 export default function CustomersListView({
   customers,
+  pagination,
+  initialSearchQuery,
+  summary,
 }: CustomersListViewProps) {
-  const [searchQuery, setSearchQuery] = useState("");
+  const router = useRouter();
+  const pathname = usePathname();
+  const [isPending, startTransition] =
+    useTransition();
+  const [searchQuery, setSearchQuery] =
+    useState(initialSearchQuery);
 
-  const filteredCustomers = useMemo(() => {
-    const keyword = searchQuery.trim().toLowerCase();
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      const trimmedQuery =
+        searchQuery.trim();
 
-    if (!keyword) {
-      return customers;
+      if (trimmedQuery === initialSearchQuery) {
+        return;
+      }
+
+      const params = new URLSearchParams();
+
+      if (trimmedQuery) {
+        params.set("q", trimmedQuery);
+      }
+
+      startTransition(() => {
+        router.replace(
+          params.size
+            ? `${pathname}?${params.toString()}`
+            : pathname,
+        );
+      });
+    }, 300);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [
+    initialSearchQuery,
+    pathname,
+    router,
+    searchQuery,
+  ]);
+
+  const handlePageChange = (page: number) => {
+    const params = new URLSearchParams();
+
+    if (searchQuery.trim()) {
+      params.set("q", searchQuery.trim());
     }
 
-    return customers.filter((customer) =>
-      [
-        customer.displayName,
-        customer.phone,
-        customer.email,
-        customer.favoriteCourt,
-      ]
-        .filter(Boolean)
-        .some((value) =>
-          String(value).toLowerCase().includes(keyword),
-        ),
-    );
-  }, [customers, searchQuery]);
+    if (page > 1) {
+      params.set("page", String(page));
+    }
 
-  const summary = useMemo(() => {
-    return customers.reduce(
-      (accumulator, customer) => {
-        accumulator.total += 1;
-        accumulator.active += customer.status === "active" ? 1 : 0;
-        accumulator.offline += customer.source === "offline" ? 1 : 0;
-        accumulator.revenue += customer.totalSpent;
-        return accumulator;
-      },
-      {
-        total: 0,
-        active: 0,
-        offline: 0,
-        revenue: 0,
-      },
-    );
-  }, [customers]);
+    startTransition(() => {
+      router.push(
+        params.size
+          ? `${pathname}?${params.toString()}`
+          : pathname,
+      );
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -124,7 +165,7 @@ export default function CustomersListView({
           value={summary.active}
         />
         <SummaryCard
-          label="Walk-in / โทรเข้า"
+          label="โทรจอง / โทรเข้า"
           value={summary.offline}
         />
         <SummaryCard
@@ -133,7 +174,11 @@ export default function CustomersListView({
         />
       </section>
 
-      {filteredCustomers.length === 0 ? (
+      {isPending ? (
+        <div className="rounded-2xl border border-outline-variant/10 bg-surface-container-low p-10 text-center text-on-surface-variant">
+          กำลังโหลดข้อมูล...
+        </div>
+      ) : customers.length === 0 ? (
         <EmptyState
           className="flex min-h-80 flex-col items-center justify-center rounded-2xl border border-outline-variant/10 bg-surface-container-low p-8 text-center"
           icon={
@@ -166,7 +211,7 @@ export default function CustomersListView({
               <span>ล่าสุด</span>
             </div>
 
-            {filteredCustomers.map((customer) => (
+            {customers.map((customer) => (
               <article
                 key={customer.id}
                 className="grid grid-cols-[2.2fr_1.1fr_1fr_1fr_1fr_1fr] gap-4 border-b border-outline-variant/10 px-5 py-4 last:border-b-0"
@@ -225,7 +270,7 @@ export default function CustomersListView({
           </section>
 
           <section className="grid grid-cols-1 gap-md xl:hidden">
-            {filteredCustomers.map((customer) => (
+            {customers.map((customer) => (
               <article
                 key={customer.id}
                 className="rounded-2xl border border-outline-variant/10 bg-surface-container-low p-4"
@@ -270,6 +315,14 @@ export default function CustomersListView({
               </article>
             ))}
           </section>
+
+          <PaginationControls
+            page={pagination.page}
+            total={pagination.total}
+            limit={pagination.limit}
+            totalPages={pagination.totalPages}
+            onPageChange={handlePageChange}
+          />
         </>
       )}
     </div>
@@ -333,7 +386,7 @@ function SourceBadge({
       <span className="material-symbols-outlined text-[14px]">
         {isOffline ? "call" : "chat"}
       </span>
-      {isOffline ? "Walk-in" : "LINE"}
+      {isOffline ? "โทรจอง" : "LINE"}
     </span>
   );
 }

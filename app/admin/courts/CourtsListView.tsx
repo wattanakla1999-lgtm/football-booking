@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import CourtsEmptyState from "./components/CourtsEmptyState";
@@ -7,12 +8,13 @@ import CourtFormModal from "./components/CourtFormModal";
 import CourtsGrid from "./components/CourtsGrid";
 import CourtsHeader from "./components/CourtsHeader";
 import { useCourtForm } from "./hooks/useCourtForm";
+import { PaginationControls } from "@/src/components/common/PaginationControls";
 import { LoadingSpinner } from "@/src/components/ui";
+import type { PaginationMeta } from "@/src/types/pagination";
 
 import {
   createAdminCourt,
   deleteAdminCourt,
-  fetchAdminCourts,
   updateAdminCourt,
 } from "@/src/services/adminCourts";
 
@@ -23,13 +25,15 @@ import type {
 
 interface CourtsListViewProps {
   initialCourts: Court[];
+  pagination: PaginationMeta;
 }
 
 export default function CourtsListView({
   initialCourts,
+  pagination,
 }: CourtsListViewProps) {
-  const [courts, setCourts] = useState<Court[]>(initialCourts);
-  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const [courts] = useState<Court[]>(initialCourts);
   const [submitting, setSubmitting] = useState(false);
   const {
     showModal,
@@ -42,18 +46,6 @@ export default function CourtsListView({
     closeModal,
     updateField,
   } = useCourtForm();
-
-  const fetchCourts = async () => {
-    setLoading(true);
-    try {
-      const nextCourts = await fetchAdminCourts();
-      setCourts(nextCourts);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,7 +80,7 @@ export default function CourtsListView({
 
       alert("บันทึกข้อมูลสนามบอลสำเร็จ!");
       closeModal();
-      await fetchCourts();
+      router.refresh();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "เกิดข้อผิดพลาด");
     } finally {
@@ -102,26 +94,50 @@ export default function CourtsListView({
     try {
       await deleteAdminCourt(courtId);
       alert("ลบสนามบอลสำเร็จ!");
-      await fetchCourts();
+      router.refresh();
     } catch (err: unknown) {
       alert(err instanceof Error ? err.message : "เกิดข้อผิดพลาดในการลบสนาม");
     }
   };
 
+  const handlePageChange = (page: number) => {
+    const params = new URLSearchParams();
+
+    if (page > 1) {
+      params.set("page", String(page));
+    }
+
+    router.push(
+      params.size
+        ? `/admin/courts?${params.toString()}`
+        : "/admin/courts",
+    );
+  };
+
   return (
-    <div>
+    <div className="space-y-6">
       <CourtsHeader onAddCourt={openAddModal} />
 
-      {loading ? (
+      {submitting && courts.length === 0 ? (
         <LoadingSpinner />
       ) : courts.length === 0 ? (
         <CourtsEmptyState />
       ) : (
-        <CourtsGrid
-          courts={courts}
-          onEditCourt={openEditModal}
-          onDeleteCourt={handleDelete}
-        />
+        <>
+          <CourtsGrid
+            courts={courts}
+            onEditCourt={openEditModal}
+            onDeleteCourt={handleDelete}
+          />
+
+          <PaginationControls
+            page={pagination.page}
+            total={pagination.total}
+            limit={pagination.limit}
+            totalPages={pagination.totalPages}
+            onPageChange={handlePageChange}
+          />
+        </>
       )}
 
       {showModal && (

@@ -6,49 +6,70 @@ import {
   useMemo,
   useState,
 } from "react";
+import { useRouter } from "next/navigation";
 
+import { LoadingSpinner } from "@/src/components/ui";
+import { searchAdminCustomers } from "@/src/services/adminCustomers";
 import AvailabilityGrid from "./components/AvailabilityGrid";
 import BookedSlotModal from "./components/BookedSlotModal";
 import BookingModal from "./components/BookingModal";
 import DateSelector from "./components/DateSelector";
 import FloatingBookingBar from "./components/FloatingBookingBar";
-import { LoadingSpinner } from "@/src/components/ui";
 import StatusLegend from "./components/StatusLegend";
 import {
   createAdminBooking,
   getAvailability,
 } from "./services/availabilityService";
-
 import type {
   CourtAvailability,
+  CustomerMode,
+  CustomerSearchItem,
+  ManualBookingStatus,
+  ManualPaymentStatus,
   SelectedBookedSlot,
   Slot,
 } from "./types/availability";
-
 import {
   createUpcomingDates,
   formatApiDate,
 } from "./utils/availability";
 
+const CUSTOMER_SEARCH_MIN_LENGTH = 2;
+
 export default function AdminAvailabilityView() {
+  const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [selectedDate, setSelectedDate] =
     useState<Date | null>(null);
-
   const [courts, setCourts] = useState<
     CourtAvailability[]
   >([]);
-
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
-  const [selectedCourtId, setSelectedCourtId] = useState<string | null>(null);
+  const [selectedCourtId, setSelectedCourtId] =
+    useState<string | null>(null);
   const [selectedSlots, setSelectedSlots] = useState<string[]>([]);
   const [showModal, setShowModal] = useState(false);
+  const [customerMode, setCustomerMode] =
+    useState<CustomerMode>("existing");
+  const [customerSearchQuery, setCustomerSearchQuery] =
+    useState("");
+  const [customerResults, setCustomerResults] =
+    useState<CustomerSearchItem[]>([]);
+  const [selectedCustomer, setSelectedCustomer] =
+    useState<CustomerSearchItem | null>(null);
+  const [searchingCustomers, setSearchingCustomers] =
+    useState(false);
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
+  const [bookingStatus, setBookingStatus] =
+    useState<ManualBookingStatus>("confirmed");
+  const [paymentStatus, setPaymentStatus] =
+    useState<ManualPaymentStatus>("unpaid");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
-  const [selectedBookedSlot, setSelectedBookedSlot] = useState<SelectedBookedSlot | null>(null);
+  const [selectedBookedSlot, setSelectedBookedSlot] =
+    useState<SelectedBookedSlot | null>(null);
   const dates = useMemo(() => createUpcomingDates(14), []);
 
   const selectedCourt = useMemo(
@@ -56,25 +77,33 @@ export default function AdminAvailabilityView() {
     [courts, selectedCourtId],
   );
 
+  const selectedCourtSlots = useMemo(
+    () =>
+      selectedCourt?.slots.filter((slot) =>
+        selectedSlots.includes(slot.startTime),
+      ) || [],
+    [selectedCourt, selectedSlots],
+  );
+
   const fetchAvailability = useCallback(async () => {
-    if (!selectedDate) return;
+    if (!selectedDate) {
+      return;
+    }
 
     setLoading(true);
     setMessage("");
 
     try {
       const data = await getAvailability(
-        formatApiDate(selectedDate)
+        formatApiDate(selectedDate),
       );
 
       setCourts(
         Array.isArray(data.courts)
           ? data.courts
-          : []
+          : [],
       );
-
       setMessage(data.message || "");
-
     } catch (error) {
       console.error(
         "Fetch availability error:",
@@ -82,9 +111,7 @@ export default function AdminAvailabilityView() {
       );
 
       setCourts([]);
-      setMessage(
-        "เกิดข้อผิดพลาดในการดึงข้อมูล",
-      );
+      setMessage("เกิดข้อผิดพลาดในการดึงข้อมูล");
     } finally {
       setLoading(false);
     }
@@ -98,7 +125,9 @@ export default function AdminAvailabilityView() {
   }, []);
 
   useEffect(() => {
-    if (!selectedDate) return;
+    if (!selectedDate) {
+      return;
+    }
 
     queueMicrotask(() => {
       void fetchAvailability();
@@ -106,6 +135,48 @@ export default function AdminAvailabilityView() {
       setSelectedSlots([]);
     });
   }, [selectedDate, fetchAvailability]);
+
+  useEffect(() => {
+    if (
+      !showModal ||
+      customerMode !== "existing"
+    ) {
+      return;
+    }
+
+    const query = customerSearchQuery.trim();
+
+    if (query.length < CUSTOMER_SEARCH_MIN_LENGTH) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setSearchingCustomers(true);
+
+      void searchAdminCustomers(query)
+        .then((customers) => {
+          setCustomerResults(customers);
+        })
+        .catch((error) => {
+          console.error(
+            "Search customers error:",
+            error,
+          );
+          setCustomerResults([]);
+        })
+        .finally(() => {
+          setSearchingCustomers(false);
+        });
+    }, 250);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [
+    customerMode,
+    customerSearchQuery,
+    showModal,
+  ]);
 
   const handleSlotClick = (
     courtId: string,
@@ -133,8 +204,8 @@ export default function AdminAvailabilityView() {
 
       const nextSlots = isSelected
         ? currentSlots.filter(
-          (time) => time !== slot.startTime,
-        )
+            (time) => time !== slot.startTime,
+          )
         : [...currentSlots, slot.startTime];
 
       if (nextSlots.length === 0) {
@@ -150,16 +221,76 @@ export default function AdminAvailabilityView() {
     setSelectedCourtId(null);
   };
 
+  const resetBookingForm = useCallback(() => {
+    setCustomerMode("existing");
+    setCustomerSearchQuery("");
+    setCustomerResults([]);
+    setSelectedCustomer(null);
+    setSearchingCustomers(false);
+    setCustomerName("");
+    setCustomerPhone("");
+    setBookingStatus("confirmed");
+    setPaymentStatus("unpaid");
+    setSubmitError("");
+  }, []);
+
   const closeBookingModal = () => {
     setShowModal(false);
     setSubmitError("");
   };
 
-  const resetBookingForm = () => {
-    setCustomerName("");
-    setCustomerPhone("");
+  const selectExistingCustomer = (
+    customer: CustomerSearchItem,
+  ) => {
+    setSelectedCustomer(customer);
+    setCustomerSearchQuery(customer.displayName);
+    setCustomerName(customer.displayName);
+    setCustomerPhone(customer.phone || "");
     setSubmitError("");
-    clearSelection();
+  };
+
+  const handleCustomerSearchChange = (
+    value: string,
+  ) => {
+    setCustomerSearchQuery(value);
+
+    if (
+      value.trim().length <
+      CUSTOMER_SEARCH_MIN_LENGTH
+    ) {
+      setCustomerResults([]);
+      setSearchingCustomers(false);
+    }
+
+    if (
+      selectedCustomer &&
+      value !== selectedCustomer.displayName
+    ) {
+      setSelectedCustomer(null);
+      setCustomerName("");
+      setCustomerPhone("");
+    }
+  };
+
+  const handleCustomerModeChange = (
+    mode: CustomerMode,
+  ) => {
+    setCustomerMode(mode);
+    setSubmitError("");
+
+    if (mode === "existing") {
+      setCustomerSearchQuery("");
+      setCustomerResults([]);
+      setSelectedCustomer(null);
+      setCustomerName("");
+      setCustomerPhone("");
+    } else {
+      setCustomerSearchQuery("");
+      setCustomerResults([]);
+      setSelectedCustomer(null);
+      setCustomerName("");
+      setCustomerPhone("");
+    }
   };
 
   const handleCreateBooking = async (
@@ -170,12 +301,26 @@ export default function AdminAvailabilityView() {
     if (
       !selectedCourtId ||
       selectedSlots.length === 0 ||
-      !customerName.trim() ||
       !selectedDate
     ) {
-      setSubmitError(
-        "กรุณากรอกข้อมูลให้ครบถ้วน",
-      );
+      setSubmitError("กรุณาเลือกสนาม วันที่ และช่วงเวลา");
+      return;
+    }
+
+    if (
+      customerMode === "existing" &&
+      !selectedCustomer
+    ) {
+      setSubmitError("กรุณาเลือกลูกค้าที่มีอยู่");
+      return;
+    }
+
+    if (
+      customerMode === "new" &&
+      (!customerName.trim() ||
+        !customerPhone.trim())
+    ) {
+      setSubmitError("กรุณากรอกชื่อลูกค้าและเบอร์โทรศัพท์");
       return;
     }
 
@@ -183,30 +328,37 @@ export default function AdminAvailabilityView() {
     setSubmitError("");
 
     try {
-      const courtSlots =
-        selectedCourt?.slots.filter((slot) =>
-          selectedSlots.includes(slot.startTime),
-        ) || [];
-
-      await createAdminBooking({
+      const response = await createAdminBooking({
         courtId: selectedCourtId,
         date: formatApiDate(selectedDate),
-        slots: courtSlots,
-        customerName: customerName.trim(),
-        customerPhone: customerPhone.trim(),
+        slots: selectedCourtSlots,
+        customerMode,
+        existingCustomerId:
+          selectedCustomer?.id,
+        customerName:
+          customerMode === "existing"
+            ? selectedCustomer?.displayName || ""
+            : customerName.trim(),
+        customerPhone:
+          customerMode === "existing"
+            ? selectedCustomer?.phone || ""
+            : customerPhone.trim(),
+        bookingStatus,
+        paymentStatus,
       });
-
-      alert("บันทึกการจองสำเร็จ!");
 
       setShowModal(false);
       resetBookingForm();
-
+      clearSelection();
       await fetchAvailability();
+      router.push(
+        `/admin/bookings/${response.bookingId}`,
+      );
     } catch (error) {
       setSubmitError(
         error instanceof Error
           ? error.message
-          : "เกิดข้อผิดพลาดในการจองสนาม"
+          : "เกิดข้อผิดพลาดในการจองสนาม",
       );
     } finally {
       setIsSubmitting(false);
@@ -250,9 +402,10 @@ export default function AdminAvailabilityView() {
             courtName={selectedCourt.name}
             selectedCount={selectedSlots.length}
             onCancel={clearSelection}
-            onConfirm={() =>
-              setShowModal(true)
-            }
+            onConfirm={() => {
+              resetBookingForm();
+              setShowModal(true);
+            }}
           />
         )}
 
@@ -261,15 +414,37 @@ export default function AdminAvailabilityView() {
           court={selectedCourt}
           selectedDate={selectedDate}
           selectedSlots={selectedSlots}
+          customerMode={customerMode}
+          customerSearchQuery={customerSearchQuery}
+          customerResults={customerResults}
+          searchingCustomers={searchingCustomers}
+          selectedCustomer={selectedCustomer}
           customerName={customerName}
           customerPhone={customerPhone}
+          bookingStatus={bookingStatus}
+          paymentStatus={paymentStatus}
           submitError={submitError}
           isSubmitting={isSubmitting}
+          onCustomerModeChange={
+            handleCustomerModeChange
+          }
+          onCustomerSearchChange={
+            handleCustomerSearchChange
+          }
+          onSelectCustomer={
+            selectExistingCustomer
+          }
           onCustomerNameChange={
             setCustomerName
           }
           onCustomerPhoneChange={
             setCustomerPhone
+          }
+          onBookingStatusChange={
+            setBookingStatus
+          }
+          onPaymentStatusChange={
+            setPaymentStatus
           }
           onClose={closeBookingModal}
           onSubmit={handleCreateBooking}
