@@ -1,14 +1,21 @@
-import { NextResponse } from "next/server";
+import {
+  NextRequest,
+  NextResponse,
+} from "next/server";
 import crypto from "crypto";
+import { getLineCallbackUrl } from "@/src/lib/lineConfig";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // GET /api/auth/line
 // Redirect the user to the LINE OAuth 2.0 authorization page.
 // ─────────────────────────────────────────────────────────────────────────────
 
-export async function GET(): Promise<NextResponse> {
+export async function GET(
+  request: NextRequest,
+): Promise<NextResponse> {
   const clientId = process.env.LINE_CLIENT_ID;
-  const callbackUrl = process.env.LINE_CALLBACK_URL;
+  const callbackUrl =
+    getLineCallbackUrl(request);
 
   if (!clientId || !callbackUrl) {
     return NextResponse.json(

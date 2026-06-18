@@ -4,6 +4,7 @@ import {
   setLineSessionCookie,
   upsertLineUser,
 } from "@/src/lib/lineAuth";
+import { getLineCallbackUrl } from "@/src/lib/lineConfig";
 import type { LineTokenResponse, LineProfile } from "@/src/types/line";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -40,7 +41,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   // ── 2. Exchange code for access token ───────────────────────────────────────
   const clientId = process.env.LINE_CLIENT_ID;
   const clientSecret = process.env.LINE_CLIENT_SECRET;
-  const callbackUrl = process.env.LINE_CALLBACK_URL;
+  const callbackUrl =
+    getLineCallbackUrl(request);
 
   if (!clientId || !clientSecret || !callbackUrl) {
     return NextResponse.json(
