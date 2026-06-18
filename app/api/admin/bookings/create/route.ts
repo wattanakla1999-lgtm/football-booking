@@ -2,6 +2,11 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { cookies } from "next/headers";
 
+type BookingSlotPayload = {
+  startTime: string;
+  endTime: string;
+};
+
 // Helper: verify admin session
 async function getAdmin() {
   const cookieStore = await cookies();
@@ -108,7 +113,7 @@ export async function POST(request: Request) {
           status: "confirmed", // Admins book directly with confirmed status
           notes: "จองโดยผู้ดูแลระบบ (สายโทรเข้า / วอล์กอิน)",
           items: {
-            create: slots.map((slot: any) => ({
+            create: slots.map((slot: BookingSlotPayload) => ({
               courtId,
               date: targetDate,
               startTime: slot.startTime,

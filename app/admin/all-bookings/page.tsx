@@ -5,6 +5,10 @@ import { useCallback, useEffect, useState } from "react";
 import RecentBookingsTable, {
 } from "./AllBookingsView";
 import { Booking, BookingStatus } from "./types/booking";
+import {
+    fetchAdminBookings,
+    updateAdminBookingStatus,
+} from "@/src/services/adminBookings";
 
 
 export default function AdminBookingsPage() {
@@ -17,20 +21,8 @@ export default function AdminBookingsPage() {
             setLoading(true);
             setError(null);
 
-            const response = await fetch("/api/admin/bookings", {
-                method: "GET",
-                cache: "no-store",
-            });
-
-            if (!response.ok) {
-                throw new Error("Unable to load bookings");
-            }
-
-            const result = await response.json();
-
-            const bookingList = Array.isArray(result)
-                ? result
-                : result.bookings ?? [];
+            const bookingList =
+                await fetchAdminBookings<Booking>();
 
             setBookings(bookingList);
         } catch (error) {
@@ -47,34 +39,19 @@ export default function AdminBookingsPage() {
     }, []);
 
     useEffect(() => {
-        fetchBookings();
+        queueMicrotask(() => {
+            void fetchBookings();
+        });
     }, [fetchBookings]);
 
     const updateBookingStatus = async (
         bookingId: string,
         status: BookingStatus
     ) => {
-        const response = await fetch(
-            `/api/admin/bookings`,
-            {
-                method: "PATCH",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    bookingId,
-                    status,
-                }),
-            }
+        await updateAdminBookingStatus(
+            bookingId,
+            status
         );
-
-        if (!response.ok) {
-            const result = await response.json().catch(() => null);
-
-            throw new Error(
-                result?.message || "Unable to update booking status"
-            );
-        }
 
         /*
          * อัปเดตข้อมูลบนหน้าจอทันที

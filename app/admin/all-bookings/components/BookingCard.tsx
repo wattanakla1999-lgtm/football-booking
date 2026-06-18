@@ -1,5 +1,9 @@
-
-import { Booking } from "../AllBookingsView";
+import Image from "next/image";
+import type {
+    Booking,
+    BookingItem,
+    BookingStatus,
+} from "../types/booking";
 
 import { capitalize, formatDate, formatPrice } from "../../../../utils/bookingFormatters";
 import { statusOptions } from "../utils/bookingFilters";
@@ -7,7 +11,6 @@ import StatusBadge from "./StatusBadge";
 import ActionMenu from "./ActionMenu";
 import CompactInfoBox from "./CompactInfoBox";
 import QuickActionButton from "./QuickActionButton";
-import { BookingStatus } from "../types/booking";
 
 interface BookingCardProps {
     booking: Booking;
@@ -130,9 +133,11 @@ export default function BookingCard({
                 {/* Customer */}
                 <div className="flex min-w-0 items-center gap-2.5">
                     {booking.user?.pictureUrl ? (
-                        <img
+                        <Image
                             src={booking.user.pictureUrl}
                             alt={booking.user.displayName}
+                            width={40}
+                            height={40}
                             className="h-10 w-10 shrink-0 rounded-full border border-primary/20 object-cover"
                         />
                     ) : (
@@ -202,7 +207,7 @@ export default function BookingCard({
                         </p>
 
                         <div className="flex flex-wrap gap-1.5">
-                            {booking.items.map((item, index) => (
+                            {booking.items.map((item: BookingItem, index: number) => (
                                 <span
                                     key={item.id || `${booking.id}-${index}`}
                                     className="inline-flex max-w-full items-center gap-1 rounded-md bg-surface-container-high px-2 py-1 text-[10px] text-on-surface"

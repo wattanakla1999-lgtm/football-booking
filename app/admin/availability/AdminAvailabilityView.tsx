@@ -12,7 +12,7 @@ import BookedSlotModal from "./components/BookedSlotModal";
 import BookingModal from "./components/BookingModal";
 import DateSelector from "./components/DateSelector";
 import FloatingBookingBar from "./components/FloatingBookingBar";
-import LoadingSpinner from "./components/LoadingSpinner";
+import { LoadingSpinner } from "@/src/components/ui";
 import StatusLegend from "./components/StatusLegend";
 import {
   createAdminBooking,
@@ -91,16 +91,20 @@ export default function AdminAvailabilityView() {
   }, [selectedDate]);
 
   useEffect(() => {
-    setSelectedDate(new Date());
-    setMounted(true);
+    queueMicrotask(() => {
+      setSelectedDate(new Date());
+      setMounted(true);
+    });
   }, []);
 
   useEffect(() => {
     if (!selectedDate) return;
 
-    fetchAvailability();
-    setSelectedCourtId(null);
-    setSelectedSlots([]);
+    queueMicrotask(() => {
+      void fetchAvailability();
+      setSelectedCourtId(null);
+      setSelectedSlots([]);
+    });
   }, [selectedDate, fetchAvailability]);
 
   const handleSlotClick = (

@@ -1,5 +1,7 @@
-import { Booking } from "../AllBookingsView";
-import { BookingStatus } from "../types/booking";
+import type {
+    Booking,
+    BookingStatus,
+} from "../types/booking";
 
 export default function QuickActionButton({
     booking,

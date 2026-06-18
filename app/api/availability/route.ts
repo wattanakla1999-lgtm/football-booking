@@ -98,7 +98,7 @@ export async function GET(request: Request) {
       // Check if this slot overlaps with any existing booking item
       // An existing item is booked if its startTime is exactly this slot's startTime
       const isBooked = existingBookingItems.some(item => {
-        let itemStart = parseInt(item.startTime.split(":")[0]);
+        const itemStart = parseInt(item.startTime.split(":")[0]);
         let itemEnd = parseInt(item.endTime.split(":")[0]);
 
         // Adjust item times for crossing midnight
@@ -106,7 +106,7 @@ export async function GET(request: Request) {
         else if (itemEnd <= itemStart) itemEnd += 24;
 
         // Compare using the adjusted absolute hours
-        let slotStartHour = displayStartH;
+        const slotStartHour = displayStartH;
         let slotEndHour = displayEndH;
         
         // Adjust slot times to match item time frame logic

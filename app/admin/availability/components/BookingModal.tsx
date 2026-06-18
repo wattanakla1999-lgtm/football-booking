@@ -1,5 +1,11 @@
 import type { FormEvent } from "react";
 
+import {
+    Button,
+    FormField,
+    Input,
+    Modal,
+} from "@/src/components/ui";
 import type { CourtAvailability } from "../types/availability";
 
 import { formatThaiLongDate } from "../utils/availability";
@@ -34,8 +40,7 @@ export default function BookingModal({
     onSubmit,
 }: BookingModalProps) {
     return (
-        <div className="admin-modal-backdrop fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <div className="admin-modal-content w-full max-w-[440px] p-7">
+        <Modal contentClassName="max-w-[440px] p-7">
                 <h3 className="mb-1.5 text-lg font-extrabold text-white">
                     📝 จองสนาม (เคสโทรเข้า / Walk-in)
                 </h3>
@@ -70,12 +75,9 @@ export default function BookingModal({
                     onSubmit={onSubmit}
                     className="flex flex-col gap-4"
                 >
-                    <div>
-                        <label className="mb-1.5 block text-xs font-semibold text-white/50">
-                            ชื่อลูกค้า *
-                        </label>
-
-                        <input
+                    <FormField id="customerName" label="ชื่อลูกค้า *">
+                        <Input
+                            id="customerName"
                             type="text"
                             required
                             placeholder="เช่น สมชาย โทรจอง"
@@ -85,16 +87,12 @@ export default function BookingModal({
                                     event.target.value,
                                 )
                             }
-                            className="admin-input"
                         />
-                    </div>
+                    </FormField>
 
-                    <div>
-                        <label className="mb-1.5 block text-xs font-semibold text-white/50">
-                            เบอร์โทรศัพท์ (ไม่บังคับ)
-                        </label>
-
-                        <input
+                    <FormField id="customerPhone" label="เบอร์โทรศัพท์ (ไม่บังคับ)">
+                        <Input
+                            id="customerPhone"
                             type="tel"
                             placeholder="เช่น 0812345678"
                             value={customerPhone}
@@ -103,9 +101,8 @@ export default function BookingModal({
                                     event.target.value,
                                 )
                             }
-                            className="admin-input"
                         />
-                    </div>
+                    </FormField>
 
                     {submitError && (
                         <div className="rounded-lg border border-red-500/15 bg-red-500/[0.08] p-2.5 text-xs text-red-500">
@@ -114,28 +111,28 @@ export default function BookingModal({
                     )}
 
                     <div className="mt-2 flex gap-2">
-                        <button
+                        <Button
                             type="button"
                             onClick={onClose}
                             disabled={isSubmitting}
-                            className="admin-btn admin-btn-secondary flex-1 py-3"
+                            variant="secondary"
+                            className="flex-1 py-3"
                         >
                             ยกเลิก
-                        </button>
+                        </Button>
 
-                        <button
+                        <Button
                             type="submit"
-                            disabled={isSubmitting}
-                            className="admin-btn admin-btn-primary flex-1 bg-gradient-to-br from-indigo-500 to-violet-500 py-3 shadow-lg shadow-indigo-500/20"
+                            loading={isSubmitting}
+                            className="flex-1 bg-gradient-to-br from-indigo-500 to-violet-500 py-3 shadow-lg shadow-indigo-500/20"
                         >
                             {isSubmitting
                                 ? "กำลังบันทึก..."
                                 : "ยืนยันการจอง"}
-                        </button>
+                        </Button>
                     </div>
                 </form>
-            </div>
-        </div>
+        </Modal>
     );
 }
 

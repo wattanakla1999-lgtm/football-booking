@@ -2,6 +2,11 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { cookies } from "next/headers";
 
+type BookingSlotPayload = {
+  startTime: string;
+  endTime: string;
+};
+
 export async function POST(request: Request) {
   try {
     const cookieStore = await cookies();
@@ -162,7 +167,7 @@ export async function POST(request: Request) {
           status: "pending",
           notes: paymentMethod ? `วิธีการชำระเงิน: ${paymentMethod}` : null,
           items: {
-            create: slots.map((slot: any) => ({
+            create: slots.map((slot: BookingSlotPayload) => ({
               courtId,
               date: targetDate,
               startTime: slot.startTime,

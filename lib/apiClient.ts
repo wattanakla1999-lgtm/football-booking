@@ -72,6 +72,31 @@ const apiClient = axios.create({
         status >= 200 && status < 300,
 });
 
+function getBearerToken(): string | null {
+    if (typeof window === "undefined") {
+        return null;
+    }
+
+    const rawToken =
+        window.localStorage.getItem("accessToken");
+
+    if (!rawToken) {
+        return null;
+    }
+
+    const token = rawToken.trim();
+
+    if (
+        token === "" ||
+        token === "null" ||
+        token === "undefined"
+    ) {
+        return null;
+    }
+
+    return token;
+}
+
 /**
  * REQUEST INTERCEPTOR
  *
@@ -90,20 +115,16 @@ apiClient.interceptors.request.use(
 
         config.headers.set("Accept", "application/json");
 
-        /*
-         * กรณีใช้ Bearer token:
-         *
-         * if (typeof window !== "undefined") {
-         *   const token = localStorage.getItem("accessToken");
-         *
-         *   if (token) {
-         *     config.headers.set(
-         *       "Authorization",
-         *       `Bearer ${token}`,
-         *     );
-         *   }
-         * }
-         */
+        const token = getBearerToken();
+
+        if (token) {
+            config.headers.set(
+                "Authorization",
+                `Bearer ${token}`,
+            );
+        } else {
+            config.headers.delete("Authorization");
+        }
 
         /*
          * เพิ่ม Request ID สำหรับตาม log ได้

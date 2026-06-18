@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -122,7 +123,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <span className="absolute top-2 right-2 w-2 h-2 bg-error rounded-full"></span>
           </button>
           <div className="w-8 h-8 rounded-full overflow-hidden border border-primary/20">
-            <img alt="Admin" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBPqX2fqsvM1LXZbY0NeERHQT75ET37PZ288idwzxalyPJPLYvJLDzV-IEXnmshy2AIeRyLQ8G_eMC_omEUfwwFxDt9LCToPHhWwUoRXRqwaEIxXRCc3kkBj7pLUOZhKF9uEg6FB36F2F3QRwdq3uMElQuVg46Eutafq3uK5XE6wSDep2vpVY9hEWIQNwiMGbh173bL9gJ4xrNZu1rSIuBzsVcfrGThARGryHt7t0PMri0enGVbhHkOeH0TPfgx-Ll_qKDbvBnLnpw" />
+            <Image
+              alt="Admin"
+              className="h-full w-full object-cover"
+              src="https://lh3.googleusercontent.com/aida-public/AB6AXuBPqX2fqsvM1LXZbY0NeERHQT75ET37PZ288idwzxalyPJPLYvJLDzV-IEXnmshy2AIeRyLQ8G_eMC_omEUfwwFxDt9LCToPHhWwUoRXRqwaEIxXRCc3kkBj7pLUOZhKF9uEg6FB36F2F3QRwdq3uMElQuVg46Eutafq3uK5XE6wSDep2vpVY9hEWIQNwiMGbh173bL9gJ4xrNZu1rSIuBzsVcfrGThARGryHt7t0PMri0enGVbhHkOeH0TPfgx-Ll_qKDbvBnLnpw"
+              width={32}
+              height={32}
+            />
           </div>
         </div>
       </header>

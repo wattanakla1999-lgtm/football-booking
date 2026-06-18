@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 export function usePagination<T>(
     items: T[],
@@ -13,8 +13,13 @@ export function usePagination<T>(
         Math.ceil(totalItems / itemsPerPage)
     );
 
+    const safeCurrentPage = Math.min(
+        currentPage,
+        totalPages
+    );
+
     const startIndex =
-        (currentPage - 1) * itemsPerPage;
+        (safeCurrentPage - 1) * itemsPerPage;
 
     const endIndex = Math.min(
         startIndex + itemsPerPage,
@@ -24,12 +29,6 @@ export function usePagination<T>(
     const paginatedItems = useMemo(() => {
         return items.slice(startIndex, endIndex);
     }, [items, startIndex, endIndex]);
-
-    useEffect(() => {
-        if (currentPage > totalPages) {
-            setCurrentPage(totalPages);
-        }
-    }, [currentPage, totalPages]);
 
     const goToPreviousPage = () => {
         setCurrentPage((page) =>
@@ -48,7 +47,7 @@ export function usePagination<T>(
     }, []);
 
     return {
-        currentPage,
+        currentPage: safeCurrentPage,
         totalPages,
         totalItems,
         startIndex,
