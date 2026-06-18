@@ -1,7 +1,4 @@
-import type {
-  BookingStatus as PrismaBookingStatus,
-  Prisma,
-} from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -13,6 +10,7 @@ import {
 import AllBookingsView from "./AllBookingsView";
 import type {
   Booking,
+  PrismaBookingStatus,
   StatusFilter,
 } from "./types/booking";
 

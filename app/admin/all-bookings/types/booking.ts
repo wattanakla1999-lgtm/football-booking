@@ -9,6 +9,14 @@ export type BookingStatus =
 export type StatusFilter = "all" | BookingStatus;
 
 
+export type PrismaBookingStatus =
+  | "pending"
+  | "paid"
+  | "confirmed"
+  | "completed"
+  | "cancelled";
+
+
 
 export interface BookingCourt {
     id?: string;
