@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { MouseEvent } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -16,6 +16,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const isLoginPage = pathname === "/admin/login";
   const isRouteLoading =
     pendingPath !== null && pendingPath !== pathname;
+
+  useEffect(() => {
+    if (!pendingPath || pendingPath !== pathname) {
+      return;
+    }
+
+    const frameId = window.requestAnimationFrame(
+      () => {
+        setPendingPath(null);
+      },
+    );
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+    };
+  }, [pathname, pendingPath]);
 
   if (isLoginPage) {
     return <div className="bg-background text-on-surface min-h-screen">{children}</div>;
