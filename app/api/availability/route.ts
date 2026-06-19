@@ -1,4 +1,5 @@
 import { prisma } from "@/src/lib/prisma";
+import { parseApiDate } from "@/app/booking/utils/booking";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
@@ -19,7 +20,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Missing date or courtId" }, { status: 400 });
     }
 
-    const targetDate = new Date(dateParam);
+    const targetDate = parseApiDate(dateParam);
     if (isNaN(targetDate.getTime())) {
       return NextResponse.json({ error: "Invalid date format" }, { status: 400 });
     }

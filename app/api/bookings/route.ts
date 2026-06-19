@@ -1,4 +1,5 @@
 import { prisma } from "@/src/lib/prisma";
+import { parseApiDate } from "@/app/booking/utils/booking";
 import { sendAdminBookingNotification } from "@/src/services/lineNotificationService";
 import { Prisma } from "@prisma/client";
 import { cookies } from "next/headers";
@@ -34,7 +35,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid booking data" }, { status: 400 });
     }
 
-    const targetDate = new Date(date);
+    const targetDate = parseApiDate(date);
 
     // 0. Reject slots that are already in the past (server-side guard)
     const now = new Date();

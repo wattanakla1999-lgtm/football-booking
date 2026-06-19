@@ -39,7 +39,11 @@ export function createUpcomingDates(
 }
 
 export function formatApiDate(date: Date): string {
-    return date.toISOString().split("T")[0];
+    return [
+        date.getFullYear(),
+        String(date.getMonth() + 1).padStart(2, "0"),
+        String(date.getDate()).padStart(2, "0"),
+    ].join("-");
 }
 
 export function formatThaiLongDate(date: Date): string {

@@ -315,25 +315,14 @@ export default function AvailabilityViewer({
 
               {selectedSlotStartTimes.length > 0 && (
                 <div className="mt-5 rounded-3xl border border-green-300/20 bg-green-400/8 p-4">
-                  <div className="flex items-center justify-between gap-4">
-                    <div>
-                      <p className="text-sm font-black text-green-200">
-                        เลือกไว้แล้ว {selectedSlotStartTimes.length} ช่วงเวลา
-                      </p>
-                      <p className="mt-1 text-xs text-slate-300">
-                        {selectedSlotStartTimes
-                          .map((startTime) => startTime.slice(0, 5))
-                          .join(", ")}
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={handleBookSelectedSlots}
-                      className="inline-flex h-12 items-center justify-center rounded-2xl bg-green-400 px-5 text-sm font-black text-[#062015] shadow-[0_14px_28px_rgba(74,222,128,0.2)] transition-transform active:scale-[0.98]"
-                    >
-                      จองเลย
-                    </button>
-                  </div>
+                  <p className="text-sm font-black text-green-200">
+                    เลือกไว้แล้ว {selectedSlotStartTimes.length} ช่วงเวลา
+                  </p>
+                  <p className="mt-1 text-xs text-slate-300">
+                    {selectedSlotStartTimes
+                      .map((startTime) => startTime.slice(0, 5))
+                      .join(", ")}
+                  </p>
                 </div>
               )}
             </section>
@@ -352,7 +341,7 @@ export default function AvailabilityViewer({
               <span className="material-symbols-outlined text-[28px]">
                 calendar_add_on
               </span>
-              จองช่วงเวลาที่เลือก
+              ไปหน้าสรุปการจอง
             </button>
           </div>
         )}

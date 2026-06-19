@@ -1,4 +1,5 @@
 import { prisma } from "@/src/lib/prisma";
+import { parseApiDate } from "@/app/booking/utils/booking";
 import { sendAdminBookingNotification } from "@/src/services/lineNotificationService";
 import { Prisma } from "@prisma/client";
 import { cookies } from "next/headers";
@@ -116,7 +117,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const targetDate = new Date(date);
+    const targetDate = parseApiDate(date);
 
     // 1. Fetch court to verify price & organization
     const court = await prisma.court.findUnique({

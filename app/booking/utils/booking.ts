@@ -21,7 +21,23 @@ export const formatPrice = (price: number | string) =>
   Number(price).toLocaleString("th-TH");
 
 export const formatApiDate = (date: Date) =>
-  date.toISOString().split("T")[0];
+  [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, "0"),
+    String(date.getDate()).padStart(2, "0"),
+  ].join("-");
+
+export const parseApiDate = (dateValue: string) => {
+  const [year, month, day] = dateValue
+    .split("-")
+    .map(Number);
+
+  if (!year || !month || !day) {
+    return new Date(NaN);
+  }
+
+  return new Date(year, month - 1, day, 0, 0, 0, 0);
+};
 
 export const validateThaiPhone = (
   raw: string,
