@@ -1,4 +1,3 @@
-import Image from "next/image";
 import type { Court } from "../types/booking";
 import { formatPrice } from "../utils/booking";
 
@@ -17,11 +16,10 @@ export function CourtCard({ court, onSelect }: CourtCardProps) {
       <div className="flex min-h-[5.5rem]">
         <div className="w-[130px] shrink-0 relative bg-gradient-to-br from-green-900/40 to-black/70">
           {court.images?.[0]?.url ? (
-            <Image
+            <img
               src={court.images[0].url}
               alt={court.name}
-              fill
-              className="object-cover"
+              className="absolute inset-0 h-full w-full object-cover"
             />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center">

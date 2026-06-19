@@ -97,28 +97,30 @@ export default function BookingModal({
   onSubmit,
 }: BookingModalProps) {
   return (
-    <Modal contentClassName="max-w-[640px] p-6 sm:p-7">
-      <div className="mb-1.5 flex items-start justify-between gap-4">
-        <div>
-          <h3 className="text-lg font-extrabold text-white">
-            สร้างรายการจองโดยผู้ดูแล
-          </h3>
+    <Modal contentClassName="my-4 max-w-[640px]">
+      <div className="max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-[28px] border border-white/10 bg-[#0d1120] sm:max-h-[calc(100dvh-3rem)]">
+        <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-white/10 bg-[#0d1120]/95 px-5 py-4 backdrop-blur-sm sm:px-7 sm:py-5">
+          <div>
+            <h3 className="text-lg font-extrabold text-white">
+              สร้างรายการจองโดยผู้ดูแล
+            </h3>
 
-          <p className="mt-1 text-xs text-white/45">
-            เลือกลูกค้า กำหนดสถานะ และยืนยันการจองด้วยข้อมูลจริง
-          </p>
+            <p className="mt-1 text-xs text-white/45">
+              เลือกลูกค้า กำหนดสถานะ และยืนยันการจองด้วยข้อมูลจริง
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="ปิด"
+            className="text-xl text-white/45 transition-colors hover:text-white"
+          >
+            ×
+          </button>
         </div>
 
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="ปิด"
-          className="text-xl text-white/45 transition-colors hover:text-white"
-        >
-          ×
-        </button>
-      </div>
-
+        <div className="p-5 sm:p-7">
       <div className="mb-5 rounded-2xl border border-white/[0.04] bg-white/[0.01] px-4 py-3 text-xs">
         <SummaryRow
           label="สนาม:"
@@ -394,6 +396,8 @@ export default function BookingModal({
           </Button>
         </div>
       </form>
+      </div>
+      </div>
     </Modal>
   );
 }

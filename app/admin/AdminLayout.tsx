@@ -11,6 +11,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
   const [pendingPath, setPendingPath] =
     useState<string | null>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] =
+    useState(false);
   const isLoginPage = pathname === "/admin/login";
   const isRouteLoading =
     pendingPath !== null && pendingPath !== pathname;
@@ -27,6 +29,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
 
     setPendingPath(targetPath);
+    setIsMobileMenuOpen(false);
   };
 
   const handleNavClick =
@@ -58,9 +61,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const getMobileNavClass = (path: string) => {
     const isActive = pathname.startsWith(path) && (path !== "/admin" || pathname === "/admin/dashboard");
     if (isActive) {
-      return "flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-xl px-3 py-1 active:scale-90 duration-200 transition-all";
+      return "flex items-center gap-3 rounded-2xl bg-primary-container/20 px-4 py-3 text-primary active:scale-95 duration-200 transition-all";
     }
-    return "flex flex-col items-center justify-center text-on-secondary-container hover:bg-surface-container-high active:scale-90 duration-200 transition-all";
+    return "flex items-center gap-3 rounded-2xl px-4 py-3 text-on-secondary-container hover:bg-surface-container-high active:scale-95 duration-200 transition-all";
   };
 
   return (
@@ -164,7 +167,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   "
       >
         <div className="flex items-center gap-4">
-          <span className="md:hidden material-symbols-outlined text-primary">menu</span>
+          <button
+            type="button"
+            onClick={() =>
+              setIsMobileMenuOpen((current) => !current)
+            }
+            className="md:hidden inline-flex h-10 w-10 items-center justify-center rounded-xl border border-outline-variant/10 bg-surface-container-low text-primary transition-colors hover:bg-surface-container"
+            aria-label={
+              isMobileMenuOpen
+                ? "ปิดเมนู"
+                : "เปิดเมนู"
+            }
+          >
+            <span className="material-symbols-outlined">
+              {isMobileMenuOpen ? "close" : "menu"}
+            </span>
+          </button>
           <h1 className="text-headline-md font-headline-md font-bold tracking-tight text-on-surface">ArenaManager</h1>
         </div>
         <div className="flex items-center gap-md">
@@ -193,7 +211,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         className="
     w-full min-w-0 max-w-full
     overflow-x-clip
-    p-gutter pb-28
+    p-gutter pb-gutter
     transition-all duration-300
     md:ml-64
     md:w-[calc(100%-16rem)]
@@ -203,70 +221,133 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {children}
       </main>
 
-      {/* Bottom Navigation Bar (Mobile only) */}
-      <nav
-        className="
-    fixed inset-x-0 bottom-0 z-[9999]
-    grid grid-cols-5
-    w-full
-    border-t border-outline-variant/10
-    bg-surface-container-lowest
-    px-2 pt-2
-    pb-[max(0.5rem,env(safe-area-inset-bottom))]
-    shadow-lg
-    md:hidden
-  "
+      {isMobileMenuOpen && (
+        <div
+          className="fixed inset-0 z-[70] bg-black/55 md:hidden"
+          onClick={() =>
+            setIsMobileMenuOpen(false)
+          }
+        />
+      )}
+
+      <aside
+        className={`fixed left-0 top-0 z-[80] flex h-full w-[86vw] max-w-[320px] flex-col border-r border-outline-variant/10 bg-surface-container shadow-2xl transition-transform duration-300 md:hidden ${
+          isMobileMenuOpen
+            ? "translate-x-0"
+            : "-translate-x-full"
+        }`}
       >
-        <Link
-          href="/admin/dashboard"
-          className={getMobileNavClass("/admin/dashboard")}
-          onClick={handleNavClick("/admin/dashboard")}
-        >
-          <span className="material-symbols-outlined text-[26px]">dashboard</span>
-          <span className="text-[10px] leading-tight mt-1">หน้าหลัก</span>
-        </Link>
+        <div className="flex items-center justify-between border-b border-outline-variant/10 px-5 py-5">
+          <div>
+            <p className="text-lg font-black text-primary">
+              ArenaManager
+            </p>
+            <p className="mt-1 text-xs text-on-surface-variant">
+              เมนูผู้ดูแลระบบ
+            </p>
+          </div>
 
-        <Link
-          href="/admin/availability"
-          className={getMobileNavClass("/admin/availability")}
-          onClick={handleNavClick("/admin/availability")}
-        >
-          <span className="material-symbols-outlined text-[26px]">
-            calendar_today
-          </span>
-          <span className="text-[10px] leading-tight mt-1">ตารางสนาม</span>
-        </Link>
-        <Link
-          href="/admin/all-bookings"
-          className={getMobileNavClass("/admin/all-bookings")}
-          onClick={handleNavClick("/admin/all-bookings")}
-        >
-          <span className="material-symbols-outlined text-[26px]">
-            list_alt
-          </span>
-          <span className="text-[10px] leading-tight mt-1">จองทั้งหมด</span>
-        </Link>
+          <button
+            type="button"
+            onClick={() =>
+              setIsMobileMenuOpen(false)
+            }
+            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-outline-variant/10 bg-surface-container-low text-on-surface-variant transition-colors hover:bg-surface-container-high hover:text-on-surface"
+            aria-label="ปิดเมนู"
+          >
+            <span className="material-symbols-outlined">
+              close
+            </span>
+          </button>
+        </div>
 
-        <Link
-          href="/admin/courts"
-          className={getMobileNavClass("/admin/courts")}
-          onClick={handleNavClick("/admin/courts")}
-        >
-          <span className="material-symbols-outlined text-[26px]">
-            sports_soccer
-          </span>
-          <span className="text-[10px] leading-tight mt-1">สนาม</span>
-        </Link>
+        <div className="flex items-center gap-3 px-5 py-5">
+          <div className="flex h-11 w-11 items-center justify-center rounded-full border border-primary/30 bg-primary-container/20">
+            <span className="material-symbols-outlined text-primary">
+              person
+            </span>
+          </div>
+          <div>
+            <p className="text-sm font-bold text-on-surface">
+              ผู้ดูแลระบบ
+            </p>
+            <p className="text-xs text-on-surface-variant">
+              Admin
+            </p>
+          </div>
+        </div>
 
-        <Link
-          href="/admin/operating-hours"
-          className={getMobileNavClass("/admin/operating-hours")}
-          onClick={handleNavClick("/admin/operating-hours")}
-        >
-          <span className="material-symbols-outlined text-[26px]">settings</span>
-          <span className="text-[10px] leading-tight mt-1">ตั้งค่า</span>
-        </Link>
-      </nav>
+        <nav className="flex-1 space-y-2 px-4">
+          <Link
+            href="/admin/dashboard"
+            className={getMobileNavClass("/admin/dashboard")}
+            onClick={handleNavClick("/admin/dashboard")}
+          >
+            <span className="material-symbols-outlined text-[22px]">dashboard</span>
+            <span className="text-sm font-semibold">แดชบอร์ด</span>
+          </Link>
+
+          <Link
+            href="/admin/availability"
+            className={getMobileNavClass("/admin/availability")}
+            onClick={handleNavClick("/admin/availability")}
+          >
+            <span className="material-symbols-outlined text-[22px]">calendar_today</span>
+            <span className="text-sm font-semibold">ตารางสนาม</span>
+          </Link>
+
+          <Link
+            href="/admin/all-bookings"
+            className={getMobileNavClass("/admin/all-bookings")}
+            onClick={handleNavClick("/admin/all-bookings")}
+          >
+            <span className="material-symbols-outlined text-[22px]">list_alt</span>
+            <span className="text-sm font-semibold">การจองทั้งหมด</span>
+          </Link>
+
+          <Link
+            href="/admin/courts"
+            className={getMobileNavClass("/admin/courts")}
+            onClick={handleNavClick("/admin/courts")}
+          >
+            <span className="material-symbols-outlined text-[22px]">sports_soccer</span>
+            <span className="text-sm font-semibold">จัดการสนาม</span>
+          </Link>
+
+          <Link
+            href="/admin/customers"
+            className={getMobileNavClass("/admin/customers")}
+            onClick={handleNavClick("/admin/customers")}
+          >
+            <span className="material-symbols-outlined text-[22px]">group</span>
+            <span className="text-sm font-semibold">ลูกค้า</span>
+          </Link>
+
+          <Link
+            href="/admin/operating-hours"
+            className={getMobileNavClass("/admin/operating-hours")}
+            onClick={handleNavClick("/admin/operating-hours")}
+          >
+            <span className="material-symbols-outlined text-[22px]">settings</span>
+            <span className="text-sm font-semibold">ตั้งค่าระบบ</span>
+          </Link>
+        </nav>
+
+        <div className="mt-auto space-y-3 border-t border-outline-variant/10 px-4 py-5">
+          <button className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-bold text-on-primary active:scale-95 transition-all">
+            <span className="material-symbols-outlined text-[18px]">help_center</span>
+            ติดต่อซัพพอร์ต
+          </button>
+
+          <a
+            href="/api/admin/logout"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-error-container/20 py-3 text-sm font-bold text-error transition-all hover:bg-error-container/40 active:scale-95"
+          >
+            <span className="material-symbols-outlined text-[18px]">logout</span>
+            ออกจากระบบ
+          </a>
+        </div>
+      </aside>
 
       <AdminRouteLoadingOverlay
         open={isRouteLoading}

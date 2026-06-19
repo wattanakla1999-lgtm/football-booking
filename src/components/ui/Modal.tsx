@@ -16,7 +16,7 @@ export function Modal({
   return (
     <div
       className={cn(
-        "admin-modal-backdrop fixed inset-0 z-[100] flex items-center justify-center p-4",
+        "admin-modal-backdrop fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto p-3 sm:items-center sm:p-4",
         className,
       )}
     >
