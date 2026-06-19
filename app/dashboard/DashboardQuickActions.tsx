@@ -12,18 +12,14 @@ type DashboardQuickActionsProps = {
     displayName: string;
     pictureUrl: string | null;
   };
-  bookingsCount: number;
 };
 
 export default function DashboardQuickActions({
   user,
-  bookingsCount,
 }: DashboardQuickActionsProps) {
   const pathname = usePathname();
   const [pendingPath, setPendingPath] =
     useState<string | null>(null);
-  const [isMenuOpen, setIsMenuOpen] =
-    useState(false);
   const [showSuccess, setShowSuccess] =
     useState(true);
   const isRouteLoading =
@@ -48,7 +44,6 @@ export default function DashboardQuickActions({
       }
 
       setPendingPath(targetPath);
-      setIsMenuOpen(false);
     };
 
   const logout = () => {
@@ -64,33 +59,15 @@ export default function DashboardQuickActions({
 
         <div className="relative z-10 flex min-h-dvh flex-col px-6 pb-8 pt-6">
           <header className="flex items-center justify-between pb-6">
-            <button
-              type="button"
-              onClick={() => setIsMenuOpen(true)}
-              className="inline-flex h-11 w-11 items-center justify-center rounded-xl text-green-400 transition-colors hover:bg-white/5"
-              aria-label="เปิดเมนู"
-            >
-              <span className="material-symbols-outlined text-[32px]">
-                menu
-              </span>
-            </button>
+            <div className="w-11" aria-hidden="true" />
 
-            <div className="text-center">
+            <div className="flex-1 text-center">
               <p className="text-xl font-black tracking-wide text-green-400">
                 ELITE ARENA
               </p>
             </div>
 
-            <button
-              type="button"
-              className="relative inline-flex h-11 w-11 items-center justify-center rounded-xl text-green-400 transition-colors hover:bg-white/5"
-              aria-label="แจ้งเตือน"
-            >
-              <span className="material-symbols-outlined text-[30px]">
-                notifications
-              </span>
-              <span className="absolute right-2 top-2 h-3 w-3 rounded-full bg-green-400" />
-            </button>
+            <div className="w-11" aria-hidden="true" />
           </header>
 
           {showSuccess && (
@@ -134,9 +111,6 @@ export default function DashboardQuickActions({
                     </div>
                   )}
                 </div>
-                <span className="absolute -bottom-1 -right-2 rounded-full bg-green-400 px-3 py-1 text-xs font-black text-[#062015] shadow-lg">
-                  PRO
-                </span>
               </div>
 
               <h1 className="mt-7 w-full text-3xl font-black leading-tight text-slate-100">
@@ -148,21 +122,6 @@ export default function DashboardQuickActions({
                 </span>
                 ELITE MEMBER
               </p>
-
-              <div className="mt-8 grid w-full grid-cols-3 gap-3">
-                <StatCard
-                  value={bookingsCount}
-                  label="BOOKINGS"
-                />
-                <StatCard
-                  value={bookingsCount * 50}
-                  label="POINTS"
-                />
-                <StatCard
-                  value={bookingsCount > 0 ? "#2" : "-"}
-                  label="RANK"
-                />
-              </div>
 
               <div className="mt-8 w-full space-y-4">
                 <Link
@@ -202,143 +161,9 @@ export default function DashboardQuickActions({
           </section>
         </div>
 
-        {isMenuOpen && (
-          <button
-            type="button"
-            className="absolute inset-0 z-30 bg-black/55"
-            onClick={() => setIsMenuOpen(false)}
-            aria-label="ปิดเมนู"
-          />
-        )}
-
-        <aside
-          className={`absolute left-0 top-0 z-40 h-full w-[78%] max-w-[330px] bg-[#061424] px-6 py-8 shadow-2xl transition-transform duration-300 ${
-            isMenuOpen ? "translate-x-0" : "-translate-x-full"
-          }`}
-        >
-          <div className="mb-8 rounded-3xl bg-white/[0.06] p-4">
-            <div className="flex items-center gap-4">
-              <div className="h-14 w-14 overflow-hidden rounded-full border border-green-400/40 bg-green-500/10">
-                {user.pictureUrl ? (
-                  <Image
-                    src={user.pictureUrl}
-                    alt={user.displayName}
-                    width={56}
-                    height={56}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center text-green-300">
-                    <span className="material-symbols-outlined">
-                      person
-                    </span>
-                  </div>
-                )}
-              </div>
-              <div className="min-w-0">
-                <p className="truncate text-lg font-black text-slate-100">
-                  {user.displayName}
-                </p>
-                <p className="mt-1 text-sm font-black text-green-400">
-                  PRO MEMBER
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <nav className="space-y-2">
-            <DrawerLink
-              href="/booking"
-              icon="location_on"
-              label="Find a Pitch"
-              active
-              onClick={handleNavClick("/booking")}
-            />
-            <DrawerLink
-              href="/history"
-              icon="history"
-              label="My Bookings"
-              onClick={handleNavClick("/history")}
-            />
-            <DrawerLink
-              href="/dashboard"
-              icon="groups"
-              label="My Squad"
-              onClick={handleNavClick("/dashboard")}
-            />
-            <DrawerLink
-              href="/dashboard"
-              icon="trophy"
-              label="Tournaments"
-              onClick={handleNavClick("/dashboard")}
-            />
-            <DrawerLink
-              href="/dashboard"
-              icon="settings"
-              label="Settings"
-              onClick={handleNavClick("/dashboard")}
-            />
-            <DrawerLink
-              href="/dashboard"
-              icon="help"
-              label="Help Center"
-              onClick={handleNavClick("/dashboard")}
-            />
-          </nav>
-        </aside>
       </div>
 
       <AdminRouteLoadingOverlay open={isRouteLoading} />
     </main>
-  );
-}
-
-function StatCard({
-  value,
-  label,
-}: {
-  value: string | number;
-  label: string;
-}) {
-  return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.06] px-3 py-5 text-center shadow-inner">
-      <p className="text-2xl font-black text-slate-100">
-        {value}
-      </p>
-      <p className="mt-1 text-[11px] font-black text-slate-400">
-        {label}
-      </p>
-    </div>
-  );
-}
-
-function DrawerLink({
-  href,
-  icon,
-  label,
-  active = false,
-  onClick,
-}: {
-  href: string;
-  icon: string;
-  label: string;
-  active?: boolean;
-  onClick: (event: MouseEvent<HTMLAnchorElement>) => void;
-}) {
-  return (
-    <Link
-      href={href}
-      onClick={onClick}
-      className={`flex h-16 items-center gap-5 rounded-2xl px-5 text-lg font-black transition-colors ${
-        active
-          ? "border-l-4 border-green-400 bg-green-500/20 text-green-400"
-          : "text-slate-300 hover:bg-white/[0.06]"
-      }`}
-    >
-      <span className="material-symbols-outlined text-[30px]">
-        {icon}
-      </span>
-      <span>{label}</span>
-    </Link>
   );
 }

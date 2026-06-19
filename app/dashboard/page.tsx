@@ -30,19 +30,12 @@ export default async function DashboardPage() {
     redirect("/");
   }
 
-  const bookingsCount = await prisma.booking.count({
-    where: {
-      userId: user.id,
-    },
-  });
-
   return (
     <DashboardQuickActions
       user={{
         displayName: user.displayName,
         pictureUrl: user.pictureUrl,
       }}
-      bookingsCount={bookingsCount}
     />
   );
 }
