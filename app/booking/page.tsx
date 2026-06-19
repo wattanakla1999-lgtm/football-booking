@@ -10,9 +10,20 @@ export const metadata: Metadata = {
   description: "เลือกสนามและเวลาเพื่อทำการจอง",
 };
 
-export default async function BookingPage() {
+type BookingPageProps = {
+  searchParams: Promise<{
+    courtId?: string;
+    date?: string;
+    slots?: string;
+  }>;
+};
+
+export default async function BookingPage({
+  searchParams,
+}: BookingPageProps) {
   const cookieStore = await cookies();
   const sessionUserId = cookieStore.get("session_user_id")?.value;
+  const resolvedSearchParams = await searchParams;
 
   if (!sessionUserId) {
     redirect("/");
@@ -38,6 +49,17 @@ export default async function BookingPage() {
       user.organizationId,
     );
 
+  const initialSelection = {
+    courtId: resolvedSearchParams.courtId || null,
+    date: resolvedSearchParams.date || null,
+    slotStartTimes: resolvedSearchParams.slots
+      ? resolvedSearchParams.slots
+          .split(",")
+          .map((value) => value.trim())
+          .filter(Boolean)
+      : [],
+  };
+
   return (
     <main className="min-h-screen bg-[#0b0f19] text-[#f3f4f6]">
       <div className="w-full min-h-screen flex flex-col relative pb-6">
@@ -55,6 +77,7 @@ export default async function BookingPage() {
         <BookingWizard
           user={user}
           initialCourts={initialCourts}
+          initialSelection={initialSelection}
         />
       </div>
 

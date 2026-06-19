@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { AdminRouteLoadingOverlay } from "@/src/components/common/AdminRouteLoadingOverlay";
 import { CourtCard } from "../booking/components/CourtCard";
 import { DatePicker } from "../booking/components/DatePicker";
 import { getAvailability } from "../booking/services/bookingService";
@@ -25,6 +27,7 @@ export default function AvailabilityViewer({
   userName,
   initialCourts,
 }: AvailabilityViewerProps) {
+  const router = useRouter();
   const [selectedCourt, setSelectedCourt] =
     useState<Court | null>(initialCourts[0] ?? null);
   const [selectedDate, setSelectedDate] = useState(() => new Date());
@@ -32,12 +35,17 @@ export default function AvailabilityViewer({
   const [loadingSlots, setLoadingSlots] =
     useState(false);
   const [slotsError, setSlotsError] = useState("");
+  const [selectedSlotStartTimes, setSelectedSlotStartTimes] =
+    useState<string[]>([]);
+  const [isRouteLoading, setIsRouteLoading] =
+    useState(false);
 
   const dates = useMemo(() => getBookingDates(14), []);
 
   useEffect(() => {
     if (!selectedCourt) {
       setSlots([]);
+      setSelectedSlotStartTimes([]);
       return;
     }
 
@@ -62,13 +70,55 @@ export default function AvailabilityViewer({
     void loadSlots();
   }, [selectedCourt, selectedDate]);
 
+  useEffect(() => {
+    setSelectedSlotStartTimes([]);
+  }, [selectedCourt?.id, selectedDate]);
+
+  const toggleSlot = (slot: TimeSlot) => {
+    const isPast = isPastTimeSlot(selectedDate, slot);
+
+    if (!slot.isAvailable || isPast) {
+      return;
+    }
+
+    setSelectedSlotStartTimes((current) => {
+      if (current.includes(slot.startTime)) {
+        return current.filter(
+          (startTime) => startTime !== slot.startTime,
+        );
+      }
+
+      return [...current, slot.startTime].sort((a, b) =>
+        a.localeCompare(b),
+      );
+    });
+  };
+
+  const handleBookSelectedSlots = () => {
+    if (
+      !selectedCourt ||
+      selectedSlotStartTimes.length === 0
+    ) {
+      return;
+    }
+
+    const params = new URLSearchParams({
+      courtId: selectedCourt.id,
+      date: formatApiDate(selectedDate),
+      slots: selectedSlotStartTimes.join(","),
+    });
+
+    setIsRouteLoading(true);
+    router.push(`/booking?${params.toString()}`);
+  };
+
   return (
     <main className="min-h-dvh bg-[#06111d] text-white">
       <div className="relative mx-auto min-h-dvh w-full max-w-[440px] overflow-hidden border-x border-green-400/10 bg-[#071624]">
         <div className="absolute inset-0 bg-[linear-gradient(rgba(74,222,128,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(74,222,128,0.06)_1px,transparent_1px)] bg-[size:40px_40px]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(34,197,94,0.18),transparent_28%),linear-gradient(180deg,rgba(4,10,18,0.15),rgba(4,10,18,0.94))]" />
 
-        <div className="relative z-10 px-5 pb-10 pt-5">
+        <div className="relative z-10 px-5 pb-28 pt-5">
           <header className="sticky top-0 z-20 -mx-5 mb-5 border-b border-green-400/10 bg-[#071624]/92 px-5 py-4 backdrop-blur">
             <div className="flex items-center justify-between">
               <Link
@@ -86,7 +136,7 @@ export default function AvailabilityViewer({
                   ดูสนามว่าง
                 </h1>
                 <p className="mt-1 text-xs font-bold tracking-[0.14em] text-slate-300">
-                  ตรวจสอบสนามที่ว่าง
+                  คุณ{userName} ตรวจสอบสนามที่ว่าง
                 </p>
               </div>
 
@@ -97,28 +147,6 @@ export default function AvailabilityViewer({
               </div>
             </div>
           </header>
-
-          {/* <section className="mb-5 rounded-[28px] border border-green-400/15 bg-[linear-gradient(180deg,rgba(16,40,31,0.95),rgba(8,24,37,0.92))] p-5 shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-sm font-black tracking-[0.2em] text-green-300/90">
-                  สถานะล่าสุด
-                </p>
-                <h2 className="mt-2 text-3xl font-black leading-tight text-white">
-                  สนามว่างวันนี้ดูได้ทันที
-                </h2>
-                <p className="mt-2 text-sm leading-6 text-slate-300">
-                  สวัสดีคุณ{userName} เลือกสนามและวันที่เพื่อเช็กช่วงเวลาที่พร้อมใช้งานได้เลย
-                </p>
-              </div>
-
-              <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-green-400/15 text-green-300 shadow-[0_0_30px_rgba(74,222,128,0.22)]">
-                <span className="material-symbols-outlined text-[30px]">
-                  event_available
-                </span>
-              </div>
-            </div>
-          </section> */}
 
           <section className="rounded-[28px] border border-white/10 bg-[#091b2d]/92 p-4 shadow-[0_20px_60px_rgba(0,0,0,0.28)]">
             <div className="mb-4 flex items-center justify-between gap-3">
@@ -202,6 +230,10 @@ export default function AvailabilityViewer({
                     ว่าง
                   </span>
                   <span className="flex items-center gap-1.5">
+                    <span className="h-2.5 w-2.5 rounded-full bg-green-200 shadow-[0_0_12px_rgba(187,247,208,0.45)]" />
+                    เลือกแล้ว
+                  </span>
+                  <span className="flex items-center gap-1.5">
                     <span className="h-2.5 w-2.5 rounded-full bg-white/20" />
                     ไม่ว่าง
                   </span>
@@ -239,14 +271,23 @@ export default function AvailabilityViewer({
                     );
                     const isAvailable =
                       slot.isAvailable && !isPast;
+                    const isSelected =
+                      selectedSlotStartTimes.includes(
+                        slot.startTime,
+                      );
 
                     return (
-                      <div
+                      <button
+                        type="button"
                         key={slot.startTime}
+                        disabled={!isAvailable}
+                        onClick={() => toggleSlot(slot)}
                         className={`rounded-2xl border px-2 py-4 text-center transition-all ${
-                          isAvailable
-                            ? "border-green-400/35 bg-green-400/12 text-green-300 shadow-[0_0_20px_rgba(74,222,128,0.12)]"
-                            : "border-white/10 bg-white/[0.03] text-slate-500"
+                          !isAvailable
+                            ? "cursor-not-allowed border-white/10 bg-white/[0.03] text-slate-500"
+                            : isSelected
+                              ? "border-green-200 bg-green-400/22 text-green-100 shadow-[0_0_28px_rgba(74,222,128,0.22)]"
+                              : "border-green-400/35 bg-green-400/12 text-green-300 shadow-[0_0_20px_rgba(74,222,128,0.12)] hover:scale-[1.02]"
                         }`}
                       >
                         <p className="text-lg font-black">
@@ -255,13 +296,44 @@ export default function AvailabilityViewer({
                         <p className="mt-1 text-[11px] font-bold tracking-[0.14em]">
                           {isPast
                             ? "เลยเวลา"
-                            : isAvailable
-                              ? "ว่าง"
-                              : "ไม่ว่าง"}
+                            : !isAvailable
+                              ? "ไม่ว่าง"
+                              : "ว่าง"}
                         </p>
-                      </div>
+                        {isAvailable && (
+                          <p className="mt-1 text-[10px] font-bold">
+                            {isSelected
+                              ? "เลือกแล้ว"
+                              : "แตะเพื่อจอง"}
+                          </p>
+                        )}
+                      </button>
                     );
                   })}
+                </div>
+              )}
+
+              {selectedSlotStartTimes.length > 0 && (
+                <div className="mt-5 rounded-3xl border border-green-300/20 bg-green-400/8 p-4">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <p className="text-sm font-black text-green-200">
+                        เลือกไว้แล้ว {selectedSlotStartTimes.length} ช่วงเวลา
+                      </p>
+                      <p className="mt-1 text-xs text-slate-300">
+                        {selectedSlotStartTimes
+                          .map((startTime) => startTime.slice(0, 5))
+                          .join(", ")}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleBookSelectedSlots}
+                      className="inline-flex h-12 items-center justify-center rounded-2xl bg-green-400 px-5 text-sm font-black text-[#062015] shadow-[0_14px_28px_rgba(74,222,128,0.2)] transition-transform active:scale-[0.98]"
+                    >
+                      จองเลย
+                    </button>
+                  </div>
                 </div>
               )}
             </section>
@@ -269,6 +341,23 @@ export default function AvailabilityViewer({
         </div>
       </div>
 
+      {selectedCourt &&
+        selectedSlotStartTimes.length > 0 && (
+          <div className="fixed inset-x-0 bottom-0 z-30 mx-auto w-full max-w-[440px] border-t border-green-400/10 bg-[#071624]/95 px-5 py-5 backdrop-blur">
+            <button
+              type="button"
+              onClick={handleBookSelectedSlots}
+              className="flex h-16 w-full items-center justify-center gap-2 rounded-3xl bg-green-400 text-lg font-black text-[#062015] shadow-[0_16px_40px_rgba(74,222,128,0.22)] transition-transform active:scale-[0.98]"
+            >
+              <span className="material-symbols-outlined text-[28px]">
+                calendar_add_on
+              </span>
+              จองช่วงเวลาที่เลือก
+            </button>
+          </div>
+        )}
+
+      <AdminRouteLoadingOverlay open={isRouteLoading} />
     </main>
   );
 }

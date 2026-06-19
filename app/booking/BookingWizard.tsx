@@ -1,8 +1,7 @@
 "use client";
 
 import { AdminRouteLoadingOverlay } from "@/src/components/common/AdminRouteLoadingOverlay";
-import { useRouter } from "next/navigation";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { BookingSuccessStep } from "./components/BookingSuccessStep";
 import { BookingSummaryStep } from "./components/BookingSummaryStep";
 import { CourtSelectionStep } from "./components/CourtSelectionStep";
@@ -27,17 +26,33 @@ import {
 type BookingWizardProps = {
   user: BookingUser;
   initialCourts: Court[];
+  initialSelection: {
+    courtId: string | null;
+    date: string | null;
+    slotStartTimes: string[];
+  };
 };
 
 export default function BookingWizard({
   user,
   initialCourts,
+  initialSelection,
 }: BookingWizardProps) {
-  const router = useRouter();
+  const initialCourt =
+    initialCourts.find(
+      (court) => court.id === initialSelection.courtId,
+    ) ?? null;
+  const initialDate = initialSelection.date
+    ? new Date(`${initialSelection.date}T00:00:00`)
+    : new Date();
 
-  const [step, setStep] = useState<BookingStep>(1);
-  const [selectedCourt, setSelectedCourt] = useState<Court | null>(null);
-  const [selectedDate, setSelectedDate] = useState(() => new Date());
+  const [step, setStep] = useState<BookingStep>(
+    initialCourt ? 2 : 1,
+  );
+  const [selectedCourt, setSelectedCourt] =
+    useState<Court | null>(initialCourt);
+  const [selectedDate, setSelectedDate] =
+    useState(() => initialDate);
   const [selectedSlots, setSelectedSlots] = useState<TimeSlot[]>([]);
   const [phone, setPhone] = useState(user.phone || "");
   const [phoneError, setPhoneError] = useState("");
@@ -47,6 +62,8 @@ export default function BookingWizard({
     useState(false);
   const [successfulBookingId, setSuccessfulBookingId] =
     useState("");
+  const [hasAppliedInitialSelection, setHasAppliedInitialSelection] =
+    useState(false);
 
   const dates = useMemo(() => getBookingDates(14), []);
   const { courts, loadingCourts, courtsError } =
@@ -66,6 +83,38 @@ export default function BookingWizard({
     selectedDate,
     clearSelectedSlots,
   });
+
+  useEffect(() => {
+    if (
+      hasAppliedInitialSelection ||
+      !selectedCourt ||
+      initialSelection.slotStartTimes.length === 0 ||
+      loadingSlots ||
+      step !== 2
+    ) {
+      return;
+    }
+
+    const nextSelectedSlots = slots.filter((slot) =>
+      initialSelection.slotStartTimes.includes(
+        slot.startTime,
+      ),
+    );
+
+    if (nextSelectedSlots.length > 0) {
+      setSelectedSlots(nextSelectedSlots);
+      setStep(3);
+    }
+
+    setHasAppliedInitialSelection(true);
+  }, [
+    hasAppliedInitialSelection,
+    initialSelection.slotStartTimes,
+    loadingSlots,
+    selectedCourt,
+    slots,
+    step,
+  ]);
 
   const totalPrice = selectedCourt
     ? selectedSlots.length * Number(selectedCourt.pricePerHour)
