@@ -257,6 +257,8 @@ export default function BookingWizard({
         {step === 3 && selectedCourt && (
           <BookingSummaryStep
             court={selectedCourt}
+            customerName={user.displayName}
+            customerPictureUrl={user.pictureUrl}
             selectedDate={selectedDate}
             selectedSlots={selectedSlots}
             totalPrice={totalPrice}

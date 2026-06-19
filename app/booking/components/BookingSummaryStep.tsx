@@ -1,8 +1,11 @@
+import Image from "next/image";
 import type { Court, TimeSlot } from "../types/booking";
 import { formatPrice } from "../utils/booking";
 
 type BookingSummaryStepProps = {
   court: Court;
+  customerName: string;
+  customerPictureUrl: string | null;
   selectedDate: Date;
   selectedSlots: TimeSlot[];
   totalPrice: number;
@@ -17,6 +20,8 @@ type BookingSummaryStepProps = {
 
 export function BookingSummaryStep({
   court,
+  customerName,
+  customerPictureUrl,
   selectedDate,
   selectedSlots,
   totalPrice,
@@ -72,6 +77,40 @@ export function BookingSummaryStep({
       </div>
 
       <div className="space-y-5 px-5 pb-32 pt-6">
+        <section className="rounded-[26px] border border-slate-500/30 bg-slate-800/70 p-4 shadow-inner">
+          <div className="flex items-center gap-4">
+            <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl border border-green-300/25 bg-[#0b1b2a]">
+              {customerPictureUrl ? (
+                <Image
+                  src={customerPictureUrl}
+                  alt={customerName}
+                  fill
+                  sizes="64px"
+                  className="object-cover"
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center text-green-300">
+                  <span className="material-symbols-outlined text-[32px]">
+                    person
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <div className="min-w-0">
+              <p className="text-xs font-black tracking-[0.16em] text-slate-400">
+                ผู้จอง
+              </p>
+              <h3 className="mt-1 truncate text-xl font-black text-slate-100 sm:text-2xl">
+                {customerName}
+              </h3>
+              <p className="mt-1 text-sm font-bold text-green-300">
+                ข้อมูลผู้จองสำหรับรายการนี้
+              </p>
+            </div>
+          </div>
+        </section>
+
         <section className="rounded-[26px] border border-slate-500/30 bg-slate-800/70 p-4 shadow-inner">
           <div className="flex items-center gap-4">
             <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl border border-slate-500/40 bg-[#04101b] sm:h-28 sm:w-28">
