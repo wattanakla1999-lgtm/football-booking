@@ -1,8 +1,5 @@
 import type { Court, TimeSlot } from "../types/booking";
 import { formatPrice } from "../utils/booking";
-import { BackButton } from "./BackButton";
-import { PhoneInput } from "./PhoneInput";
-import { SectionHeader } from "./SectionHeader";
 
 type BookingSummaryStepProps = {
   court: Court;
@@ -31,137 +28,247 @@ export function BookingSummaryStep({
   onPhoneChange,
   onConfirm,
 }: BookingSummaryStepProps) {
-  return (
-    <div className="animate-[slideUp_0.3s_ease-out] mt-1">
-      <div className="flex items-center gap-3 mb-6">
-        <BackButton onClick={onBack} />
-        <SectionHeader
-          title="สรุปการจอง"
-          description="ตรวจสอบข้อมูลก่อนยืนยัน"
-        />
-      </div>
+  const primaryImageUrl = court.images?.[0]?.url;
+  const digitLength = phone.replace(/\D/g, "").length;
+  const dateLabel = selectedDate.toLocaleDateString("th-TH", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+  const surfaceLabel = court.surface?.toUpperCase() || "FOOTBALL";
 
-      <div className="bg-white/[0.02] rounded-2xl border border-white/[0.06] overflow-hidden mb-4">
-        <div className="px-5 py-5 flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-green-500/15 flex items-center justify-center text-xl shrink-0">
-            🏟️
-          </div>
-          <div>
-            <p className="font-bold text-base">{court.name}</p>
-            <p className="text-xs text-white/40 mt-1 leading-relaxed">
-              {court.surface && `${court.surface} · `}
-              ฿{formatPrice(court.pricePerHour)}/ชม.
-              {court.maxPlayers && ` · สูงสุด ${court.maxPlayers} คน`}
+  return (
+    <div className="animate-[slideUp_0.3s_ease-out] -mx-2 mt-1 overflow-hidden rounded-[28px] border border-green-300/20 bg-[#061524] shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
+      <div className="sticky top-0 z-10 border-b border-green-300/10 bg-[#082033]/95 px-5 py-4 backdrop-blur">
+        <div className="grid grid-cols-[44px_1fr_44px] items-center">
+          <button
+            type="button"
+            onClick={onBack}
+            disabled={isSubmitting}
+            className="inline-flex h-11 w-11 items-center justify-center rounded-2xl text-green-300 transition-colors hover:bg-white/5 disabled:opacity-50"
+            aria-label="กลับ"
+          >
+            <span className="material-symbols-outlined text-[34px]">
+              arrow_back
+            </span>
+          </button>
+
+          <div className="text-center">
+            <h2 className="text-3xl font-black leading-none tracking-tight text-green-300">
+              สรุปการจอง
+            </h2>
+            <p className="mt-2 text-sm font-black tracking-[0.12em] text-slate-300">
+              ตรวจสอบข้อมูลการจองของคุณ
             </p>
+          </div>
+
+          <div className="flex h-11 w-11 items-center justify-center text-slate-300">
+            <span className="material-symbols-outlined text-[32px]">
+              more_vert
+            </span>
           </div>
         </div>
       </div>
 
-      <div className="bg-white/[0.02] rounded-2xl border border-white/[0.06] overflow-hidden mb-4">
-        <div className="divide-y divide-white/[0.04]">
-          <div className="px-5 py-4 flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-white/5 flex items-center justify-center shrink-0">
-              📅
+      <div className="space-y-5 px-5 pb-32 pt-6">
+        <section className="rounded-[26px] border border-slate-500/30 bg-slate-800/70 p-4 shadow-inner">
+          <div className="flex items-center gap-4">
+            <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl border border-slate-500/40 bg-[#04101b] sm:h-28 sm:w-28">
+              {primaryImageUrl ? (
+                <img
+                  src={primaryImageUrl}
+                  alt={court.name}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <div className="absolute inset-0 overflow-hidden bg-[radial-gradient(circle_at_50%_0%,rgba(148,163,184,0.65),transparent_22%),linear-gradient(180deg,#06131f,#020812)]">
+                  <div className="absolute left-5 top-3 h-14 w-6 rotate-12 rounded-full bg-white/45 blur-md" />
+                  <div className="absolute right-5 top-3 h-14 w-6 -rotate-12 rounded-full bg-white/45 blur-md" />
+                  <div className="absolute bottom-4 left-1/2 h-px w-14 -translate-x-1/2 bg-green-200/40" />
+                </div>
+              )}
+              <div className="absolute bottom-2 right-2 grid h-7 w-7 place-items-center rounded-full bg-green-400 text-[#061524]">
+                <span className="material-symbols-outlined text-[20px]">
+                  sports_soccer
+                </span>
+              </div>
             </div>
-            <div>
-              <p className="text-xs text-white/40">วันที่</p>
-              <p className="text-sm font-medium mt-0.5">
-                {selectedDate.toLocaleDateString("th-TH", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
+
+            <div className="min-w-0">
+              <p className="text-sm font-black tracking-wide text-green-300">
+                ประเภทสนาม: {surfaceLabel}
+              </p>
+              <h3 className="mt-1 text-2xl font-black leading-tight text-slate-100 sm:text-3xl">
+                {court.name}
+              </h3>
+              <p className="mt-2 flex items-center gap-1.5 text-sm font-bold text-slate-300/80 sm:text-lg">
+                <span className="material-symbols-outlined text-[22px]">
+                  location_on
+                </span>
+                Football Booking Arena
               </p>
             </div>
           </div>
+        </section>
 
-          <div className="px-5 py-4 flex items-start gap-3">
-            <div className="w-9 h-9 rounded-xl bg-white/5 flex items-center justify-center shrink-0">
-              ⏰
+        <section className="rounded-[26px] border border-slate-500/30 bg-slate-800/70 p-5 shadow-inner">
+          <div className="grid gap-5">
+            <div className="grid grid-cols-[36px_64px_1fr] items-center gap-2 sm:grid-cols-[44px_120px_1fr]">
+              <span className="material-symbols-outlined text-[32px] text-green-300 sm:text-[36px]">
+                calendar_month
+              </span>
+              <p className="text-base font-black text-slate-300 sm:text-xl">
+                วันที่
+              </p>
+              <p className="text-right text-base font-black leading-snug text-slate-100 sm:text-xl">
+                {dateLabel}
+              </p>
             </div>
-            <div>
-              <p className="text-xs text-white/40">เวลา</p>
-              <div className="flex flex-wrap gap-2 mt-1.5">
-                {selectedSlots.map((slot : { startTime: string, endTime: string }) => (
+
+            <div className="grid grid-cols-[36px_64px_1fr] items-start gap-2 sm:grid-cols-[44px_120px_1fr]">
+              <span className="material-symbols-outlined text-[32px] text-green-300 sm:text-[36px]">
+                schedule
+              </span>
+              <p className="pt-1 text-base font-black text-slate-300 sm:text-xl">
+                เวลา
+              </p>
+              <div className="flex flex-wrap justify-end gap-2">
+                {selectedSlots.map((slot) => (
                   <span
                     key={slot.startTime}
-                    className="inline-block bg-green-500/10 text-green-400 text-sm font-medium px-3 py-1.5 rounded-xl"
+                    className="rounded-lg bg-green-400/15 px-2.5 py-1 text-sm font-black text-green-300 sm:px-3 sm:text-base"
                   >
-                    {slot.startTime.slice(0, 5)}–{slot.endTime.slice(0, 5)}
+                    {slot.startTime.slice(0, 5)} -{" "}
+                    {slot.endTime.slice(0, 5)}
                   </span>
                 ))}
               </div>
             </div>
           </div>
 
-          <div className="px-5 py-5">
-            <div className="space-y-3 text-sm">
-              <div className="flex justify-between text-white/50">
-                <span>ราคาต่อชั่วโมง</span>
-                <span>฿{formatPrice(court.pricePerHour)}</span>
-              </div>
-              <div className="flex justify-between text-white/50">
-                <span>จำนวนชั่วโมง</span>
-                <span>{selectedSlots.length} ชม.</span>
-              </div>
-            </div>
+          <div className="my-5 h-px bg-slate-500/20" />
 
-            <div className="flex justify-between items-center mt-4 pt-4 border-t border-white/[0.06]">
-              <span className="text-base font-bold">รวมทั้งหมด</span>
-              <span className="text-xl font-extrabold text-green-400">
-                ฿{formatPrice(totalPrice)}
-              </span>
-            </div>
+          <div className="space-y-4">
+            <SummaryRow
+              label="ราคาต่อชั่วโมง"
+              value={`฿ ${formatPrice(court.pricePerHour)}`}
+            />
+            <SummaryRow
+              label="จำนวนชั่วโมง"
+              value={`${selectedSlots.length} ชั่วโมง`}
+            />
           </div>
-        </div>
+
+          <div className="mt-6 flex items-end justify-between gap-4">
+            <p className="text-2xl font-black text-slate-100">
+              ราคาสุทธิ
+            </p>
+            <p className="text-4xl font-black tracking-tight text-green-300">
+              ฿ {formatPrice(totalPrice)}
+            </p>
+          </div>
+        </section>
+
+        <section
+          className={`rounded-[26px] border bg-slate-800/70 p-5 shadow-inner transition-colors ${
+            phoneError
+              ? "border-red-400/50"
+              : "border-slate-500/30"
+          }`}
+        >
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <span className="material-symbols-outlined text-[30px] text-slate-300">
+                call
+              </span>
+              <p className="text-base font-black text-slate-300 sm:text-xl">
+                เบอร์โทรศัพท์ติดต่อ
+              </p>
+            </div>
+            <span
+              className={`text-sm font-black ${
+                digitLength === 10
+                  ? "text-green-300"
+                  : "text-slate-400"
+              }`}
+            >
+              {digitLength}/10
+            </span>
+          </div>
+
+          <input
+            type="tel"
+            inputMode="tel"
+            placeholder="08X-XXX-XXXX"
+            value={phone}
+            onChange={(event) =>
+              onPhoneChange(
+                event.target.value.replace(/[^0-9-]/g, ""),
+              )
+            }
+            maxLength={13}
+            className={`h-[72px] w-full rounded-2xl border bg-[#071d2e] px-5 py-5 text-xl font-black tracking-wide text-slate-100 outline-none transition-all placeholder:text-slate-500 focus:ring-4 sm:h-20 sm:px-6 sm:text-2xl ${
+              phoneError
+                ? "border-red-400/50 focus:ring-red-400/10"
+                : "border-slate-500/30 focus:border-green-300/60 focus:ring-green-300/10"
+            }`}
+          />
+
+          {phoneError ? (
+            <p className="mt-3 flex items-center gap-2 text-sm font-bold text-red-300">
+              <span className="material-symbols-outlined text-[18px]">
+                error
+              </span>
+              {phoneError}
+            </p>
+          ) : (
+            <p className="mt-4 text-sm font-bold italic text-slate-400">
+              * ระบุเบอร์โทรศัพท์สำหรับการติดต่อกลับและยืนยันการจอง
+            </p>
+          )}
+        </section>
+
+        {error && (
+          <div className="flex items-start gap-3 rounded-2xl border border-red-400/30 bg-red-500/10 px-5 py-4 text-sm font-bold leading-relaxed text-red-300">
+            <span className="material-symbols-outlined text-[20px]">
+              warning
+            </span>
+            <span>{error}</span>
+          </div>
+        )}
       </div>
 
-      <PhoneInput
-        phone={phone}
-        error={phoneError}
-        onChange={onPhoneChange}
-      />
-
-      {error && (
-        <div className="bg-red-500/10 rounded-2xl text-red-400 text-sm px-5 py-4 flex items-start gap-3 mb-4 leading-relaxed">
-          <span>⚠️</span>
-          <span>{error}</span>
-        </div>
-      )}
-
-      <div className="space-y-3 mt-8">
+      <div className="sticky bottom-0 border-t border-green-300/10 bg-[#061524]/92 px-5 py-6 shadow-[0_-18px_60px_rgba(34,197,94,0.18)] backdrop-blur">
         <button
           type="button"
           onClick={onConfirm}
           disabled={isSubmitting}
-          className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-5 rounded-2xl text-base tracking-wide transition-all duration-150 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+          className="h-20 w-full rounded-3xl bg-green-400 text-xl font-black text-[#063018] shadow-[0_18px_50px_rgba(34,197,94,0.28)] transition-all duration-150 hover:bg-green-300 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
         >
           <span className="flex items-center justify-center gap-2">
-            ยืนยันการจอง
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <polyline points="20 6 9 17 4 12" />
-            </svg>
+            <span className="material-symbols-outlined text-[34px]">
+              check_circle
+            </span>
+            ยืนยันการจองสนาม
           </span>
         </button>
-
-        <button
-          type="button"
-          onClick={onBack}
-          disabled={isSubmitting}
-          className="w-full bg-transparent border border-white/10 text-white/50 hover:text-white hover:bg-white/5 font-medium py-4 rounded-2xl text-sm tracking-wide transition-all duration-150 active:scale-[0.98]"
-        >
-          ← แก้ไขวันเวลา
-        </button>
       </div>
+    </div>
+  );
+}
+
+function SummaryRow({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-4 text-base font-black sm:text-xl">
+      <span className="text-slate-300">{label}</span>
+      <span className="text-slate-100">{value}</span>
     </div>
   );
 }
