@@ -1,4 +1,3 @@
-import { NextRequest, NextResponse } from "next/server";
 import {
   fetchLineProfileFromAccessToken,
   setLineSessionCookie,
@@ -6,7 +5,8 @@ import {
 } from "@/src/lib/lineAuth";
 import { getLineCallbackUrl } from "@/src/lib/lineConfig";
 import { verifyLineState } from "@/src/lib/lineState";
-import type { LineTokenResponse, LineProfile } from "@/src/types/line";
+import type { LineProfile, LineTokenResponse } from "@/src/types/line";
+import { NextRequest, NextResponse } from "next/server";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // GET /api/auth/line/callback
@@ -97,7 +97,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
   // Simple session: store user id in a signed-like cookie.
   // For production replace with a proper JWT / NextAuth session.
-  const response = NextResponse.redirect(new URL("/dashboard", request.url));
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://football-booking.club";
+
+const response = NextResponse.redirect(
+  new URL("/dashboard", appUrl),
+);
 
   // Set user session
   setLineSessionCookie(response, user.id);
