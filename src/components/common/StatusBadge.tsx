@@ -25,15 +25,13 @@ export function BookingStatusBadge({
           "rounded-full border px-3 py-1 text-label-sm font-bold",
           status === "cancelled"
             ? "bg-error-container/20 text-error border-error/20"
-            : status === "pending" || status === "paid"
+            : status === "pending" || status === "expired"
               ? "bg-surface-variant/40 text-on-surface-variant border-outline-variant/20"
-              : "bg-primary-container/20 text-primary border-primary/20",
+            : "bg-primary-container/20 text-primary border-primary/20",
           className,
         )}
       >
-        {status === "paid"
-          ? "รอดำเนินการ"
-          : config[labelMode]}
+        {config[labelMode]}
       </Badge>
     );
   }

@@ -3,7 +3,6 @@ import {
   formatCreatedAt,
   formatDate,
   formatPrice,
-  getPaymentLabel,
   shortBookingId,
 } from "../utils/booking";
 import { StatusBadge } from "./StatusBadge";
@@ -81,8 +80,8 @@ export function BookingDetailModal({
               }
             />
             <DetailCard
-              label="สถานะการชำระเงิน"
-              value={getPaymentLabel(booking)}
+              label="สถานะการจอง"
+              value="ตรวจสอบจากป้ายสถานะด้านบน"
             />
           </div>
 

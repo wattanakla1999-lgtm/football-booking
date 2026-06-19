@@ -1,6 +1,14 @@
 import { NextResponse } from "next/server";
+
+import {
+  badRequest,
+  internalError,
+  notFound,
+  unauthorized,
+} from "@/src/lib/apiResponse";
+import { normalizeBookingStatus } from "@/src/lib/bookingStatus";
 import { prisma } from "@/src/lib/prisma";
-import { cookies } from "next/headers";
+import { getAdminSessionId } from "@/src/lib/session";
 import {
   sendCustomerBookingCancelledByAdminNotification,
   sendCustomerBookingConfirmedByAdminNotification,
@@ -8,28 +16,71 @@ import {
 
 export const dynamic = "force-dynamic";
 
+const VALID_STATUSES = [
+  "pending",
+  "confirmed",
+  "cancelled",
+  "completed",
+  "expired",
+  "no_show",
+] as const;
 
-// Helper: verify admin session
+type NextStatus = (typeof VALID_STATUSES)[number];
+
 async function getAdmin() {
-  const cookieStore = await cookies();
-  const adminId = cookieStore.get("admin_session_id")?.value;
-  if (!adminId) return null;
+  const adminId = await getAdminSessionId();
+
+  if (!adminId) {
+    return null;
+  }
 
   const admin = await prisma.admin.findUnique({
     where: { id: adminId },
     select: { id: true, organizationId: true, role: true, isActive: true },
   });
 
-  if (!admin || !admin.isActive) return null;
+  if (!admin || !admin.isActive) {
+    return null;
+  }
+
   return admin;
 }
 
-// GET: Fetch all bookings for the admin's organization
+function formatLocalDate(date: Date) {
+  return [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, "0"),
+    String(date.getDate()).padStart(2, "0"),
+  ].join("-");
+}
+
+function canTransition(
+  currentStatus: string,
+  nextStatus: NextStatus,
+) {
+  const current = normalizeBookingStatus(currentStatus);
+
+  if (current === nextStatus) {
+    return true;
+  }
+
+  if (current === "cancelled" || current === "completed") {
+    return false;
+  }
+
+  if (current === "expired" || current === "no_show") {
+    return nextStatus === "completed";
+  }
+
+  return true;
+}
+
 export async function GET() {
   try {
     const admin = await getAdmin();
+
     if (!admin) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return unauthorized("กรุณาเข้าสู่ระบบผู้ดูแล");
     }
 
     const bookings = await prisma.booking.findMany({
@@ -53,44 +104,48 @@ export async function GET() {
           },
           orderBy: { startTime: "asc" },
         },
-        payment: true,
       },
       orderBy: {
         createdAt: "desc",
       },
     });
 
-    console.log("Admin bookings fetched, first booking user:", bookings[0]?.user);
-
-    return NextResponse.json({ bookings });
+    return NextResponse.json({
+      bookings: bookings.map((booking) => ({
+        ...booking,
+        status: normalizeBookingStatus(booking.status),
+      })),
+    });
   } catch (error) {
     console.error("Error fetching admin bookings:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return internalError();
   }
 }
 
-// PATCH: Update a booking status
 export async function PATCH(request: Request) {
   try {
     const admin = await getAdmin();
+
     if (!admin) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return unauthorized("กรุณาเข้าสู่ระบบผู้ดูแล");
     }
 
-    const body = await request.json();
-    const { bookingId, status } = body;
+    const body = (await request.json()) as {
+      bookingId?: string;
+      status?: string;
+    };
+
+    const bookingId = body.bookingId?.trim();
+    const status = body.status?.trim() as NextStatus | undefined;
 
     if (!bookingId || !status) {
-      return NextResponse.json({ error: "Missing bookingId or status" }, { status: 400 });
+      return badRequest("กรุณาระบุ bookingId และ status");
     }
 
-    // Validate status
-    const validStatuses = ["pending", "paid", "confirmed", "cancelled", "completed"];
-    if (!validStatuses.includes(status)) {
-      return NextResponse.json({ error: "Invalid status" }, { status: 400 });
+    if (!VALID_STATUSES.includes(status)) {
+      return badRequest("สถานะการจองไม่ถูกต้อง");
     }
 
-    // Verify the booking belongs to the admin's organization
     const booking = await prisma.booking.findFirst({
       where: {
         id: bookingId,
@@ -110,16 +165,17 @@ export async function PATCH(request: Request) {
               },
             },
           },
-          orderBy: [
-            { date: "asc" },
-            { startTime: "asc" },
-          ],
+          orderBy: [{ date: "asc" }, { startTime: "asc" }],
         },
       },
     });
 
     if (!booking) {
-      return NextResponse.json({ error: "Booking not found" }, { status: 404 });
+      return notFound("ไม่พบรายการจอง");
+    }
+
+    if (!canTransition(booking.status, status)) {
+      return badRequest("ไม่สามารถเปลี่ยนสถานะของรายการนี้ได้");
     }
 
     const updatedBooking = await prisma.booking.update({
@@ -129,45 +185,32 @@ export async function PATCH(request: Request) {
 
     const firstItem = booking.items[0];
     const uniqueCourtNames = Array.from(
-      new Set(
-        booking.items.map(
-          (item) => item.court.name,
-        ),
-      ),
+      new Set(booking.items.map((item) => item.court.name)),
     );
-
     const courtName =
       uniqueCourtNames.length <= 1
-        ? uniqueCourtNames[0] ||
-          "ไม่ระบุสนาม"
-        : `${uniqueCourtNames[0]} +${
-            uniqueCourtNames.length - 1
-          } สนาม`;
+        ? uniqueCourtNames[0] || "ไม่ระบุสนาม"
+        : `${uniqueCourtNames[0]} +${uniqueCourtNames.length - 1} สนาม`;
+    const bookingDate = firstItem
+      ? formatLocalDate(firstItem.date)
+      : "-";
+    const slots = booking.items.map((item) => ({
+      startTime: item.startTime,
+      endTime: item.endTime,
+    }));
 
     if (
       status === "cancelled" &&
-      booking.status !== "cancelled"
+      normalizeBookingStatus(booking.status) !== "cancelled"
     ) {
       try {
-        await sendCustomerBookingCancelledByAdminNotification(
-          {
-            lineUserId:
-              booking.user.lineUserId,
-            bookingId: booking.id,
-            courtName,
-            bookingDate: firstItem
-              ? firstItem.date
-                  .toISOString()
-                  .slice(0, 10)
-              : "-",
-            slots: booking.items.map(
-              (item) => ({
-                startTime: item.startTime,
-                endTime: item.endTime,
-              }),
-            ),
-          },
-        );
+        await sendCustomerBookingCancelledByAdminNotification({
+          lineUserId: booking.user.lineUserId,
+          bookingId: booking.id,
+          courtName,
+          bookingDate,
+          slots,
+        });
       } catch (notificationError) {
         console.error(
           "Failed to send LINE customer cancellation notification:",
@@ -178,28 +221,16 @@ export async function PATCH(request: Request) {
 
     if (
       status === "confirmed" &&
-      booking.status !== "confirmed"
+      normalizeBookingStatus(booking.status) !== "confirmed"
     ) {
       try {
-        await sendCustomerBookingConfirmedByAdminNotification(
-          {
-            lineUserId:
-              booking.user.lineUserId,
-            bookingId: booking.id,
-            courtName,
-            bookingDate: firstItem
-              ? firstItem.date
-                  .toISOString()
-                  .slice(0, 10)
-              : "-",
-            slots: booking.items.map(
-              (item) => ({
-                startTime: item.startTime,
-                endTime: item.endTime,
-              }),
-            ),
-          },
-        );
+        await sendCustomerBookingConfirmedByAdminNotification({
+          lineUserId: booking.user.lineUserId,
+          bookingId: booking.id,
+          courtName,
+          bookingDate,
+          slots,
+        });
       } catch (notificationError) {
         console.error(
           "Failed to send LINE customer confirmation notification:",
@@ -208,9 +239,15 @@ export async function PATCH(request: Request) {
       }
     }
 
-    return NextResponse.json({ success: true, booking: updatedBooking });
+    return NextResponse.json({
+      success: true,
+      booking: {
+        ...updatedBooking,
+        status: normalizeBookingStatus(updatedBooking.status),
+      },
+    });
   } catch (error) {
     console.error("Error updating booking:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return internalError();
   }
 }

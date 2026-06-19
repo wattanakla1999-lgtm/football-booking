@@ -26,7 +26,6 @@ import type {
   CustomerMode,
   CustomerSearchItem,
   ManualBookingStatus,
-  ManualPaymentStatus,
   SelectedBookedSlot,
   Slot,
 } from "./types/availability";
@@ -75,8 +74,6 @@ export default function AdminAvailabilityView({
   const [customerPhone, setCustomerPhone] = useState("");
   const [bookingStatus, setBookingStatus] =
     useState<ManualBookingStatus>("confirmed");
-  const [paymentStatus, setPaymentStatus] =
-    useState<ManualPaymentStatus>("unpaid");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [selectedBookedSlot, setSelectedBookedSlot] =
@@ -237,7 +234,6 @@ export default function AdminAvailabilityView({
     setCustomerName("");
     setCustomerPhone("");
     setBookingStatus("confirmed");
-    setPaymentStatus("unpaid");
     setSubmitError("");
   }, []);
 
@@ -351,7 +347,6 @@ export default function AdminAvailabilityView({
             ? selectedCustomer?.phone || ""
             : customerPhone.trim(),
         bookingStatus,
-        paymentStatus,
       });
 
       setShowModal(false);
@@ -426,7 +421,6 @@ export default function AdminAvailabilityView({
           customerName={customerName}
           customerPhone={customerPhone}
           bookingStatus={bookingStatus}
-          paymentStatus={paymentStatus}
           submitError={submitError}
           isSubmitting={isSubmitting}
           onCustomerModeChange={
@@ -446,9 +440,6 @@ export default function AdminAvailabilityView({
           }
           onBookingStatusChange={
             setBookingStatus
-          }
-          onPaymentStatusChange={
-            setPaymentStatus
           }
           onClose={closeBookingModal}
           onSubmit={handleCreateBooking}

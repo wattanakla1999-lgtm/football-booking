@@ -12,7 +12,6 @@ import type {
   CustomerMode,
   CustomerSearchItem,
   ManualBookingStatus,
-  ManualPaymentStatus,
 } from "../types/availability";
 import { formatThaiLongDate } from "../utils/availability";
 
@@ -28,7 +27,6 @@ interface BookingModalProps {
   customerName: string;
   customerPhone: string;
   bookingStatus: ManualBookingStatus;
-  paymentStatus: ManualPaymentStatus;
   submitError: string;
   isSubmitting: boolean;
   onCustomerModeChange: (
@@ -43,9 +41,6 @@ interface BookingModalProps {
   onBookingStatusChange: (
     value: ManualBookingStatus,
   ) => void;
-  onPaymentStatusChange: (
-    value: ManualPaymentStatus,
-  ) => void;
   onClose: () => void;
   onSubmit: (
     event: FormEvent<HTMLFormElement>,
@@ -56,19 +51,10 @@ const bookingStatusOptions: Array<{
   value: ManualBookingStatus;
   label: string;
 }> = [
-  { value: "pending", label: "รอดำเนินการ" },
+  { value: "pending", label: "รอแอดมินยืนยัน" },
   { value: "confirmed", label: "ยืนยันแล้ว" },
-  { value: "cancelled", label: "ยกเลิก" },
   { value: "completed", label: "เสร็จสิ้น" },
-];
-
-const paymentStatusOptions: Array<{
-  value: ManualPaymentStatus;
-  label: string;
-}> = [
-  { value: "unpaid", label: "ยังไม่ชำระ" },
-  { value: "pending_verify", label: "รอตรวจสอบ" },
-  { value: "verified", label: "ตรวจสอบแล้ว" },
+  { value: "no_show", label: "ลูกค้าไม่มา" },
 ];
 
 export default function BookingModal({
@@ -83,7 +69,6 @@ export default function BookingModal({
   customerName,
   customerPhone,
   bookingStatus,
-  paymentStatus,
   submitError,
   isSubmitting,
   onCustomerModeChange,
@@ -92,7 +77,6 @@ export default function BookingModal({
   onCustomerNameChange,
   onCustomerPhoneChange,
   onBookingStatusChange,
-  onPaymentStatusChange,
   onClose,
   onSubmit,
 }: BookingModalProps) {
@@ -316,7 +300,7 @@ export default function BookingModal({
           </div>
         )}
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4">
           <FormField
             id="bookingStatus"
             label="สถานะการจอง"
@@ -332,31 +316,6 @@ export default function BookingModal({
               }
             >
               {bookingStatusOptions.map((option : { value: string; label: string }) => (
-                <option
-                  key={option.value}
-                  value={option.value}
-                >
-                  {option.label}
-                </option>
-              ))}
-            </Select>
-          </FormField>
-
-          <FormField
-            id="paymentStatus"
-            label="สถานะการชำระเงิน"
-          >
-            <Select
-              id="paymentStatus"
-              value={paymentStatus}
-              onChange={(event) =>
-                onPaymentStatusChange(
-                  event.target
-                    .value as ManualPaymentStatus,
-                )
-              }
-            >
-              {paymentStatusOptions.map((option : { value: string; label: string }) => (
                 <option
                   key={option.value}
                   value={option.value}

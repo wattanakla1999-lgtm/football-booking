@@ -14,8 +14,7 @@ export default function QuickActionButton({
     ) => Promise<void>;
 }) {
     if (
-        booking.status === "pending" ||
-        booking.status === "paid"
+        booking.status === "pending"
     ) {
         return (
             <button

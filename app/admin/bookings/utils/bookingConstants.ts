@@ -19,12 +19,6 @@ export const STATUS_CONFIG: Record<
     bgColor: bookingStatusMeta.pending.bgColor,
     textColor: bookingStatusMeta.pending.textColor,
   },
-  paid: {
-    label: bookingStatusMeta.paid.shortLabel,
-    dotColor: bookingStatusMeta.paid.dotColor,
-    bgColor: bookingStatusMeta.paid.bgColor,
-    textColor: bookingStatusMeta.paid.textColor,
-  },
   confirmed: {
     label: bookingStatusMeta.confirmed.shortLabel,
     dotColor: bookingStatusMeta.confirmed.dotColor,
@@ -43,6 +37,18 @@ export const STATUS_CONFIG: Record<
     bgColor: bookingStatusMeta.completed.bgColor,
     textColor: bookingStatusMeta.completed.textColor,
   },
+  expired: {
+    label: bookingStatusMeta.expired.shortLabel,
+    dotColor: bookingStatusMeta.expired.dotColor,
+    bgColor: bookingStatusMeta.expired.bgColor,
+    textColor: bookingStatusMeta.expired.textColor,
+  },
+  no_show: {
+    label: bookingStatusMeta.no_show.shortLabel,
+    dotColor: bookingStatusMeta.no_show.dotColor,
+    bgColor: bookingStatusMeta.no_show.bgColor,
+    textColor: bookingStatusMeta.no_show.textColor,
+  },
 };
 
 export const FILTER_TABS: {
@@ -50,10 +56,11 @@ export const FILTER_TABS: {
   label: string;
 }[] = [
   { key: "all", label: "ทั้งหมด" },
-  { key: "pending", label: "รอชำระ" },
-  { key: "paid", label: "รอตรวจสอบ" },
+  { key: "pending", label: "รอแอดมินยืนยัน" },
   { key: "confirmed", label: "ยืนยันแล้ว" },
   { key: "completed", label: "เสร็จสิ้น" },
+  { key: "expired", label: "หมดเวลารอ" },
+  { key: "no_show", label: "ลูกค้าไม่มา" },
   { key: "cancelled", label: "ยกเลิก" },
 ];
 
@@ -61,9 +68,10 @@ export function getStatusCounts(bookings: Booking[]) {
   return {
     all: bookings.length,
     pending: bookings.filter((booking) => booking.status === "pending").length,
-    paid: bookings.filter((booking) => booking.status === "paid").length,
     confirmed: bookings.filter((booking) => booking.status === "confirmed").length,
     cancelled: bookings.filter((booking) => booking.status === "cancelled").length,
     completed: bookings.filter((booking) => booking.status === "completed").length,
+    expired: bookings.filter((booking) => booking.status === "expired").length,
+    no_show: bookings.filter((booking) => booking.status === "no_show").length,
   };
 }

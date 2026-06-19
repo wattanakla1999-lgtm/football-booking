@@ -5,7 +5,6 @@ import type {
     CourtAvailability,
     CustomerSearchItem,
     ManualBookingStatus,
-    ManualPaymentStatus,
     Slot,
 } from "../types/availability";
 
@@ -23,7 +22,6 @@ export interface CreateAdminBookingPayload {
     customerName: string;
     customerPhone: string;
     bookingStatus: ManualBookingStatus;
-    paymentStatus: ManualPaymentStatus;
 }
 
 export interface CreateAdminBookingResponse {

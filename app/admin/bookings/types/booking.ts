@@ -2,10 +2,11 @@ import { bookingStatusMeta } from "@/src/constants/statusColors";
 
 export type BookingStatus =
   | "pending"
-  | "paid"
   | "confirmed"
   | "cancelled"
-  | "completed";
+  | "completed"
+  | "expired"
+  | "no_show";
 
 export type StatusFilter = "all" | BookingStatus;
 
@@ -25,13 +26,6 @@ export type BookingUser = {
   phone: string | null;
 };
 
-export type Payment = {
-  id: string;
-  amount: string | number;
-  slipUrl: string | null;
-  status: string;
-} | null;
-
 export type Booking = {
   id: string;
   totalPrice: string | number;
@@ -40,7 +34,7 @@ export type Booking = {
   createdAt: string;
   user: BookingUser;
   items: BookingItem[];
-  payment: Payment;
+  payment: null;
 };
 
  export type BookingStatusMetaKey = keyof typeof bookingStatusMeta;

@@ -1,11 +1,12 @@
 import { prisma } from "@/src/lib/prisma";
+import { getAdminSessionId } from "@/src/lib/session";
+import { normalizeBookingStatus } from "@/src/lib/bookingStatus";
 import type { Prisma } from "@prisma/client";
 import {
   createPaginationMeta,
   parsePageParam,
 } from "@/src/utils/pagination";
 import type { Metadata } from "next";
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { PrismaBookingStatus } from "../all-bookings/types/booking";
 import AdminBookingsTable from "./AdminBookingsTable";
@@ -28,17 +29,17 @@ type AdminBookingsPageProps = {
 export default async function AdminBookingsPage({
   searchParams,
 }: AdminBookingsPageProps) {
-  const cookieStore = await cookies();
-  const adminId = cookieStore.get("admin_session_id")?.value;
+  const adminId = await getAdminSessionId();
   const resolvedSearchParams = await searchParams;
   const searchQuery =
     resolvedSearchParams.q?.trim() || "";
   const statusFilter =
     resolvedSearchParams.status === "pending" ||
-    resolvedSearchParams.status === "paid" ||
     resolvedSearchParams.status === "confirmed" ||
     resolvedSearchParams.status === "cancelled" ||
-    resolvedSearchParams.status === "completed"
+    resolvedSearchParams.status === "completed" ||
+    resolvedSearchParams.status === "expired" ||
+    resolvedSearchParams.status === "no_show"
       ? resolvedSearchParams.status
       : "all";
   const bookingStatusFilter =
@@ -125,18 +126,16 @@ export default async function AdminBookingsPage({
     total,
     allCount,
     pendingCount,
-    paidCount,
     confirmedCount,
     cancelledCount,
     completedCount,
+    expiredCount,
+    noShowCount,
   ] = await Promise.all([
     prisma.booking.count({ where }),
     prisma.booking.count({ where: baseWhere }),
     prisma.booking.count({
       where: { ...baseWhere, status: "pending" },
-    }),
-    prisma.booking.count({
-      where: { ...baseWhere, status: "paid" },
     }),
     prisma.booking.count({
       where: {
@@ -154,6 +153,18 @@ export default async function AdminBookingsPage({
       where: {
         ...baseWhere,
         status: "completed",
+      },
+    }),
+    prisma.booking.count({
+      where: {
+        ...baseWhere,
+        status: "expired",
+      },
+    }),
+    prisma.booking.count({
+      where: {
+        ...baseWhere,
+        status: "no_show",
       },
     }),
   ]);
@@ -197,7 +208,7 @@ export default async function AdminBookingsPage({
   const serializedBookings = bookings.map((booking) => ({
     id: booking.id,
     totalPrice: booking.totalPrice.toString(),
-    status: booking.status,
+    status: normalizeBookingStatus(booking.status),
     notes: booking.notes,
     createdAt: booking.createdAt.toISOString(),
     user: {
@@ -216,14 +227,7 @@ export default async function AdminBookingsPage({
         name: item.court.name,
       },
     })),
-    payment: booking.payment
-      ? {
-        id: booking.payment.id,
-        amount: booking.payment.amount.toString(),
-        slipUrl: booking.payment.slipUrl,
-        status: booking.payment.status,
-      }
-      : null,
+    payment: null,
   }));
 
   return (
@@ -237,10 +241,11 @@ export default async function AdminBookingsPage({
         statusCounts={{
           all: allCount,
           pending: pendingCount,
-          paid: paidCount,
           confirmed: confirmedCount,
           cancelled: cancelledCount,
           completed: completedCount,
+          expired: expiredCount,
+          no_show: noShowCount,
         }}
       />
     </div>

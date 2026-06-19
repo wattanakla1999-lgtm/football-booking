@@ -4,7 +4,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Football Booking — จองสนามฟุตบอลออนไลน์",
   description:
-    "ระบบจองสนามฟุตบอลออนไลน์ เลือกสนาม เลือกเวลา ชำระเงินง่าย รับการแจ้งเตือนผ่าน LINE",
+    "ระบบจองสนามฟุตบอลออนไลน์ เลือกสนาม เลือกเวลา ส่งคำขอจอง และรับการแจ้งเตือนผ่าน LINE",
   keywords: ["football booking", "จองสนามฟุตบอล", "futsal", "สนามฟุตบอล"],
 };
 

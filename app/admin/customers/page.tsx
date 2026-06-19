@@ -171,7 +171,6 @@ export default async function AdminCustomersPage({
         organizationId: admin.organizationId,
         status: {
           in: [
-            "paid",
             "confirmed",
             "completed",
           ],
@@ -215,7 +214,6 @@ export default async function AdminCustomersPage({
     const activeBookings = user.bookings.filter(
       (booking) =>
         booking.status === "pending" ||
-        booking.status === "paid" ||
         booking.status === "confirmed",
     ).length;
 
@@ -229,7 +227,6 @@ export default async function AdminCustomersPage({
 
     const totalSpent = user.bookings.reduce(
       (sum: number, booking) =>
-        booking.status === "paid" ||
         booking.status === "confirmed" ||
         booking.status === "completed"
           ? sum + Number(booking.totalPrice)

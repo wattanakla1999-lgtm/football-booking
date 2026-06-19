@@ -1,6 +1,6 @@
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
+import { getUserSessionId } from "@/src/lib/session";
 import BookingHistoryList from "./BookingHistoryList";
 import {
   getHistoryBookingPageByUserId,
@@ -21,8 +21,7 @@ type HistoryPageProps = {
 export default async function HistoryPage({
   searchParams,
 }: HistoryPageProps) {
-  const cookieStore = await cookies();
-  const sessionUserId = cookieStore.get("session_user_id")?.value;
+  const sessionUserId = await getUserSessionId();
   const resolvedSearchParams =
     await searchParams;
 

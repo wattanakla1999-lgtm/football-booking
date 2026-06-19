@@ -65,13 +65,6 @@ export function getStatusColor(
                 text: "#f59e0b",
             };
 
-        case "paid":
-            return {
-                bg: "rgba(59, 130, 246, 0.08)",
-                border: "rgba(59, 130, 246, 0.25)",
-                text: "#60a5fa",
-            };
-
         case "confirmed":
             return {
                 bg: "rgba(59, 130, 246, 0.08)",
@@ -84,6 +77,20 @@ export function getStatusColor(
                 bg: "rgba(255, 255, 255, 0.03)",
                 border: "rgba(255, 255, 255, 0.1)",
                 text: "rgba(255, 255, 255, 0.4)",
+            };
+
+        case "expired":
+            return {
+                bg: "rgba(249, 115, 22, 0.08)",
+                border: "rgba(249, 115, 22, 0.25)",
+                text: "#fb923c",
+            };
+
+        case "no_show":
+            return {
+                bg: "rgba(168, 85, 247, 0.08)",
+                border: "rgba(168, 85, 247, 0.25)",
+                text: "#c084fc",
             };
 
         default:
@@ -100,16 +107,19 @@ export function getStatusLabel(
 ): string {
     switch (status) {
         case "pending":
-            return "รอดำเนินการ";
-
-        case "paid":
-            return "รอตรวจสอบสลิป";
+            return "รอแอดมินยืนยัน";
 
         case "confirmed":
             return "ยืนยันแล้ว";
 
         case "completed":
             return "เสร็จสิ้น";
+
+        case "expired":
+            return "หมดเวลารอ";
+
+        case "no_show":
+            return "ลูกค้าไม่มา";
 
         case "cancelled":
             return "ยกเลิก";

@@ -1,7 +1,7 @@
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { prisma } from "@/src/lib/prisma";
+import { getUserSessionId } from "@/src/lib/session";
 import DashboardQuickActions from "./DashboardQuickActions";
 
 export const metadata: Metadata = {
@@ -10,8 +10,7 @@ export const metadata: Metadata = {
 };
 
 export default async function DashboardPage() {
-  const cookieStore = await cookies();
-  const sessionUserId = cookieStore.get("session_user_id")?.value;
+  const sessionUserId = await getUserSessionId();
 
   if (!sessionUserId) {
     redirect("/");

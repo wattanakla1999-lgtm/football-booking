@@ -136,7 +136,7 @@ export default function AvailabilityViewer({
                   ดูสนามว่าง
                 </h1>
                 <p className="mt-1 text-xs font-bold tracking-[0.14em] text-slate-300">
-                  คุณ{userName} ตรวจสอบสนามที่ว่าง
+                  คุณ{userName} เช็กสนามว่างและเลือกเวลาจอง
                 </p>
               </div>
 
@@ -159,7 +159,7 @@ export default function AvailabilityViewer({
                 </p>
               </div>
               <div className="rounded-full bg-green-400/10 px-3 py-1 text-xs font-black text-green-300">
-                ดูอย่างเดียว
+                จองได้ทันที
               </div>
             </div>
 

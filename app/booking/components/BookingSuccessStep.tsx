@@ -37,12 +37,12 @@ export function BookingSuccessStep({
             </div>
 
             <h2 className="mt-5 w-full text-2xl font-extrabold leading-tight text-white">
-              จองสนามสำเร็จแล้ว
+              ส่งคำขอจองแล้ว
             </h2>
 
             <p className="mt-3 w-full text-sm leading-7 text-white/65">
-              ระบบบันทึกรายการจองของคุณเรียบร้อยแล้ว
-              สามารถดูรายการทั้งหมดหรือเปิดดูรายการที่เพิ่งจองได้ทันที
+              ระบบได้รับคำขอจองของคุณแล้ว
+              ตอนนี้รายการจะอยู่ในสถานะรอแอดมินยืนยัน และคุณสามารถเปิดดูรายละเอียดหรือประวัติการจองได้ทันที
             </p>
           </div>
         </div>
@@ -97,10 +97,10 @@ export function BookingSuccessStep({
           <div className="rounded-2xl border border-green-500/15 bg-green-500/[0.07] p-4">
             <div className="flex items-center justify-between gap-3">
               <span className="text-sm font-bold text-white/70">
-                ยอดรวมทั้งหมด
+                สถานะล่าสุด
               </span>
               <span className="text-2xl font-extrabold text-green-400">
-                ฿{formatPrice(totalPrice)}
+                รอแอดมินยืนยัน
               </span>
             </div>
           </div>

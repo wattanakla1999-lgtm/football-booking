@@ -1,6 +1,6 @@
 import { prisma } from "@/src/lib/prisma";
+import { getUserSessionId } from "@/src/lib/session";
 import type { Metadata } from "next";
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import BookingWizard from "./BookingWizard";
 import { getBookingCourtsByOrganizationId } from "./bookingData";
@@ -21,8 +21,7 @@ type BookingPageProps = {
 export default async function BookingPage({
   searchParams,
 }: BookingPageProps) {
-  const cookieStore = await cookies();
-  const sessionUserId = cookieStore.get("session_user_id")?.value;
+  const sessionUserId = await getUserSessionId();
   const resolvedSearchParams = await searchParams;
 
   if (!sessionUserId) {

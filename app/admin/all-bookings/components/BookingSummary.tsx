@@ -12,13 +12,8 @@ const SUMMARY_ITEMS: Array<{
 }> = [
         {
             status: "pending",
-            label: "รอดำเนินการ",
+            label: "รอแอดมินยืนยัน",
             icon: "pending_actions",
-        },
-        {
-            status: "paid",
-            label: "ชำระเงินแล้ว",
-            icon: "payments",
         },
         {
             status: "confirmed",
@@ -34,6 +29,16 @@ const SUMMARY_ITEMS: Array<{
             status: "cancelled",
             label: "ยกเลิกแล้ว",
             icon: "cancel",
+        },
+        {
+            status: "expired",
+            label: "หมดเวลารอ",
+            icon: "timer_off",
+        },
+        {
+            status: "no_show",
+            label: "ลูกค้าไม่มา",
+            icon: "person_off",
         },
     ];
 

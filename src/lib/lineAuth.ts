@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { prisma } from "@/src/lib/prisma";
+import { setUserSessionCookie } from "@/src/lib/session";
 import type { LineProfile } from "@/src/types/line";
 
 export async function fetchLineProfileFromAccessToken(
@@ -58,11 +59,5 @@ export function setLineSessionCookie(
   response: NextResponse,
   userId: string
 ) {
-  response.cookies.set("session_user_id", userId, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: 60 * 60 * 24 * 7,
-    path: "/",
-  });
+  setUserSessionCookie(response, userId);
 }

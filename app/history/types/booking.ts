@@ -19,10 +19,11 @@ export type Payment = {
 
 export type BookingStatus =
   | "pending"
-  | "paid"
   | "confirmed"
   | "cancelled"
-  | "completed";
+  | "completed"
+  | "expired"
+  | "no_show";
 
 export type Booking = {
   id: string;
@@ -30,7 +31,6 @@ export type Booking = {
   status: BookingStatus;
   createdAt: string;
   items: BookingItem[];
-  payment: Payment;
 };
 
 export type StatusFilter = "all" | BookingStatus;

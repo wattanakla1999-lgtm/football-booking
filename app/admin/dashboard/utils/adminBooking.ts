@@ -7,7 +7,6 @@ import type {
 } from "../types/adminBooking";
 
 const REVENUE_STATUSES = new Set([
-  "paid",
   "confirmed",
   "completed",
 ]);
@@ -42,8 +41,7 @@ export function calculateBookingStatistics(
   return bookings.reduce<BookingStatistics>(
     (statistics, booking) => {
       if (
-        booking.status === "pending" ||
-        booking.status === "paid"
+        booking.status === "pending"
       ) {
         statistics.pendingCount += 1;
       }

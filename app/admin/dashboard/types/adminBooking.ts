@@ -1,9 +1,10 @@
 export type BookingStatus =
   | "pending"
-  | "paid"
   | "confirmed"
   | "cancelled"
-  | "completed";
+  | "completed"
+  | "expired"
+  | "no_show";
 
 export type BookingItem = {
   id: string;

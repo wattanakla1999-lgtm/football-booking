@@ -18,10 +18,11 @@ export type HistoryBooking = {
   totalPrice: string;
   status:
     | "pending"
-    | "paid"
     | "confirmed"
     | "cancelled"
-    | "completed";
+    | "completed"
+    | "expired"
+    | "no_show";
   createdAt: string;
   items: Array<{
     id: string;
@@ -34,10 +35,6 @@ export type HistoryBooking = {
       surface: string | null;
     };
   }>;
-  payment: {
-    id: string;
-    status: string;
-  } | null;
 };
 
 export type HistoryBookingQuery = {
@@ -147,10 +144,6 @@ function mapHistoryBookings(
         surface: string | null;
       };
     }>;
-    payment: {
-      id: string;
-      status: string;
-    } | null;
   }>,
 ): HistoryBooking[] {
   return bookings.map((booking) => ({
@@ -169,12 +162,6 @@ function mapHistoryBookings(
         surface: item.court.surface,
       },
     })),
-    payment: booking.payment
-      ? {
-          id: booking.payment.id,
-          status: booking.payment.status,
-        }
-      : null,
   }));
 }
 
@@ -238,12 +225,6 @@ export async function getHistoryBookingPageByUserId(
           },
         },
         orderBy: [{ date: "asc" }, { startTime: "asc" }],
-      },
-      payment: {
-        select: {
-          id: true,
-          status: true,
-        },
       },
     },
     orderBy: {

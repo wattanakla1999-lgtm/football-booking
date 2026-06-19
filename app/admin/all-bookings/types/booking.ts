@@ -1,20 +1,22 @@
 
 export type BookingStatus =
     | "pending"
-    | "paid"
     | "confirmed"
     | "completed"
-    | "cancelled";
+    | "cancelled"
+    | "expired"
+    | "no_show";
 
 export type StatusFilter = "all" | BookingStatus;
 
 
 export type PrismaBookingStatus =
   | "pending"
-  | "paid"
   | "confirmed"
   | "completed"
-  | "cancelled";
+  | "cancelled"
+  | "expired"
+  | "no_show";
 
 
 
@@ -45,4 +47,3 @@ export interface Booking {
     user: BookingUser;
     items: BookingItem[];
 }
-

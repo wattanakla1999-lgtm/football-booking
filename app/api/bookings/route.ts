@@ -1,9 +1,24 @@
-import { prisma } from "@/src/lib/prisma";
-import { parseApiDate } from "@/app/booking/utils/booking";
-import { sendAdminBookingNotification } from "@/src/services/lineNotificationService";
 import { Prisma } from "@prisma/client";
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+
+import { parseApiDate } from "@/app/booking/utils/booking";
+import {
+  badRequest,
+  conflict,
+  internalError,
+  notFound,
+  unauthorized,
+} from "@/src/lib/apiResponse";
+import {
+  findConflictingBookingItems,
+  lockBookingSlots,
+} from "@/src/lib/bookingAvailability";
+import { prisma } from "@/src/lib/prisma";
+import { getUserSessionId } from "@/src/lib/session";
+import {
+  sendAdminBookingNotification,
+  sendCustomerBookingRequestedNotification,
+} from "@/src/services/lineNotificationService";
 
 type BookingSlotPayload = {
   startTime: string;
@@ -15,16 +30,16 @@ type CreateBookingBody = {
   date?: string;
   slots?: BookingSlotPayload[];
   phone?: string;
-  paymentMethod?: string;
 };
+
+const SLOT_CONFLICT_ERROR = "BOOKING_SLOT_CONFLICT";
 
 export async function POST(request: Request) {
   try {
-    const cookieStore = await cookies();
-    const sessionUserId = cookieStore.get("session_user_id")?.value;
+    const sessionUserId = await getUserSessionId();
 
     if (!sessionUserId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return unauthorized();
     }
 
     const body =
@@ -32,79 +47,95 @@ export async function POST(request: Request) {
     const { courtId, date, slots } = body;
 
     if (!courtId || !date || !slots || slots.length === 0) {
-      return NextResponse.json({ error: "Invalid booking data" }, { status: 400 });
+      return badRequest("ข้อมูลการจองไม่ครบถ้วน");
     }
 
     const targetDate = parseApiDate(date);
-
-    // 0. Reject slots that are already in the past (server-side guard)
     const now = new Date();
-    const [y, mo, d] = String(date).split("-").map(Number);
+    const [y, mo, d] = date.split("-").map(Number);
+
     for (const slot of slots) {
-      const [h, mi] = String(slot.startTime).split(":").map(Number);
-      const slotDateTime = new Date(y, mo - 1, d, h, mi || 0, 0, 0);
+      const [h, mi] = slot.startTime.split(":").map(Number);
+      const slotDateTime = new Date(
+        y,
+        mo - 1,
+        d,
+        h,
+        mi || 0,
+        0,
+        0,
+      );
+
       if (slotDateTime.getTime() <= now.getTime()) {
-        return NextResponse.json(
-          { error: `ไม่สามารถจองเวลาที่ผ่านไปแล้วได้ (${slot.startTime})` },
-          { status: 400 }
+        return badRequest(
+          `ไม่สามารถจองเวลาที่ผ่านไปแล้วได้ (${slot.startTime})`,
         );
       }
     }
 
-    // 1. Get user
     const user = await prisma.user.findUnique({
       where: { id: sessionUserId },
       select: {
         organizationId: true,
         displayName: true,
         phone: true,
-      }
+        lineUserId: true,
+      },
     });
 
     if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      return notFound("ไม่พบข้อมูลผู้ใช้งาน");
     }
 
-    // 2. Fetch court to verify price
     const court = await prisma.court.findUnique({
       where: { id: courtId },
     });
 
     if (!court || court.organizationId !== user.organizationId) {
-      return NextResponse.json({ error: "Court not found or invalid" }, { status: 404 });
+      return notFound("ไม่พบสนามที่เลือก");
     }
 
-    // 2.5 Check holiday
+    if (!court.isActive) {
+      return badRequest("สนามนี้ปิดให้บริการชั่วคราว");
+    }
+
     const holiday = await prisma.holiday.findUnique({
       where: {
         organizationId_date: {
           organizationId: user.organizationId,
           date: targetDate,
-        }
-      }
+        },
+      },
     });
 
     if (holiday?.isClosed) {
-      return NextResponse.json({ error: holiday.description || "Closed for holiday" }, { status: 400 });
+      return badRequest(
+        holiday.description || "สนามปิดให้บริการในวันหยุดนี้",
+      );
     }
 
-    // 2.6 Check operating hours
     const dayOfWeek = targetDate.getDay();
     const operatingHour = await prisma.operatingHour.findUnique({
       where: {
         organizationId_dayOfWeek: {
           organizationId: user.organizationId,
           dayOfWeek,
-        }
-      }
+        },
+      },
     });
 
     if (!operatingHour || operatingHour.isClosed) {
-      return NextResponse.json({ error: "Closed on this day" }, { status: 400 });
+      return badRequest("สนามปิดให้บริการในวันนี้");
     }
 
-    const openHour = parseInt(operatingHour.openTime.split(":")[0]);
-    let closeHour = parseInt(operatingHour.closeTime.split(":")[0]);
+    const openHour = Number.parseInt(
+      operatingHour.openTime.split(":")[0] ?? "0",
+      10,
+    );
+    let closeHour = Number.parseInt(
+      operatingHour.closeTime.split(":")[0] ?? "0",
+      10,
+    );
 
     if (closeHour === 0 && openHour === 0) {
       closeHour = 24;
@@ -113,121 +144,131 @@ export async function POST(request: Request) {
     }
 
     for (const slot of slots) {
-      let slotStart = parseInt(slot.startTime.split(":")[0]);
-      let slotEnd = parseInt(slot.endTime.split(":")[0]);
-      
+      let slotStart = Number.parseInt(
+        slot.startTime.split(":")[0] ?? "0",
+        10,
+      );
+      let slotEnd = Number.parseInt(
+        slot.endTime.split(":")[0] ?? "0",
+        10,
+      );
+
       if (slotStart < openHour) {
         slotStart += 24;
       }
+
       if (slotEnd <= slotStart) {
         slotEnd += 24;
       }
 
       if (slotStart < openHour || slotEnd > closeHour) {
-        return NextResponse.json(
-          { error: `เวลา ${slot.startTime} - ${slot.endTime} อยู่นอกเวลาเปิดทำการ` },
-          { status: 400 }
+        return badRequest(
+          `เวลา ${slot.startTime} - ${slot.endTime} อยู่นอกเวลาเปิดทำการ`,
         );
       }
     }
 
-    // 3. Double-check availability (prevent race conditions)
-    // Find any existing bookings that overlap with requested slots
-    const existingItems = await prisma.bookingItem.findMany({
-      where: {
-        courtId,
-        date: targetDate,
-        booking: { status: { not: "cancelled" } },
-      }
-    });
+    const phone = body.phone?.trim() || null;
+    const totalPrice = slots.length * Number(court.pricePerHour);
 
-    for (const slot of slots) {
-      const slotStart = parseInt(slot.startTime.split(":")[0]);
-      const slotEnd = parseInt(slot.endTime.split(":")[0]);
+    const booking = await prisma.$transaction(
+      async (tx: Prisma.TransactionClient) => {
+        await lockBookingSlots(tx, courtId, date, slots);
 
-      const isConflict = existingItems.some((item) => {
-        const itemStart = parseInt(item.startTime.split(":")[0]);
-        const itemEnd = parseInt(item.endTime.split(":")[0]);
-        return slotStart < itemEnd && slotEnd > itemStart;
-      });
+        const conflictingItems =
+          await findConflictingBookingItems(
+            tx,
+            courtId,
+            targetDate,
+            slots,
+          );
 
-      if (isConflict) {
-        return NextResponse.json(
-          { error: `Slot ${slot.startTime} - ${slot.endTime} is no longer available` },
-          { status: 409 }
-        );
-      }
-    }
+        if (conflictingItems.length > 0) {
+          throw new Error(SLOT_CONFLICT_ERROR);
+        }
 
-    const { phone, paymentMethod } = body;
+        if (phone) {
+          await tx.user.update({
+            where: { id: sessionUserId },
+            data: { phone },
+          });
+        }
 
-    // 4. Calculate total price (using court's current pricePerHour)
-    const pricePerHour = Number(court.pricePerHour);
-    const totalPrice = slots.length * pricePerHour;
-
-    // 5. Create Booking, update User details, and create Payment in a transaction
-    const booking = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-      // Update phone number in user profile if provided
-      if (phone) {
-        await tx.user.update({
-          where: { id: sessionUserId },
-          data: { phone },
+        return tx.booking.create({
+          data: {
+            userId: sessionUserId,
+            organizationId: user.organizationId,
+            totalPrice,
+            status: "pending",
+            notes: "ลูกค้าส่งคำขอจองผ่านหน้าเว็บไซต์",
+            items: {
+              create: slots.map((slot) => ({
+                courtId,
+                date: targetDate,
+                startTime: slot.startTime,
+                endTime: slot.endTime,
+                price: court.pricePerHour,
+              })),
+            },
+          },
         });
-      }
-
-      const newBooking = await tx.booking.create({
-        data: {
-          userId: sessionUserId,
-          organizationId: user.organizationId,
-          totalPrice,
-          status: "pending",
-          notes: paymentMethod ? `วิธีการชำระเงิน: ${paymentMethod}` : null,
-          items: {
-            create: slots.map((slot: BookingSlotPayload) => ({
-              courtId,
-              date: targetDate,
-              startTime: slot.startTime,
-              endTime: slot.endTime,
-              price: pricePerHour,
-            }))
-          }
-        }
-      });
-
-      // Create linked payment record as unpaid initially
-      await tx.payment.create({
-        data: {
-          amount: totalPrice,
-          status: "unpaid",
-          bookingId: newBooking.id,
-        }
-      });
-
-      return newBooking;
-    });
+      },
+      {
+        isolationLevel:
+          Prisma.TransactionIsolationLevel.Serializable,
+      },
+    );
 
     try {
       await sendAdminBookingNotification({
         bookingId: booking.id,
         customerName: user.displayName,
-        customerPhone: phone?.trim() || user.phone || null,
+        customerPhone: phone || user.phone || null,
         courtName: court.name,
         bookingDate: date,
         slots,
         totalPrice,
         bookingStatus: "pending",
-        paymentStatus: "unpaid",
       });
     } catch (notificationError) {
       console.error(
         "Failed to send LINE admin booking notification:",
-        notificationError
+        notificationError,
       );
     }
 
-    return NextResponse.json({ success: true, bookingId: booking.id });
+    try {
+      await sendCustomerBookingRequestedNotification({
+        lineUserId: user.lineUserId,
+        bookingId: booking.id,
+        courtName: court.name,
+        bookingDate: date,
+        slots,
+      });
+    } catch (notificationError) {
+      console.error(
+        "Failed to send LINE customer booking requested notification:",
+        notificationError,
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      bookingId: booking.id,
+      bookingStatus: booking.status,
+      message: "ส่งคำขอจองแล้ว รอแอดมินยืนยัน",
+    });
   } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message === SLOT_CONFLICT_ERROR
+    ) {
+      return conflict(
+        "ช่วงเวลานี้ถูกจองไปแล้ว กรุณาเลือกเวลาใหม่",
+      );
+    }
+
     console.error("Error creating booking:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return internalError();
   }
 }

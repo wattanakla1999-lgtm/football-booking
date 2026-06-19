@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { LineAutoLogin } from "@/src/components/auth/LineAutoLogin";
+import { getUserSessionId } from "@/src/lib/session";
 
 export const metadata: Metadata = {
   title: "เข้าสู่ระบบ — Football Booking",
@@ -19,8 +19,7 @@ type LoginPageProps = {
 export default async function LoginPage({
   searchParams,
 }: LoginPageProps) {
-  const cookieStore = await cookies();
-  const sessionUserId = cookieStore.get("session_user_id")?.value;
+  const sessionUserId = await getUserSessionId();
 
   if (sessionUserId) {
     redirect("/dashboard");
@@ -78,8 +77,8 @@ export default async function LoginPage({
             <span>เลือกสนาม &amp; เวลาได้ตามใจ</span>
           </li>
           <li className="feature-item">
-            <span className="feature-icon" aria-hidden="true">💳</span>
-            <span>ชำระเงินออนไลน์ สะดวก รวดเร็ว</span>
+            <span className="feature-icon" aria-hidden="true">📩</span>
+            <span>ส่งคำขอจอง แล้วรอแอดมินยืนยัน</span>
           </li>
           <li className="feature-item">
             <span className="feature-icon" aria-hidden="true">🔔</span>

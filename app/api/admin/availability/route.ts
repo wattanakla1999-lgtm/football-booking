@@ -1,15 +1,20 @@
 import { prisma } from "@/src/lib/prisma";
 import { parseApiDate } from "@/app/booking/utils/booking";
-import { cookies } from "next/headers";
+import {
+  badRequest,
+  internalError,
+  unauthorized,
+} from "@/src/lib/apiResponse";
+import { ACTIVE_BOOKING_STATUSES } from "@/src/lib/bookingStatus";
+import { getAdminSessionId } from "@/src/lib/session";
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
   try {
-    const cookieStore = await cookies();
-    const adminId = cookieStore.get("admin_session_id")?.value;
+    const adminId = await getAdminSessionId();
 
     if (!adminId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return unauthorized("กรุณาเข้าสู่ระบบผู้ดูแล");
     }
 
     const admin = await prisma.admin.findUnique({
@@ -18,19 +23,19 @@ export async function GET(request: Request) {
     });
 
     if (!admin || !admin.isActive) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return unauthorized("กรุณาเข้าสู่ระบบผู้ดูแล");
     }
 
     const { searchParams } = new URL(request.url);
     const dateParam = searchParams.get("date");
 
     if (!dateParam) {
-      return NextResponse.json({ error: "Missing date" }, { status: 400 });
+      return badRequest("กรุณาระบุวันที่");
     }
 
     const targetDate = parseApiDate(dateParam);
     if (isNaN(targetDate.getTime())) {
-      return NextResponse.json({ error: "Invalid date" }, { status: 400 });
+      return badRequest("รูปแบบวันที่ไม่ถูกต้อง");
     }
 
     const dayOfWeek = targetDate.getDay();
@@ -77,7 +82,7 @@ export async function GET(request: Request) {
       where: {
         date: targetDate,
         courtId: { in: courts.map((court) => court.id) },
-        booking: { status: { not: "cancelled" } },
+        booking: { status: { in: ACTIVE_BOOKING_STATUSES } },
       },
       include: {
         booking: {
@@ -145,6 +150,6 @@ export async function GET(request: Request) {
     return NextResponse.json({ courts: courtsWithSlots });
   } catch (error) {
     console.error("Error fetching admin availability:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return internalError();
   }
 }

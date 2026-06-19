@@ -29,19 +29,21 @@ function parseDateValue(dateValue: string) {
 
 export const STATUS_OPTIONS: StatusOption[] = [
   { value: "all", label: "ทั้งหมด" },
-  { value: "pending", label: "รอดำเนินการ" },
-  { value: "paid", label: "รอตรวจสอบ" },
+  { value: "pending", label: "รอแอดมินยืนยัน" },
   { value: "confirmed", label: "ยืนยันแล้ว" },
   { value: "completed", label: "เสร็จสิ้น" },
+  { value: "expired", label: "หมดเวลารอ" },
+  { value: "no_show", label: "ลูกค้าไม่มา" },
   { value: "cancelled", label: "ยกเลิก" },
 ];
 
 export const EMPTY_STATUS_SUMMARY: BookingStatusSummary = {
   all: 0,
   pending: 0,
-  paid: 0,
   confirmed: 0,
   completed: 0,
+  expired: 0,
+  no_show: 0,
   cancelled: 0,
 };
 
@@ -95,30 +97,4 @@ export function formatCreatedAt(dateValue: string) {
 
 export function shortBookingId(bookingId: string) {
   return bookingId.slice(-8).toUpperCase();
-}
-
-export function getPaymentLabel(booking: Booking) {
-  if (!booking.payment) {
-    return "ยังไม่มีข้อมูลการชำระเงิน";
-  }
-
-  switch (booking.payment.status.toLowerCase()) {
-    case "unpaid":
-      return "ยังไม่ชำระเงิน";
-    case "pending":
-    case "pending_verify":
-      return "กำลังรอตรวจสอบการชำระเงิน";
-    case "paid":
-    case "verified":
-    case "success":
-    case "completed":
-      return "ชำระเงินแล้ว";
-    case "rejected":
-    case "failed":
-      return "การชำระเงินไม่สำเร็จ";
-    case "cancelled":
-      return "ยกเลิกการชำระเงิน";
-    default:
-      return booking.payment.status;
-  }
 }

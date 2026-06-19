@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { clearUserSessionCookie } from "@/src/lib/session";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // GET /api/auth/logout
@@ -12,10 +13,7 @@ export async function GET(
     new URL("/", request.url)
   );
 
-  response.cookies.set("session_user_id", "", {
-    maxAge: 0,
-    path: "/",
-  });
+  clearUserSessionCookie(response);
 
   return response;
 }

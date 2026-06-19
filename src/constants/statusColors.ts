@@ -14,8 +14,8 @@ export const bookingStatusMeta: Record<
   }
 > = {
   pending: {
-    label: "รอดำเนินการ",
-    shortLabel: "รอชำระ",
+    label: "รอแอดมินยืนยัน",
+    shortLabel: "รอยืนยัน",
     icon: "schedule",
     dotColor: "#f59e0b",
     bgColor: "rgba(245,158,11,0.08)",
@@ -25,29 +25,17 @@ export const bookingStatusMeta: Record<
     softClassName:
       "border-yellow-500/20 bg-yellow-500/10 text-yellow-400",
   },
-  paid: {
-    label: "รอตรวจสอบสลิป",
-    shortLabel: "รอตรวจสอบ",
-    icon: "payments",
+  confirmed: {
+    label: "ยืนยันแล้ว",
+    shortLabel: "ยืนยันแล้ว",
+    icon: "verified",
     dotColor: "#3b82f6",
     bgColor: "rgba(59,130,246,0.08)",
     textColor: "#60a5fa",
     borderClassName:
       "border-blue-500/30 bg-blue-500/15 text-blue-400",
     softClassName:
-      "border-blue-500/20 bg-blue-500/10 text-blue-400",
-  },
-  confirmed: {
-    label: "ยืนยันแล้ว",
-    shortLabel: "ยืนยันแล้ว",
-    icon: "verified",
-    dotColor: "#10b981",
-    bgColor: "rgba(16,185,129,0.08)",
-    textColor: "#34d399",
-    borderClassName:
-      "border-green-500/30 bg-green-500/15 text-green-400",
-    softClassName:
-      "border-primary/20 bg-primary/10 text-primary",
+      "border-blue-500/20 bg-blue-500/10 text-blue-300",
   },
   completed: {
     label: "เสร็จสิ้น",
@@ -71,6 +59,30 @@ export const bookingStatusMeta: Record<
       "border-red-500/30 bg-red-500/15 text-red-400",
     softClassName: "border-error/20 bg-error/10 text-error",
   },
+  expired: {
+    label: "หมดเวลารอ",
+    shortLabel: "หมดเวลา",
+    icon: "timer_off",
+    dotColor: "#f97316",
+    bgColor: "rgba(249,115,22,0.08)",
+    textColor: "#fb923c",
+    borderClassName:
+      "border-orange-500/30 bg-orange-500/15 text-orange-300",
+    softClassName:
+      "border-orange-500/20 bg-orange-500/10 text-orange-300",
+  },
+  no_show: {
+    label: "ลูกค้าไม่มา",
+    shortLabel: "ไม่มา",
+    icon: "person_off",
+    dotColor: "#a855f7",
+    bgColor: "rgba(168,85,247,0.08)",
+    textColor: "#c084fc",
+    borderClassName:
+      "border-violet-500/30 bg-violet-500/15 text-violet-300",
+    softClassName:
+      "border-violet-500/20 bg-violet-500/10 text-violet-300",
+  },
 };
 
 export const feedbackColors = {
@@ -93,28 +105,5 @@ export const feedbackColors = {
     text: "#60a5fa",
     background: "rgba(59, 130, 246, 0.08)",
     border: "rgba(59, 130, 246, 0.15)",
-  },
-} as const;
-
-export const paymentStatusMeta = {
-  unpaid: {
-    label: "ยังไม่ชำระ",
-    className:
-      "border-yellow-500/20 bg-yellow-500/10 text-yellow-300",
-  },
-  pending_verify: {
-    label: "รอตรวจสอบ",
-    className:
-      "border-blue-500/20 bg-blue-500/10 text-blue-300",
-  },
-  verified: {
-    label: "ตรวจสอบแล้ว",
-    className:
-      "border-green-500/20 bg-green-500/10 text-green-300",
-  },
-  rejected: {
-    label: "ปฏิเสธ",
-    className:
-      "border-red-500/20 bg-red-500/10 text-red-300",
   },
 } as const;

@@ -27,8 +27,7 @@ export default function ActionMenu({
                 จัดการการจอง
             </p>
 
-            {(booking.status === "pending" ||
-                booking.status === "paid") && (
+            {booking.status === "pending" && (
                     <MenuButton
                         icon="check_circle"
                         label="ยืนยันการจอง"
@@ -43,17 +42,30 @@ export default function ActionMenu({
                 )}
 
             {booking.status === "confirmed" && (
-                <MenuButton
-                    icon="task_alt"
-                    label="ทำเครื่องหมายว่าเสร็จสิ้น"
-                    className="text-primary"
-                    onClick={() =>
-                        onUpdateStatus(
-                            booking.id,
-                            "completed"
-                        )
-                    }
-                />
+                <>
+                    <MenuButton
+                        icon="task_alt"
+                        label="ทำเครื่องหมายว่าเสร็จสิ้น"
+                        className="text-primary"
+                        onClick={() =>
+                            onUpdateStatus(
+                                booking.id,
+                                "completed"
+                            )
+                        }
+                    />
+                    <MenuButton
+                        icon="person_off"
+                        label="ลูกค้าไม่มา"
+                        className="text-violet-300"
+                        onClick={() =>
+                            onUpdateStatus(
+                                booking.id,
+                                "no_show"
+                            )
+                        }
+                    />
+                </>
             )}
 
             {booking.status !== "cancelled" &&

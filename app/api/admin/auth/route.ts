@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import bcrypt from "bcryptjs";
-import { cookies } from "next/headers";
+import { badRequest, forbidden, internalError, unauthorized } from "@/src/lib/apiResponse";
+import { setAdminSessionCookie } from "@/src/lib/session";
 
 export async function POST(request: Request) {
   try {
@@ -9,7 +10,7 @@ export async function POST(request: Request) {
     const { email, password } = body;
 
     if (!email || !password) {
-      return NextResponse.json({ error: "กรุณากรอกอีเมลและรหัสผ่าน" }, { status: 400 });
+      return badRequest("กรุณากรอกอีเมลและรหัสผ่าน");
     }
 
     // 1. Find admin by email
@@ -18,30 +19,20 @@ export async function POST(request: Request) {
     });
 
     if (!admin) {
-      return NextResponse.json({ error: "อีเมลหรือรหัสผ่านไม่ถูกต้อง" }, { status: 401 });
+      return unauthorized("อีเมลหรือรหัสผ่านไม่ถูกต้อง");
     }
 
     if (!admin.isActive) {
-      return NextResponse.json({ error: "บัญชีถูกระงับ กรุณาติดต่อผู้ดูแลระบบ" }, { status: 403 });
+      return forbidden("บัญชีถูกระงับ กรุณาติดต่อผู้ดูแลระบบ");
     }
 
     // 2. Compare password
     const isValid = await bcrypt.compare(password, admin.passwordHash);
     if (!isValid) {
-      return NextResponse.json({ error: "อีเมลหรือรหัสผ่านไม่ถูกต้อง" }, { status: 401 });
+      return unauthorized("อีเมลหรือรหัสผ่านไม่ถูกต้อง");
     }
 
-    // 3. Set admin session cookie
-    const cookieStore = await cookies();
-    cookieStore.set("admin_session_id", admin.id, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 1, // 1 day
-      path: "/",
-    });
-
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       admin: {
         id: admin.id,
@@ -50,8 +41,12 @@ export async function POST(request: Request) {
         role: admin.role,
       },
     });
+
+    setAdminSessionCookie(response, admin.id);
+
+    return response;
   } catch (error) {
     console.error("Admin auth error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return internalError();
   }
 }

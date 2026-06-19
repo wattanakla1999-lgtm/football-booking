@@ -1,21 +1,17 @@
 export type BookingStatus =
     | "pending"
-    | "paid"
     | "confirmed"
     | "completed"
     | "cancelled"
+    | "expired"
+    | "no_show"
     | null;
 
 export type ManualBookingStatus =
     | "pending"
     | "confirmed"
-    | "cancelled"
-    | "completed";
-
-export type ManualPaymentStatus =
-    | "unpaid"
-    | "pending_verify"
-    | "verified";
+    | "completed"
+    | "no_show";
 
 export type CustomerMode =
     | "existing"

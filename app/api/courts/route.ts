@@ -1,14 +1,18 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
-import { cookies } from "next/headers";
+import {
+  internalError,
+  notFound,
+  unauthorized,
+} from "@/src/lib/apiResponse";
+import { getUserSessionId } from "@/src/lib/session";
 
 export async function GET() {
   try {
-    const cookieStore = await cookies();
-    const sessionUserId = cookieStore.get("session_user_id")?.value;
+    const sessionUserId = await getUserSessionId();
 
     if (!sessionUserId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return unauthorized();
     }
 
     // Find the user's organization to scope the courts (for SaaS multi-tenant)
@@ -18,7 +22,7 @@ export async function GET() {
     });
 
     if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      return notFound("ไม่พบข้อมูลผู้ใช้งาน");
     }
 
     const courts = await prisma.court.findMany({
@@ -40,6 +44,6 @@ export async function GET() {
     return NextResponse.json({ courts });
   } catch (error) {
     console.error("Error fetching courts:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return internalError();
   }
 }

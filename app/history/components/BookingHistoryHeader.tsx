@@ -36,7 +36,7 @@ export function BookingHistoryHeader({
           </h1>
 
           <p className="mt-1 text-sm text-white/50">
-            ตรวจสอบรายการจอง ช่วงเวลา และสถานะการชำระเงิน
+            ตรวจสอบรายการจอง ช่วงเวลา และสถานะล่าสุดของการจอง
           </p>
         </div>
 

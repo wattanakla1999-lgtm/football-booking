@@ -3,7 +3,6 @@ import {
   formatCreatedAt,
   formatDate,
   formatPrice,
-  getPaymentLabel,
   shortBookingId,
 } from "../utils/booking";
 import { BookingTimeRow } from "./BookingTimeRow";
@@ -131,27 +130,7 @@ export function BookingCard({
           </div>
         </div>
 
-        <div className="flex items-end justify-between gap-4">
-          <div className="min-w-0">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-white/35">
-              สถานะการชำระเงิน
-            </p>
-
-            <div className="mt-1 flex items-center gap-1.5">
-              <span
-                className={`h-2 w-2 shrink-0 rounded-full ${
-                  booking.payment
-                    ? "bg-green-400"
-                    : "bg-yellow-400"
-                }`}
-              />
-
-              <span className="truncate text-xs text-white/60">
-                {getPaymentLabel(booking)}
-              </span>
-            </div>
-          </div>
-
+        <div className="flex items-end justify-end gap-4">
           <div className="shrink-0 text-right">
             <p className="text-[10px] font-bold uppercase tracking-wider text-white/35">
               ยอดรวม
@@ -180,7 +159,6 @@ export function BookingCard({
 
         <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
           {(booking.status === "pending" ||
-            booking.status === "paid" ||
             booking.status === "confirmed") && (
             <button
               type="button"

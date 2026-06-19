@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/src/lib/prisma";
+import { getUserSessionId } from "@/src/lib/session";
 import { getBookingCourtsByOrganizationId } from "../booking/bookingData";
 import AvailabilityViewer from "./AvailabilityViewer";
 
@@ -11,8 +11,7 @@ export const metadata: Metadata = {
 };
 
 export default async function AvailabilityPage() {
-  const cookieStore = await cookies();
-  const sessionUserId = cookieStore.get("session_user_id")?.value;
+  const sessionUserId = await getUserSessionId();
 
   if (!sessionUserId) {
     redirect("/");

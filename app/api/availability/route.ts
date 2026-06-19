@@ -1,15 +1,22 @@
-import { prisma } from "@/src/lib/prisma";
-import { parseApiDate } from "@/app/booking/utils/booking";
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+
+import { parseApiDate } from "@/app/booking/utils/booking";
+import {
+  badRequest,
+  internalError,
+  notFound,
+  unauthorized,
+} from "@/src/lib/apiResponse";
+import { ACTIVE_BOOKING_STATUSES } from "@/src/lib/bookingStatus";
+import { prisma } from "@/src/lib/prisma";
+import { getUserSessionId } from "@/src/lib/session";
 
 export async function GET(request: Request) {
   try {
-    const cookieStore = await cookies();
-    const sessionUserId = cookieStore.get("session_user_id")?.value;
+    const sessionUserId = await getUserSessionId();
 
     if (!sessionUserId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return unauthorized();
     }
 
     const { searchParams } = new URL(request.url);
@@ -17,108 +24,121 @@ export async function GET(request: Request) {
     const courtId = searchParams.get("courtId");
 
     if (!dateParam || !courtId) {
-      return NextResponse.json({ error: "Missing date or courtId" }, { status: 400 });
+      return badRequest("กรุณาระบุวันที่และสนาม");
     }
 
     const targetDate = parseApiDate(dateParam);
-    if (isNaN(targetDate.getTime())) {
-      return NextResponse.json({ error: "Invalid date format" }, { status: 400 });
+
+    if (Number.isNaN(targetDate.getTime())) {
+      return badRequest("รูปแบบวันที่ไม่ถูกต้อง");
     }
 
-    // 1. Get user and organization
     const user = await prisma.user.findUnique({
       where: { id: sessionUserId },
-      select: { organizationId: true }
+      select: { organizationId: true },
     });
 
-    if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
+    if (!user) {
+      return notFound("ไม่พบข้อมูลผู้ใช้งาน");
+    }
 
-    // 2. Check if it's a holiday
+    const court = await prisma.court.findFirst({
+      where: {
+        id: courtId,
+        organizationId: user.organizationId,
+      },
+      select: {
+        id: true,
+        isActive: true,
+      },
+    });
+
+    if (!court) {
+      return notFound("ไม่พบสนามที่เลือก");
+    }
+
+    if (!court.isActive) {
+      return NextResponse.json({
+        slots: [],
+        message: "สนามนี้ปิดให้บริการชั่วคราว",
+      });
+    }
+
     const holiday = await prisma.holiday.findUnique({
       where: {
         organizationId_date: {
           organizationId: user.organizationId,
           date: targetDate,
-        }
-      }
+        },
+      },
     });
 
     if (holiday?.isClosed) {
-      return NextResponse.json({ slots: [], message: holiday.description || "Closed for holiday" });
+      return NextResponse.json({
+        slots: [],
+        message:
+          holiday.description || "สนามปิดให้บริการในวันหยุดนี้",
+      });
     }
 
-    // 3. Get operating hours for the day of the week
-    const dayOfWeek = targetDate.getDay(); // 0 = Sunday
+    const dayOfWeek = targetDate.getDay();
     const operatingHour = await prisma.operatingHour.findUnique({
       where: {
         organizationId_dayOfWeek: {
           organizationId: user.organizationId,
           dayOfWeek,
-        }
-      }
+        },
+      },
     });
 
     if (!operatingHour || operatingHour.isClosed) {
-      return NextResponse.json({ slots: [], message: "Closed on this day" });
+      return NextResponse.json({
+        slots: [],
+        message: "สนามปิดให้บริการในวันนี้",
+      });
     }
 
-    // 4. Fetch existing bookings for this court and date
-    // Ignore cancelled bookings
     const existingBookingItems = await prisma.bookingItem.findMany({
       where: {
         courtId,
         date: targetDate,
         booking: {
           status: {
-            not: "cancelled"
-          }
-        }
-      }
+            in: ACTIVE_BOOKING_STATUSES,
+          },
+        },
+      },
+      select: {
+        startTime: true,
+        endTime: true,
+      },
     });
 
-    // 5. Generate 1-hour slots
     const slots = [];
-    let currentHour = parseInt(operatingHour.openTime.split(":")[0]);
-    let closeHour = parseInt(operatingHour.closeTime.split(":")[0]);
+    let currentHour = Number.parseInt(
+      operatingHour.openTime.split(":")[0] ?? "0",
+      10,
+    );
+    let closeHour = Number.parseInt(
+      operatingHour.closeTime.split(":")[0] ?? "0",
+      10,
+    );
 
-    // Handle closing at midnight or crossing midnight
     if (closeHour === 0 && currentHour === 0) {
-      closeHour = 24; // 24 hours open
+      closeHour = 24;
     } else if (closeHour <= currentHour) {
       closeHour += 24;
     }
 
-    // For simplicity, we assume round hours (e.g., 08:00, 09:00).
     while (currentHour < closeHour) {
       const displayStartH = currentHour % 24;
       const displayEndH = (currentHour + 1) % 24;
-
       const startTime = `${displayStartH.toString().padStart(2, "0")}:00`;
       const endTime = `${displayEndH.toString().padStart(2, "0")}:00`;
 
-      // Check if this slot overlaps with any existing booking item
-      // An existing item is booked if its startTime is exactly this slot's startTime
-      const isBooked = existingBookingItems.some((item) => {
-        const itemStart = parseInt(item.startTime.split(":")[0]);
-        let itemEnd = parseInt(item.endTime.split(":")[0]);
-
-        // Adjust item times for crossing midnight
-        if (itemEnd === 0 && itemStart === 0) itemEnd = 24;
-        else if (itemEnd <= itemStart) itemEnd += 24;
-
-        // Compare using the adjusted absolute hours
-        const slotStartHour = displayStartH;
-        let slotEndHour = displayEndH;
-        
-        // Adjust slot times to match item time frame logic
-        if (slotEndHour === 0 && slotStartHour === 0) slotEndHour = 24;
-        else if (slotEndHour <= slotStartHour) slotEndHour += 24;
-
-        // If the item itself crosses midnight but the slot doesn't yet, we need to map the slot into the same 24h space.
-        // The simplest robust way for 1-hour slots is just matching the exact start string, 
-        // because we strictly enforce 1-hour slots aligned to the hour.
-        return item.startTime === startTime;
-      });
+      const isBooked = existingBookingItems.some(
+        (item) => item.startTime === startTime,
+      );
 
       slots.push({
         startTime,
@@ -126,12 +146,12 @@ export async function GET(request: Request) {
         isAvailable: !isBooked,
       });
 
-      currentHour++;
+      currentHour += 1;
     }
 
-    return NextResponse.json({ slots });
+    return NextResponse.json({ slots, message: null });
   } catch (error) {
     console.error("Error checking availability:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return internalError();
   }
 }

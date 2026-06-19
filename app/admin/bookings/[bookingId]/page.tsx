@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { bookingStatusMeta } from "@/src/constants/statusColors";
 import { prisma } from "@/src/lib/prisma";
+import { getAdminSessionId } from "@/src/lib/session";
 import BookingDetailNavigationActions from "./BookingDetailNavigationActions";
 
 type AdminBookingDetailPageProps = {
@@ -11,29 +11,6 @@ type AdminBookingDetailPageProps = {
     bookingId: string;
   }>;
 };
-
-const paymentStatusMeta = {
-  unpaid: {
-    label: "ยังไม่ชำระ",
-    className:
-      "border-yellow-500/20 bg-yellow-500/10 text-yellow-300",
-  },
-  pending_verify: {
-    label: "รอตรวจสอบ",
-    className:
-      "border-blue-500/20 bg-blue-500/10 text-blue-300",
-  },
-  verified: {
-    label: "ตรวจสอบแล้ว",
-    className:
-      "border-green-500/20 bg-green-500/10 text-green-300",
-  },
-  rejected: {
-    label: "ปฏิเสธ",
-    className:
-      "border-red-500/20 bg-red-500/10 text-red-300",
-  },
-} as const;
 
 export const metadata: Metadata = {
   title: "รายละเอียดการจอง — Admin",
@@ -44,8 +21,7 @@ export default async function AdminBookingDetailPage({
   params,
 }: AdminBookingDetailPageProps) {
   const { bookingId } = await params;
-  const cookieStore = await cookies();
-  const adminId = cookieStore.get("admin_session_id")?.value;
+  const adminId = await getAdminSessionId();
 
   if (!adminId) {
     redirect("/admin/login");
@@ -92,14 +68,6 @@ export default async function AdminBookingDetailPage({
           { startTime: "asc" },
         ],
       },
-      payment: {
-        select: {
-          amount: true,
-          status: true,
-          createdAt: true,
-          verifiedAt: true,
-        },
-      },
     },
   });
 
@@ -111,16 +79,6 @@ export default async function AdminBookingDetailPage({
 
 const bookingStatus =
   bookingStatusMeta[booking.status as BookingStatusMetaKey];
-
-
-type PaymentStatusMetaKey = keyof typeof paymentStatusMeta;
-
-const paymentStatusKey = booking.payment
-  ?.status as PaymentStatusMetaKey | undefined;
-
-const paymentStatus = paymentStatusKey
-  ? paymentStatusMeta[paymentStatusKey] ?? paymentStatusMeta.unpaid
-  : paymentStatusMeta.unpaid;
 
   return (
     <div className="space-y-6">
@@ -149,10 +107,6 @@ const paymentStatus = paymentStatusKey
             <StatusPill
               className={bookingStatus.softClassName}
               label={bookingStatus.label}
-            />
-            <StatusPill
-              className={paymentStatus.className}
-              label={`การชำระเงิน: ${paymentStatus.label}`}
             />
           </div>
         </div>
@@ -237,10 +191,10 @@ const paymentStatus = paymentStatusKey
           <section className="glass-card rounded-3xl p-5 sm:p-6">
             <div className="mb-4 flex items-center gap-2">
               <span className="material-symbols-outlined text-primary">
-                payments
+                info
               </span>
               <h2 className="text-title-md font-bold text-on-surface">
-                สรุปการชำระเงิน
+                สรุปรายการจอง
               </h2>
             </div>
 
@@ -250,21 +204,13 @@ const paymentStatus = paymentStatusKey
                 value={formatCurrency(Number(booking.totalPrice))}
               />
               <DetailRow
-                label="สถานะชำระเงิน"
-                value={paymentStatus.label}
+                label="สถานะการจอง"
+                value={bookingStatus.label}
               />
               <DetailRow
                 label="สร้างรายการ"
                 value={formatDateTime(booking.createdAt)}
               />
-              {booking.payment?.verifiedAt && (
-                <DetailRow
-                  label="ยืนยันการชำระ"
-                  value={formatDateTime(
-                    booking.payment.verifiedAt,
-                  )}
-                />
-              )}
               {booking.notes && (
                 <div className="rounded-2xl border border-outline-variant/10 bg-surface-container-low p-4">
                   <div className="text-xs font-semibold uppercase tracking-[0.14em] text-on-surface-variant">

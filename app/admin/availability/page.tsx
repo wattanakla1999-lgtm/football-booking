@@ -1,7 +1,7 @@
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { prisma } from "@/src/lib/prisma";
+import { getAdminSessionId } from "@/src/lib/session";
 import AdminAvailabilityView from "./AdminAvailabilityView";
 import { getAdminAvailabilityData } from "./adminAvailabilityData";
 
@@ -11,8 +11,7 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminAvailabilityPage() {
-  const cookieStore = await cookies();
-  const adminId = cookieStore.get("admin_session_id")?.value;
+  const adminId = await getAdminSessionId();
 
   if (!adminId) {
     redirect("/admin/login");

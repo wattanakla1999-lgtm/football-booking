@@ -10,11 +10,7 @@ export const statusOptions: Array<{
         },
         {
             value: "pending",
-            label: "รอดำเนินการ",
-        },
-        {
-            value: "paid",
-            label: "รอตรวจสอบสลิป",
+            label: "รอแอดมินยืนยัน",
         },
         {
             value: "confirmed",
@@ -27,5 +23,13 @@ export const statusOptions: Array<{
         {
             value: "cancelled",
             label: "ยกเลิกแล้ว",
+        },
+        {
+            value: "expired",
+            label: "หมดเวลารอ",
+        },
+        {
+            value: "no_show",
+            label: "ลูกค้าไม่มา",
         },
     ];
