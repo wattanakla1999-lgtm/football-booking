@@ -42,6 +42,9 @@ export default function BookingWizard({
     initialCourts.find(
       (court) => court.id === initialSelection.courtId,
     ) ?? null;
+  const hasInitialSlotSelection =
+    Boolean(initialCourt) &&
+    initialSelection.slotStartTimes.length > 0;
   const initialDate = initialSelection.date
     ? new Date(`${initialSelection.date}T00:00:00`)
     : new Date();
@@ -116,6 +119,11 @@ export default function BookingWizard({
     slots,
     step,
   ]);
+
+  const isHydratingInitialSelection =
+    hasInitialSlotSelection &&
+    step === 2 &&
+    !hasAppliedInitialSelection;
 
   const totalPrice = selectedCourt
     ? selectedSlots.length * Number(selectedCourt.pricePerHour)
@@ -228,7 +236,9 @@ export default function BookingWizard({
           />
         )}
 
-        {step === 2 && selectedCourt && (
+        {step === 2 &&
+          selectedCourt &&
+          !isHydratingInitialSelection && (
           <DateTimeSelectionStep
             court={selectedCourt}
             dates={dates}
@@ -302,7 +312,11 @@ export default function BookingWizard({
       </div>
 
       <AdminRouteLoadingOverlay
-        open={isSubmitting || isRouteLoading}
+        open={
+          isSubmitting ||
+          isRouteLoading ||
+          isHydratingInitialSelection
+        }
       />
     </>
   );
