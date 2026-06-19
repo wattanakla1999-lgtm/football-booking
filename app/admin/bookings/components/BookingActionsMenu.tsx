@@ -71,7 +71,7 @@ export default function BookingActionsMenu({
             🔎 ดูรายละเอียด
           </button>
 
-          {booking.status !== "confirmed" && (
+          {booking.status === "pending" && (
             <button
               type="button"
               onClick={() => onUpdateStatus(booking.id, "confirmed")}
@@ -82,7 +82,7 @@ export default function BookingActionsMenu({
             </button>
           )}
 
-          {booking.status !== "completed" && booking.status !== "cancelled" && (
+          {booking.status === "confirmed" && (
             <button
               type="button"
               onClick={() => onUpdateStatus(booking.id, "completed")}
@@ -93,7 +93,18 @@ export default function BookingActionsMenu({
             </button>
           )}
 
-          {booking.status !== "cancelled" && (
+          {booking.status === "confirmed" && (
+            <button
+              type="button"
+              onClick={() => onUpdateStatus(booking.id, "no_show")}
+              disabled={updating}
+              style={menuBtnStyle("#c084fc")}
+            >
+              🙍 ลูกค้าไม่มา
+            </button>
+          )}
+
+          {booking.status !== "cancelled" && booking.status !== "completed" && (
             <button
               type="button"
               onClick={() => onUpdateStatus(booking.id, "cancelled")}

@@ -44,8 +44,6 @@ export default function AvailabilityViewer({
 
   useEffect(() => {
     if (!selectedCourt) {
-      setSlots([]);
-      setSelectedSlotStartTimes([]);
       return;
     }
 
@@ -70,9 +68,17 @@ export default function AvailabilityViewer({
     void loadSlots();
   }, [selectedCourt, selectedDate]);
 
-  useEffect(() => {
+  const handleSelectCourt = (court: Court) => {
+    setSelectedCourt(court);
     setSelectedSlotStartTimes([]);
-  }, [selectedCourt?.id, selectedDate]);
+    setSlots([]);
+  };
+
+  const handleSelectDate = (date: Date) => {
+    setSelectedDate(date);
+    setSelectedSlotStartTimes([]);
+    setSlots([]);
+  };
 
   const toggleSlot = (slot: TimeSlot) => {
     const isPast = isPastTimeSlot(selectedDate, slot);
@@ -187,7 +193,7 @@ export default function AvailabilityViewer({
                   >
                     <CourtCard
                       court={court}
-                      onSelect={setSelectedCourt}
+                      onSelect={handleSelectCourt}
                     />
                   </div>
                 ))}
@@ -217,7 +223,7 @@ export default function AvailabilityViewer({
               <DatePicker
                 dates={dates}
                 selectedDate={selectedDate}
-                onSelectDate={setSelectedDate}
+                onSelectDate={handleSelectDate}
               />
 
               <div className="mb-4 mt-2 flex items-center justify-between">

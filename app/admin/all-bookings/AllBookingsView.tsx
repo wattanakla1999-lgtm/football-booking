@@ -15,6 +15,7 @@ import {
 import { countActiveFilters } from "../../../utils/bookingStatus";
 import { AdminRouteLoadingOverlay } from "@/src/components/common/AdminRouteLoadingOverlay";
 import { PaginationControls } from "@/src/components/common/PaginationControls";
+import { FeedbackMessage } from "@/src/components/ui/Feedback";
 import type { PaginationMeta } from "@/src/types/pagination";
 import { updateAdminBookingStatus } from "@/src/services/adminBookings";
 import BookingCardsGrid from "./components/BookingCardsGrid";
@@ -76,6 +77,25 @@ export default function AllBookingsView({
     useState(false);
   const [searchKeyword, setSearchKeyword] =
     useState(initialFilters.searchKeyword);
+  const [actionMessage, setActionMessage] =
+    useState("");
+
+  const getConfirmMessage = (status: BookingStatus) => {
+    switch (status) {
+      case "confirmed":
+        return "ยืนยันการจองรายการนี้ใช่หรือไม่?";
+      case "cancelled":
+        return "ยกเลิกรายการจองนี้ใช่หรือไม่?";
+      case "completed":
+        return "ทำเครื่องหมายว่ารายการนี้เสร็จสิ้นแล้วใช่หรือไม่?";
+      case "no_show":
+        return "ยืนยันว่าลูกค้าไม่มาหน้างานใช่หรือไม่?";
+      case "expired":
+        return "ทำเครื่องหมายว่าคำขอนี้หมดเวลารอใช่หรือไม่?";
+      default:
+        return "ยืนยันการเปลี่ยนสถานะรายการนี้ใช่หรือไม่?";
+    }
+  };
 
   const pushQuery = useCallback(
     ({
@@ -212,20 +232,28 @@ export default function AllBookingsView({
     status: BookingStatus,
   ) => {
     if (updatingId) return;
+    if (!window.confirm(getConfirmMessage(status))) return;
 
     try {
       setUpdatingId(bookingId);
       setActiveActionMenuId(null);
+      setActionMessage("");
 
       await updateAdminBookingStatus(
         bookingId,
         status,
       );
+      setActionMessage("อัปเดตสถานะรายการจองเรียบร้อยแล้ว");
       router.refresh();
     } catch (error) {
       console.error(
         "Unable to update booking status:",
         error,
+      );
+      setActionMessage(
+        error instanceof Error
+          ? error.message
+          : "ไม่สามารถอัปเดตสถานะรายการจองได้",
       );
     } finally {
       setUpdatingId(null);
@@ -261,6 +289,12 @@ export default function AllBookingsView({
           detailLoadingId !== null
         }
       />
+
+      <FeedbackMessage
+        variant={actionMessage.includes("เรียบร้อย") ? "success" : "error"}
+      >
+        {actionMessage}
+      </FeedbackMessage>
 
       <BookingPageHeader
         title={title}

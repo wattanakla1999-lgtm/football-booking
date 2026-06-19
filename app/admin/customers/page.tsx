@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import type { Prisma } from "@prisma/client";
 
 import { prisma } from "@/src/lib/prisma";
+import { getAdminSessionId } from "@/src/lib/session";
 
 import type { PaginationMeta } from "@/src/types/pagination";
 import {
@@ -30,8 +30,7 @@ type AdminCustomersPageProps = {
 export default async function AdminCustomersPage({
   searchParams,
 }: AdminCustomersPageProps) {
-  const cookieStore = await cookies();
-  const adminId = cookieStore.get("admin_session_id")?.value;
+  const adminId = await getAdminSessionId();
   const resolvedSearchParams = await searchParams;
   const searchQuery =
     resolvedSearchParams.q?.trim() || "";

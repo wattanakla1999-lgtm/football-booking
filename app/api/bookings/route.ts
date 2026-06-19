@@ -11,10 +11,13 @@ import {
 } from "@/src/lib/apiResponse";
 import {
   findConflictingBookingItems,
+  isBookingSlotConflictError,
   lockBookingSlots,
+  SLOT_CONFLICT_ERROR,
 } from "@/src/lib/bookingAvailability";
 import { prisma } from "@/src/lib/prisma";
 import { getUserSessionId } from "@/src/lib/session";
+import { auditLog } from "@/src/lib/audit";
 import {
   sendAdminBookingNotification,
   sendCustomerBookingRequestedNotification,
@@ -32,15 +35,22 @@ type CreateBookingBody = {
   phone?: string;
 };
 
-const SLOT_CONFLICT_ERROR = "BOOKING_SLOT_CONFLICT";
-
 export async function POST(request: Request) {
+  let sessionUserId: string | null = null;
   try {
-    const sessionUserId = await getUserSessionId();
+    sessionUserId = await getUserSessionId();
 
     if (!sessionUserId) {
+      auditLog({
+        event: "auth.user.failed",
+        level: "warn",
+        actorType: "user",
+        message: "missing user session for booking create",
+      });
       return unauthorized();
     }
+
+    const userId = sessionUserId;
 
     const body =
       (await request.json()) as CreateBookingBody;
@@ -74,7 +84,7 @@ export async function POST(request: Request) {
     }
 
     const user = await prisma.user.findUnique({
-      where: { id: sessionUserId },
+      where: { id: userId },
       select: {
         organizationId: true,
         displayName: true,
@@ -184,19 +194,32 @@ export async function POST(request: Request) {
           );
 
         if (conflictingItems.length > 0) {
+          auditLog({
+            event: "booking.conflict",
+            level: "warn",
+            actorType: "user",
+            actorId: userId,
+            organizationId: user.organizationId,
+            message: "slot already reserved",
+            meta: {
+              courtId,
+              date,
+              slots,
+            },
+          });
           throw new Error(SLOT_CONFLICT_ERROR);
         }
 
         if (phone) {
           await tx.user.update({
-            where: { id: sessionUserId },
+            where: { id: userId },
             data: { phone },
           });
         }
 
         return tx.booking.create({
           data: {
-            userId: sessionUserId,
+            userId,
             organizationId: user.organizationId,
             totalPrice,
             status: "pending",
@@ -237,6 +260,20 @@ export async function POST(request: Request) {
       );
     }
 
+    auditLog({
+      event: "booking.create",
+      actorType: "user",
+      actorId: userId,
+      bookingId: booking.id,
+      organizationId: user.organizationId,
+      meta: {
+        courtId,
+        date,
+        slotCount: slots.length,
+        status: booking.status,
+      },
+    });
+
     try {
       await sendCustomerBookingRequestedNotification({
         lineUserId: user.lineUserId,
@@ -259,16 +296,20 @@ export async function POST(request: Request) {
       message: "ส่งคำขอจองแล้ว รอแอดมินยืนยัน",
     });
   } catch (error) {
-    if (
-      error instanceof Error &&
-      error.message === SLOT_CONFLICT_ERROR
-    ) {
+    if (isBookingSlotConflictError(error)) {
       return conflict(
         "ช่วงเวลานี้ถูกจองไปแล้ว กรุณาเลือกเวลาใหม่",
       );
     }
 
     console.error("Error creating booking:", error);
+    auditLog({
+      event: "booking.create.failed",
+      level: "error",
+      actorType: "user",
+      actorId: sessionUserId ?? null,
+      message: error instanceof Error ? error.message : "unknown error",
+    });
     return internalError();
   }
 }

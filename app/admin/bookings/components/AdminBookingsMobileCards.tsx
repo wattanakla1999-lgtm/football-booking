@@ -182,7 +182,7 @@ export default function AdminBookingsMobileCards({
                     🔎 ดูรายละเอียด
                   </button>
 
-                  {booking.status !== "confirmed" && (
+                  {booking.status === "pending" && (
                     <button
                       type="button"
                       onClick={() => onUpdateStatus(booking.id, "confirmed")}
@@ -193,7 +193,7 @@ export default function AdminBookingsMobileCards({
                     </button>
                   )}
 
-                  {booking.status !== "completed" && booking.status !== "cancelled" && (
+                  {booking.status === "confirmed" && (
                     <button
                       type="button"
                       onClick={() => onUpdateStatus(booking.id, "completed")}
@@ -204,7 +204,18 @@ export default function AdminBookingsMobileCards({
                     </button>
                   )}
 
-                  {booking.status !== "cancelled" && (
+                  {booking.status === "confirmed" && (
+                    <button
+                      type="button"
+                      onClick={() => onUpdateStatus(booking.id, "no_show")}
+                      disabled={updating}
+                      style={mobileActionStyle("rgba(168,85,247,0.1)", "#c084fc")}
+                    >
+                      🙍 ลูกค้าไม่มา
+                    </button>
+                  )}
+
+                  {booking.status !== "cancelled" && booking.status !== "completed" && (
                     <button
                       type="button"
                       onClick={() => onUpdateStatus(booking.id, "cancelled")}

@@ -1,4 +1,6 @@
 import { prisma } from "@/src/lib/prisma";
+import { sanitizeBookingNotes } from "@/src/lib/bookingNotes";
+import { ACTIVE_BOOKING_STATUSES } from "@/src/lib/bookingStatus";
 import type { CourtAvailability } from "./types/availability";
 
 export type AdminAvailabilityData = {
@@ -57,7 +59,11 @@ export async function getAdminAvailabilityData(params: {
     where: {
       date: targetDate,
       courtId: { in: courts.map((court) => court.id) },
-      booking: { status: { not: "cancelled" } },
+      booking: {
+        status: {
+          in: ACTIVE_BOOKING_STATUSES,
+        },
+      },
     },
     include: {
       booking: {
@@ -113,7 +119,9 @@ export async function getAdminAvailabilityData(params: {
         customerPhone: matchedItem?.booking?.user?.phone || null,
         bookingStatus: matchedItem?.booking?.status || null,
         bookingId: matchedItem?.booking?.id || null,
-        notes: matchedItem?.booking?.notes || null,
+        notes: sanitizeBookingNotes(
+          matchedItem?.booking?.notes,
+        ),
       });
     }
 

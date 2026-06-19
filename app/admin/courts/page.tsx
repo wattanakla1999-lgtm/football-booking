@@ -1,10 +1,10 @@
 import { prisma } from "@/src/lib/prisma";
+import { getAdminSessionId } from "@/src/lib/session";
 import {
   createPaginationMeta,
   parsePageParam,
 } from "@/src/utils/pagination";
 import type { Metadata } from "next";
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import CourtsListView from "./CourtsListView";
 
@@ -24,8 +24,7 @@ type AdminCourtsPageProps = {
 export default async function AdminCourtsPage({
   searchParams,
 }: AdminCourtsPageProps) {
-  const cookieStore = await cookies();
-  const adminId = cookieStore.get("admin_session_id")?.value;
+  const adminId = await getAdminSessionId();
   const resolvedSearchParams = await searchParams;
 
   if (!adminId) {

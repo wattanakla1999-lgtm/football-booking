@@ -1,6 +1,7 @@
 import { prisma } from "@/src/lib/prisma";
 import { getAdminSessionId } from "@/src/lib/session";
 import { normalizeBookingStatus } from "@/src/lib/bookingStatus";
+import { sanitizeBookingNotes } from "@/src/lib/bookingNotes";
 import type { Prisma } from "@prisma/client";
 import {
   createPaginationMeta,
@@ -196,7 +197,6 @@ export default async function AdminBookingsPage({
         },
         orderBy: { startTime: "asc" },
       },
-      payment: true,
     },
     orderBy: {
       createdAt: "desc",
@@ -209,7 +209,7 @@ export default async function AdminBookingsPage({
     id: booking.id,
     totalPrice: booking.totalPrice.toString(),
     status: normalizeBookingStatus(booking.status),
-    notes: booking.notes,
+    notes: sanitizeBookingNotes(booking.notes),
     createdAt: booking.createdAt.toISOString(),
     user: {
       displayName: booking.user.displayName,
@@ -226,8 +226,7 @@ export default async function AdminBookingsPage({
       court: {
         name: item.court.name,
       },
-    })),
-    payment: null,
+      })),
   }));
 
   return (

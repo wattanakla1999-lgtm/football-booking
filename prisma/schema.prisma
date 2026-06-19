@@ -15,10 +15,11 @@ datasource db {
 
 enum BookingStatus {
   pending
-  paid
   confirmed
-  cancelled
   completed
+  cancelled
+  expired
+  no_show
 }
 
 enum PaymentStatus {
@@ -243,6 +244,7 @@ model BookingItem {
   @@index([bookingId])
   @@index([courtId])
   @@index([date])
+  @@unique([courtId, date, startTime])
   @@map("booking_items")
 }
 

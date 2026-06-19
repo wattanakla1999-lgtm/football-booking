@@ -1,7 +1,7 @@
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { prisma } from "@/src/lib/prisma";
+import { getAdminSessionId } from "@/src/lib/session";
 import OperatingHoursView from "./OperatingHoursView";
 
 export const metadata: Metadata = {
@@ -10,8 +10,7 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminOperatingHoursPage() {
-  const cookieStore = await cookies();
-  const adminId = cookieStore.get("admin_session_id")?.value;
+  const adminId = await getAdminSessionId();
 
   if (!adminId) {
     redirect("/admin/login");

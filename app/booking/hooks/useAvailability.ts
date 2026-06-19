@@ -26,7 +26,9 @@ export function useAvailability({
 
   useEffect(() => {
     if (step !== 2 || !selectedCourt) {
-      setHasLoadedSlots(false);
+      queueMicrotask(() => {
+        setHasLoadedSlots(false);
+      });
       return;
     }
 
@@ -52,7 +54,9 @@ export function useAvailability({
       }
     };
 
-    void loadSlots();
+    queueMicrotask(() => {
+      void loadSlots();
+    });
   }, [step, selectedCourt, selectedDate, clearSelectedSlots]);
 
   return {

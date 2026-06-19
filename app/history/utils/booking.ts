@@ -1,5 +1,4 @@
 import type {
-  Booking,
   BookingStatusSummary,
   StatusOption,
 } from "../types/booking";

@@ -1,6 +1,7 @@
 "use client";
 
 import { AdminRouteLoadingOverlay } from "@/src/components/common/AdminRouteLoadingOverlay";
+import { ApiError } from "@/lib/apiClient";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { BookingSuccessStep } from "./components/BookingSuccessStep";
 import { BookingSummaryStep } from "./components/BookingSummaryStep";
@@ -105,12 +106,14 @@ export default function BookingWizard({
       ),
     );
 
-    if (nextSelectedSlots.length > 0) {
-      setSelectedSlots(nextSelectedSlots);
-      setStep(3);
-    }
+    queueMicrotask(() => {
+      if (nextSelectedSlots.length > 0) {
+        setSelectedSlots(nextSelectedSlots);
+        setStep(3);
+      }
 
-    setHasAppliedInitialSelection(true);
+      setHasAppliedInitialSelection(true);
+    });
   }, [
     hasAppliedInitialSelection,
     hasLoadedSlots,
@@ -206,6 +209,17 @@ export default function BookingWizard({
       setStep(4);
       setIsSubmitting(false);
     } catch (requestError) {
+      if (
+        requestError instanceof ApiError &&
+        requestError.status === 409
+      ) {
+        window.alert(
+          "ช่วงเวลานี้ถูกจองไปแล้ว กรุณาเลือกเวลาใหม่",
+        );
+        setSelectedSlots([]);
+        setStep(2);
+      }
+
       setError(
         requestError instanceof Error
           ? requestError.message
@@ -290,7 +304,6 @@ export default function BookingWizard({
                 (slot) =>
                   `${slot.startTime.slice(0, 5)}-${slot.endTime.slice(0, 5)}`,
               )}
-              totalPrice={totalPrice}
               isNavigating={isRouteLoading}
               onViewBookingDetail={() =>
                 navigateWithLoading(

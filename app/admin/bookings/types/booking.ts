@@ -34,7 +34,6 @@ export type Booking = {
   createdAt: string;
   user: BookingUser;
   items: BookingItem[];
-  payment: null;
 };
 
- export type BookingStatusMetaKey = keyof typeof bookingStatusMeta;
+export type BookingStatusMetaKey = keyof typeof bookingStatusMeta;

@@ -1,12 +1,19 @@
 import { prisma } from "@/src/lib/prisma";
 import { Prisma } from "@prisma/client";
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import { getAdminSessionId } from "@/src/lib/session";
+import {
+  badRequest,
+  conflict,
+  internalError,
+  notFound,
+  unauthorized,
+} from "@/src/lib/apiResponse";
+import { auditLog } from "@/src/lib/audit";
 
 // Helper: verify admin session
 async function getAdmin() {
-  const cookieStore = await cookies();
-  const adminId = cookieStore.get("admin_session_id")?.value;
+  const adminId = await getAdminSessionId();
   if (!adminId) return null;
 
   const admin = await prisma.admin.findUnique({
@@ -23,7 +30,8 @@ export async function GET() {
   try {
     const admin = await getAdmin();
     if (!admin) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      auditLog({ event: "auth.admin.failed", level: "warn", actorType: "admin", message: "courts GET unauthorized" });
+      return unauthorized("กรุณาเข้าสู่ระบบผู้ดูแล");
     }
 
     const courts = await prisma.court.findMany({
@@ -44,7 +52,7 @@ export async function GET() {
     return NextResponse.json({ courts });
   } catch (error) {
     console.error("Error fetching courts:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return internalError();
   }
 }
 
@@ -53,14 +61,15 @@ export async function POST(request: Request) {
   try {
     const admin = await getAdmin();
     if (!admin) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      auditLog({ event: "auth.admin.failed", level: "warn", actorType: "admin", message: "courts POST unauthorized" });
+      return unauthorized("กรุณาเข้าสู่ระบบผู้ดูแล");
     }
 
     const body = await request.json();
     const { name, description, surface, maxPlayers, pricePerHour, imageUrl } = body;
 
     if (!name || !pricePerHour) {
-      return NextResponse.json({ error: "กรุณาระบุชื่อสนามและราคาต่อชั่วโมง" }, { status: 400 });
+      return badRequest("กรุณาระบุชื่อสนามและราคาต่อชั่วโมง");
     }
 
     const court = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
@@ -93,7 +102,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, court });
   } catch (error) {
     console.error("Error creating court:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return internalError();
   }
 }
 
@@ -102,14 +111,14 @@ export async function PATCH(request: Request) {
   try {
     const admin = await getAdmin();
     if (!admin) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return unauthorized("กรุณาเข้าสู่ระบบผู้ดูแล");
     }
 
     const body = await request.json();
     const { courtId, name, description, surface, maxPlayers, pricePerHour, imageUrl, isActive } = body;
 
     if (!courtId || !name || !pricePerHour) {
-      return NextResponse.json({ error: "ข้อมูลไม่ครบถ้วน" }, { status: 400 });
+      return badRequest("ข้อมูลไม่ครบถ้วน");
     }
 
     // Verify ownership
@@ -121,7 +130,7 @@ export async function PATCH(request: Request) {
     });
 
     if (!existingCourt) {
-      return NextResponse.json({ error: "ไม่พบสนามบอลที่ระบุ" }, { status: 404 });
+      return notFound("ไม่พบสนามบอลที่ระบุ");
     }
 
     const court = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
@@ -161,7 +170,7 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ success: true, court });
   } catch (error) {
     console.error("Error updating court:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return internalError();
   }
 }
 
@@ -170,14 +179,14 @@ export async function DELETE(request: Request) {
   try {
     const admin = await getAdmin();
     if (!admin) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return unauthorized("กรุณาเข้าสู่ระบบผู้ดูแล");
     }
 
     const { searchParams } = new URL(request.url);
     const courtId = searchParams.get("courtId");
 
     if (!courtId) {
-      return NextResponse.json({ error: "Missing courtId" }, { status: 400 });
+      return badRequest("กรุณาระบุ courtId");
     }
 
     // Verify ownership
@@ -194,14 +203,13 @@ export async function DELETE(request: Request) {
     });
 
     if (!existingCourt) {
-      return NextResponse.json({ error: "ไม่พบสนามบอลที่ระบุ" }, { status: 404 });
+      return notFound("ไม่พบสนามบอลที่ระบุ");
     }
 
     // Check if it has any bookings
     if (existingCourt._count.bookings > 0) {
-      return NextResponse.json(
-        { error: "ไม่สามารถลบสนามนี้ได้เนื่องจากมีประวัติการจองอยู่แล้ว กรุณาปิดการใช้งานสนามแทนเพื่อความปลอดภัยของข้อมูล" },
-        { status: 409 }
+      return conflict(
+        "ไม่สามารถลบสนามนี้ได้เนื่องจากมีประวัติการจองอยู่แล้ว กรุณาปิดการใช้งานสนามแทนเพื่อความปลอดภัยของข้อมูล",
       );
     }
 
@@ -213,6 +221,6 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error deleting court:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return internalError();
   }
 }

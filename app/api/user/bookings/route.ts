@@ -20,6 +20,7 @@ import {
   sendAdminBookingCancelledNotification,
 } from "@/src/services/lineNotificationService";
 import { parsePageParam } from "@/src/utils/pagination";
+import { auditLog } from "@/src/lib/audit";
 
 const CUSTOMER_CANCEL_CUTOFF_HOURS = 2;
 
@@ -36,6 +37,12 @@ export async function GET(request: NextRequest) {
     const sessionUserId = await getUserSessionId();
 
     if (!sessionUserId) {
+      auditLog({
+        event: "auth.user.failed",
+        level: "warn",
+        actorType: "user",
+        message: "missing user session for bookings GET",
+      });
       return unauthorized();
     }
 
@@ -80,6 +87,12 @@ export async function PATCH(request: NextRequest) {
     const sessionUserId = await getUserSessionId();
 
     if (!sessionUserId) {
+      auditLog({
+        event: "auth.user.failed",
+        level: "warn",
+        actorType: "user",
+        message: "missing user session for bookings cancel",
+      });
       return unauthorized();
     }
 
@@ -165,6 +178,18 @@ export async function PATCH(request: NextRequest) {
       where: { id: booking.id },
       data: {
         status: "cancelled",
+      },
+    });
+
+    auditLog({
+      event: "booking.cancelled_by_customer",
+      actorType: "user",
+      actorId: sessionUserId,
+      bookingId: booking.id,
+      organizationId: booking.organizationId,
+      meta: {
+        from: currentStatus,
+        to: "cancelled",
       },
     });
 

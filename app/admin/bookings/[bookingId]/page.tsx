@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { bookingStatusMeta } from "@/src/constants/statusColors";
+import { sanitizeBookingNotes } from "@/src/lib/bookingNotes";
+import { normalizeBookingStatus } from "@/src/lib/bookingStatus";
 import { prisma } from "@/src/lib/prisma";
 import { getAdminSessionId } from "@/src/lib/session";
 import BookingDetailNavigationActions from "./BookingDetailNavigationActions";
@@ -77,8 +79,15 @@ export default async function AdminBookingDetailPage({
 
   type BookingStatusMetaKey = keyof typeof bookingStatusMeta;
 
-const bookingStatus =
-  bookingStatusMeta[booking.status as BookingStatusMetaKey];
+  const bookingStatus =
+    bookingStatusMeta[
+      normalizeBookingStatus(
+        booking.status,
+      ) as BookingStatusMetaKey
+    ];
+  const bookingNotes = sanitizeBookingNotes(
+    booking.notes,
+  );
 
   return (
     <div className="space-y-6">
@@ -211,13 +220,13 @@ const bookingStatus =
                 label="สร้างรายการ"
                 value={formatDateTime(booking.createdAt)}
               />
-              {booking.notes && (
+              {bookingNotes && (
                 <div className="rounded-2xl border border-outline-variant/10 bg-surface-container-low p-4">
                   <div className="text-xs font-semibold uppercase tracking-[0.14em] text-on-surface-variant">
                     หมายเหตุ
                   </div>
                   <p className="mt-2 text-sm leading-6 text-on-surface">
-                    {booking.notes}
+                    {bookingNotes}
                   </p>
                 </div>
               )}

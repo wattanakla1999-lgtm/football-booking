@@ -1,11 +1,8 @@
-import { formatPrice } from "../utils/booking";
-
 type BookingSuccessStepProps = {
   bookingId: string;
   courtName: string;
   bookingDateLabel: string;
   slotLabels: string[];
-  totalPrice: number;
   isNavigating?: boolean;
   onViewHistory: () => void;
   onViewBookingDetail: () => void;
@@ -20,7 +17,6 @@ export function BookingSuccessStep({
   courtName,
   bookingDateLabel,
   slotLabels,
-  totalPrice,
   isNavigating = false,
   onViewHistory,
   onViewBookingDetail,

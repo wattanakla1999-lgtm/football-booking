@@ -1,11 +1,11 @@
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 import { prisma } from "@/src/lib/prisma";
+import { getAdminSessionId } from "@/src/lib/session";
+import { internalError } from "@/src/lib/apiResponse";
 
 async function getAdminSession() {
-  const cookieStore = await cookies();
-  const adminId = cookieStore.get("admin_session_id")?.value;
+  const adminId = await getAdminSessionId();
 
   if (!adminId) {
     return null;
@@ -33,7 +33,7 @@ export async function GET(request: Request) {
 
     if (!admin) {
       return NextResponse.json(
-        { error: "Unauthorized" },
+        { error: "กรุณาเข้าสู่ระบบผู้ดูแล", code: "unauthorized" },
         { status: 401 },
       );
     }
@@ -86,10 +86,6 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     console.error("Error searching admin customers:", error);
-
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 },
-    );
+    return internalError();
   }
 }

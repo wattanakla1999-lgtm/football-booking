@@ -194,8 +194,8 @@ export default function BookingCard({
                     />
 
                     <CompactInfoBox
-                        icon="payments"
-                        label="จำนวนเงิน"
+                        icon="sell"
+                        label="ยอดจอง"
                         value={`฿${formatPrice(
                             booking.totalPrice
                         )}`}

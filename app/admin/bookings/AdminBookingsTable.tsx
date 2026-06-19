@@ -12,6 +12,7 @@ import {
 
 import { AdminRouteLoadingOverlay } from "@/src/components/common/AdminRouteLoadingOverlay";
 import { PaginationControls } from "@/src/components/common/PaginationControls";
+import { FeedbackMessage } from "@/src/components/ui/Feedback";
 import {
   updateAdminBookingStatus,
 } from "@/src/services/adminBookings";
@@ -59,6 +60,27 @@ export default function AdminBookingsTable({
   const [updating, setUpdating] = useState(false);
   const [detailLoadingId, setDetailLoadingId] =
     useState<string | null>(null);
+  const [actionMessage, setActionMessage] =
+    useState("");
+
+  const getConfirmMessage = (
+    status: BookingStatus,
+  ) => {
+    switch (status) {
+      case "confirmed":
+        return "ยืนยันการจองรายการนี้ใช่หรือไม่?";
+      case "cancelled":
+        return "ยกเลิกรายการจองนี้ใช่หรือไม่?";
+      case "completed":
+        return "ทำเครื่องหมายว่ารายการนี้เสร็จสิ้นแล้วใช่หรือไม่?";
+      case "no_show":
+        return "ยืนยันว่าลูกค้าไม่มาหน้างานใช่หรือไม่?";
+      case "expired":
+        return "ทำเครื่องหมายว่าคำขอนี้หมดเวลารอใช่หรือไม่?";
+      default:
+        return "ยืนยันการเปลี่ยนสถานะรายการนี้ใช่หรือไม่?";
+    }
+  };
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
@@ -140,16 +162,27 @@ export default function AdminBookingsTable({
     bookingId: string,
     status: BookingStatus,
   ) => {
+    if (!window.confirm(getConfirmMessage(status))) {
+      return;
+    }
+
     setUpdating(true);
+    setActionMessage("");
 
     try {
       await updateAdminBookingStatus(
         bookingId,
         status,
       );
+      setActionMessage("อัปเดตสถานะรายการจองเรียบร้อยแล้ว");
       router.refresh();
-    } catch {
-      console.error("Failed to update status");
+    } catch (error) {
+      console.error("Failed to update status", error);
+      setActionMessage(
+        error instanceof Error
+          ? error.message
+          : "ไม่สามารถอัปเดตสถานะรายการจองได้",
+      );
     } finally {
       setUpdating(false);
       setActionMenuId(null);
@@ -180,6 +213,12 @@ export default function AdminBookingsTable({
           detailLoadingId !== null
         }
       />
+
+      <FeedbackMessage
+        variant={actionMessage.includes("เรียบร้อย") ? "success" : "error"}
+      >
+        {actionMessage}
+      </FeedbackMessage>
 
       <div
         style={{

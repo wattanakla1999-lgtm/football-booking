@@ -7,6 +7,8 @@ type BookingSlotPayload = {
   endTime: string;
 };
 
+export const SLOT_CONFLICT_ERROR = "BOOKING_SLOT_CONFLICT";
+
 function parseHour(time: string) {
   return Number.parseInt(time.split(":")[0] ?? "0", 10);
 }
@@ -78,5 +80,19 @@ export async function findConflictingBookingItems(
         endTime: item.endTime,
       }),
     ),
+  );
+}
+
+export function isBookingSlotConflictError(error: unknown) {
+  if (
+    error instanceof Error &&
+    error.message === SLOT_CONFLICT_ERROR
+  ) {
+    return true;
+  }
+
+  return (
+    error instanceof Prisma.PrismaClientKnownRequestError &&
+    error.code === "P2002"
   );
 }

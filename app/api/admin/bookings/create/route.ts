@@ -11,10 +11,13 @@ import {
 } from "@/src/lib/apiResponse";
 import {
   findConflictingBookingItems,
+  isBookingSlotConflictError,
   lockBookingSlots,
+  SLOT_CONFLICT_ERROR,
 } from "@/src/lib/bookingAvailability";
 import { prisma } from "@/src/lib/prisma";
 import { getAdminSessionId } from "@/src/lib/session";
+import { auditLog } from "@/src/lib/audit";
 import {
   sendAdminBookingNotification,
   sendCustomerBookingConfirmedByAdminNotification,
@@ -35,8 +38,6 @@ type CreateBookingBody = {
   customerPhone?: string;
   bookingStatus?: "pending" | "confirmed";
 };
-
-const SLOT_CONFLICT_ERROR = "BOOKING_SLOT_CONFLICT";
 
 async function getAdmin() {
   const adminId = await getAdminSessionId();
@@ -161,6 +162,15 @@ export async function POST(request: Request) {
           );
 
         if (conflictingItems.length > 0) {
+          auditLog({
+            event: "booking.conflict",
+            level: "warn",
+            actorType: "admin",
+            actorId: admin.id,
+            organizationId: admin.organizationId,
+            message: "admin create hit reserved slot",
+            meta: { courtId, date, slots },
+          });
           throw new Error(SLOT_CONFLICT_ERROR);
         }
 
@@ -227,22 +237,40 @@ export async function POST(request: Request) {
       }
     }
 
+    auditLog({
+      event: "booking.create_by_admin",
+      actorType: "admin",
+      actorId: admin.id,
+      bookingId: booking.id,
+      organizationId: admin.organizationId,
+      meta: {
+        customerId: customerUser.id,
+        courtId,
+        date,
+        slotCount: slots.length,
+        status: booking.status,
+      },
+    });
+
     return NextResponse.json({
       success: true,
       bookingId: booking.id,
       bookingStatus: booking.status,
     });
   } catch (error) {
-    if (
-      error instanceof Error &&
-      error.message === SLOT_CONFLICT_ERROR
-    ) {
+    if (isBookingSlotConflictError(error)) {
       return conflict(
         "ช่วงเวลานี้ถูกจองไปแล้ว กรุณาเลือกเวลาใหม่",
       );
     }
 
     console.error("Error creating admin booking:", error);
+    auditLog({
+      event: "booking.create_by_admin.failed",
+      level: "error",
+      actorType: "admin",
+      message: error instanceof Error ? error.message : "unknown error",
+    });
     return internalError();
   }
 }

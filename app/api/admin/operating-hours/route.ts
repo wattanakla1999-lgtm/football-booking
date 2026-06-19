@@ -1,11 +1,11 @@
 import { prisma } from "@/src/lib/prisma";
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import { getAdminSessionId } from "@/src/lib/session";
+import { badRequest, internalError, unauthorized } from "@/src/lib/apiResponse";
 
 // Helper: verify admin session
 async function getAdmin() {
-  const cookieStore = await cookies();
-  const adminId = cookieStore.get("admin_session_id")?.value;
+  const adminId = await getAdminSessionId();
   if (!adminId) return null;
 
   const admin = await prisma.admin.findUnique({
@@ -22,7 +22,7 @@ export async function GET() {
   try {
     const admin = await getAdmin();
     if (!admin) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return unauthorized("กรุณาเข้าสู่ระบบผู้ดูแล");
     }
 
     const operatingHours = await prisma.operatingHour.findMany({
@@ -37,7 +37,7 @@ export async function GET() {
     return NextResponse.json({ operatingHours });
   } catch (error) {
     console.error("Error fetching operating hours:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return internalError();
   }
 }
 
@@ -46,14 +46,14 @@ export async function PATCH(request: Request) {
   try {
     const admin = await getAdmin();
     if (!admin) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return unauthorized("กรุณาเข้าสู่ระบบผู้ดูแล");
     }
 
     const body = await request.json();
     const { hours } = body; // Array of { dayOfWeek: number, openTime: string, closeTime: string, isClosed: boolean }
 
     if (!hours || !Array.isArray(hours)) {
-      return NextResponse.json({ error: "ข้อมูลช่วงเวลาเปิด-ปิดไม่ถูกต้อง" }, { status: 400 });
+      return badRequest("ข้อมูลช่วงเวลาเปิด-ปิดไม่ถูกต้อง");
     }
 
     // Perform database operations in transaction
@@ -87,6 +87,6 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ success: true, operatingHours: updatedHours });
   } catch (error) {
     console.error("Error updating operating hours:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return internalError();
   }
 }

@@ -7,12 +7,14 @@ import {
   unauthorized,
 } from "@/src/lib/apiResponse";
 import { normalizeBookingStatus } from "@/src/lib/bookingStatus";
+import { sanitizeBookingNotes } from "@/src/lib/bookingNotes";
 import { prisma } from "@/src/lib/prisma";
 import { getAdminSessionId } from "@/src/lib/session";
 import {
   sendCustomerBookingCancelledByAdminNotification,
   sendCustomerBookingConfirmedByAdminNotification,
 } from "@/src/services/lineNotificationService";
+import { auditLog } from "@/src/lib/audit";
 
 export const dynamic = "force-dynamic";
 
@@ -80,6 +82,12 @@ export async function GET() {
     const admin = await getAdmin();
 
     if (!admin) {
+      auditLog({
+        event: "auth.admin.failed",
+        level: "warn",
+        actorType: "admin",
+        message: "missing admin session for bookings GET",
+      });
       return unauthorized("กรุณาเข้าสู่ระบบผู้ดูแล");
     }
 
@@ -114,6 +122,7 @@ export async function GET() {
       bookings: bookings.map((booking) => ({
         ...booking,
         status: normalizeBookingStatus(booking.status),
+        notes: sanitizeBookingNotes(booking.notes),
       })),
     });
   } catch (error) {
@@ -127,6 +136,12 @@ export async function PATCH(request: Request) {
     const admin = await getAdmin();
 
     if (!admin) {
+      auditLog({
+        event: "auth.admin.failed",
+        level: "warn",
+        actorType: "admin",
+        message: "missing admin session for bookings PATCH",
+      });
       return unauthorized("กรุณาเข้าสู่ระบบผู้ดูแล");
     }
 
@@ -181,6 +196,18 @@ export async function PATCH(request: Request) {
     const updatedBooking = await prisma.booking.update({
       where: { id: bookingId },
       data: { status },
+    });
+
+    auditLog({
+      event: `booking.${status}`,
+      actorType: "admin",
+      actorId: admin.id,
+      bookingId: booking.id,
+      organizationId: admin.organizationId,
+      meta: {
+        from: normalizeBookingStatus(booking.status),
+        to: status,
+      },
     });
 
     const firstItem = booking.items[0];

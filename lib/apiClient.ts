@@ -255,7 +255,7 @@ function getHttpErrorMessage(status: number): string {
             return "กรุณาเข้าสู่ระบบใหม่อีกครั้ง";
 
         case 402:
-            return "จำเป็นต้องชำระเงินก่อนดำเนินการ";
+            return "ไม่สามารถดำเนินการรายการนี้ได้";
 
         case 403:
             return "คุณไม่มีสิทธิ์ดำเนินการนี้";

@@ -6,6 +6,7 @@ import {
   unauthorized,
 } from "@/src/lib/apiResponse";
 import { ACTIVE_BOOKING_STATUSES } from "@/src/lib/bookingStatus";
+import { sanitizeBookingNotes } from "@/src/lib/bookingNotes";
 import { getAdminSessionId } from "@/src/lib/session";
 import { NextResponse } from "next/server";
 
@@ -136,7 +137,9 @@ export async function GET(request: Request) {
           customerPhone: matchedItem?.booking?.user?.phone || null,
           bookingStatus: matchedItem?.booking?.status || null,
           bookingId: matchedItem?.booking?.id || null,
-          notes: matchedItem?.booking?.notes || null,
+          notes: sanitizeBookingNotes(
+            matchedItem?.booking?.notes,
+          ),
         });
       }
 
