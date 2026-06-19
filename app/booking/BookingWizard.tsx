@@ -77,6 +77,7 @@ export default function BookingWizard({
     slots,
     loadingSlots,
     slotsError,
+    hasLoadedSlots,
   } = useAvailability({
     step,
     selectedCourt,
@@ -89,7 +90,7 @@ export default function BookingWizard({
       hasAppliedInitialSelection ||
       !selectedCourt ||
       initialSelection.slotStartTimes.length === 0 ||
-      loadingSlots ||
+      !hasLoadedSlots ||
       step !== 2
     ) {
       return;
@@ -109,8 +110,8 @@ export default function BookingWizard({
     setHasAppliedInitialSelection(true);
   }, [
     hasAppliedInitialSelection,
+    hasLoadedSlots,
     initialSelection.slotStartTimes,
-    loadingSlots,
     selectedCourt,
     slots,
     step,

@@ -21,13 +21,19 @@ export function useAvailability({
   const [slots, setSlots] = useState<TimeSlot[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [slotsError, setSlotsError] = useState("");
+  const [hasLoadedSlots, setHasLoadedSlots] =
+    useState(false);
 
   useEffect(() => {
-    if (step !== 2 || !selectedCourt) return;
+    if (step !== 2 || !selectedCourt) {
+      setHasLoadedSlots(false);
+      return;
+    }
 
     const loadSlots = async () => {
       setLoadingSlots(true);
       setSlotsError("");
+      setHasLoadedSlots(false);
       clearSelectedSlots();
 
       try {
@@ -39,8 +45,10 @@ export function useAvailability({
         setSlots(nextSlots);
       } catch {
         setSlotsError("ไม่สามารถโหลดช่วงเวลาได้");
+        setSlots([]);
       } finally {
         setLoadingSlots(false);
+        setHasLoadedSlots(true);
       }
     };
 
@@ -51,5 +59,6 @@ export function useAvailability({
     slots,
     loadingSlots,
     slotsError,
+    hasLoadedSlots,
   };
 }
