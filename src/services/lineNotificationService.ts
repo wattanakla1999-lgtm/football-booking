@@ -395,8 +395,13 @@ async function sendLinePushMessage(
 }
 
 function canPushToCustomer(lineUserId: string) {
+  const adminLineUserId =
+    process.env.ADMIN_LINE_USER_ID?.trim();
+
   return Boolean(
-    lineUserId && !lineUserId.startsWith("offline_"),
+    lineUserId &&
+      !lineUserId.startsWith("offline_") &&
+      lineUserId !== adminLineUserId,
   );
 }
 
