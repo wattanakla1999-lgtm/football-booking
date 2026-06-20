@@ -19,6 +19,7 @@ import { prisma } from "@/src/lib/prisma";
 import { getAdminSessionId } from "@/src/lib/session";
 import { auditLog } from "@/src/lib/audit";
 import {
+  isAdminLineUser,
   sendAdminBookingNotification,
   sendCustomerBookingConfirmedByAdminNotification,
 } from "@/src/services/lineNotificationService";
@@ -202,22 +203,24 @@ export async function POST(request: Request) {
       },
     );
 
-    try {
-      await sendAdminBookingNotification({
-        bookingId: booking.id,
-        customerName: customerUser.displayName,
-        customerPhone: customerUser.phone,
-        courtName: court.name,
-        bookingDate: date,
-        slots,
-        totalPrice,
-        bookingStatus,
-      });
-    } catch (notificationError) {
-      console.error(
-        "Failed to send LINE admin booking notification:",
-        notificationError,
-      );
+    if (!isAdminLineUser(customerUser.lineUserId)) {
+      try {
+        await sendAdminBookingNotification({
+          bookingId: booking.id,
+          customerName: customerUser.displayName,
+          customerPhone: customerUser.phone,
+          courtName: court.name,
+          bookingDate: date,
+          slots,
+          totalPrice,
+          bookingStatus,
+        });
+      } catch (notificationError) {
+        console.error(
+          "Failed to send LINE admin booking notification:",
+          notificationError,
+        );
+      }
     }
 
     if (bookingStatus === "confirmed" && customerUser.lineUserId) {

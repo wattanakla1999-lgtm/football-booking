@@ -19,6 +19,7 @@ import { prisma } from "@/src/lib/prisma";
 import { getUserSessionId } from "@/src/lib/session";
 import { auditLog } from "@/src/lib/audit";
 import {
+  isAdminLineUser,
   sendAdminBookingNotification,
   sendCustomerBookingRequestedNotification,
 } from "@/src/services/lineNotificationService";
@@ -274,19 +275,21 @@ export async function POST(request: Request) {
       },
     });
 
-    try {
-      await sendCustomerBookingRequestedNotification({
-        lineUserId: user.lineUserId,
-        bookingId: booking.id,
-        courtName: court.name,
-        bookingDate: date,
-        slots,
-      });
-    } catch (notificationError) {
-      console.error(
-        "Failed to send LINE customer booking requested notification:",
-        notificationError,
-      );
+    if (!isAdminLineUser(user.lineUserId)) {
+      try {
+        await sendCustomerBookingRequestedNotification({
+          lineUserId: user.lineUserId,
+          bookingId: booking.id,
+          courtName: court.name,
+          bookingDate: date,
+          slots,
+        });
+      } catch (notificationError) {
+        console.error(
+          "Failed to send LINE customer booking requested notification:",
+          notificationError,
+        );
+      }
     }
 
     return NextResponse.json({
