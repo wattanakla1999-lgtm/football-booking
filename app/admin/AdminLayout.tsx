@@ -1,7 +1,6 @@
 "use client";
 
 import { AdminRouteLoadingOverlay } from "@/src/components/common/AdminRouteLoadingOverlay";
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { MouseEvent } from "react";
@@ -90,7 +89,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <span className="text-headline-md font-headline-md font-black text-primary">ArenaManager</span>
         </div>
 
-        <div className="flex items-center px-gutter mb-lg gap-3">
+        {/* <div className="flex items-center px-gutter mb-lg gap-3">
           <div className="w-10 h-10 rounded-full bg-primary-container/20 flex items-center justify-center border border-primary/30">
             <span className="material-symbols-outlined text-primary">person</span>
           </div>
@@ -98,7 +97,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <p className="text-label-md font-label-md font-bold text-on-surface">ผู้ดูแลระบบ</p>
             <p className="text-label-sm font-label-sm text-on-surface-variant">Admin</p>
           </div>
-        </div>
+        </div> */}
 
         <nav className="flex-1 space-y-1 px-md">
           <Link
@@ -201,7 +200,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </button>
           <h1 className="text-headline-md font-headline-md font-bold tracking-tight text-on-surface">ArenaManager</h1>
         </div>
-        <div className="flex items-center gap-md">
+        {/* <div className="flex items-center gap-md">
           <div className="hidden sm:flex items-center bg-surface-container-low px-3 py-1.5 rounded-full border border-outline-variant/10">
             <span className="material-symbols-outlined text-[18px] text-on-surface-variant mr-2">search</span>
             <input className="bg-transparent border-none focus:ring-0 text-label-md text-on-surface w-40" placeholder="ค้นหา..." type="text" />
@@ -219,7 +218,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               height={32}
             />
           </div>
-        </div>
+        </div> */}
       </header>
 
       {/* Main Content */}
@@ -258,9 +257,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <p className="text-lg font-black text-primary">
               ArenaManager
             </p>
-            <p className="mt-1 text-xs text-on-surface-variant">
+            {/* <p className="mt-1 text-xs text-on-surface-variant">
               เมนูผู้ดูแลระบบ
-            </p>
+            </p> */}
           </div>
 
           <button
@@ -277,7 +276,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </button>
         </div>
 
-        <div className="flex items-center gap-3 px-5 py-5">
+        {/* <div className="flex items-center gap-3 px-5 py-5">
           <div className="flex h-11 w-11 items-center justify-center rounded-full border border-primary/30 bg-primary-container/20">
             <span className="material-symbols-outlined text-primary">
               person
@@ -291,7 +290,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               Admin
             </p>
           </div>
-        </div>
+        </div> */}
 
         <nav className="flex-1 space-y-2 px-4">
           <Link

@@ -7,13 +7,13 @@ import {
 } from "next/navigation";
 import {
   useEffect,
+  useRef,
   useState,
   useTransition,
 } from "react";
 
-import { EmptyState } from "@/src/components/common";
 import { PaginationControls } from "@/src/components/common/PaginationControls";
-import { Input } from "@/src/components/ui";
+import { Modal } from "@/src/components/ui";
 import type { PaginationMeta } from "@/src/types/pagination";
 
 import type { CustomerSummary } from "./types/customer";
@@ -73,8 +73,12 @@ export default function CustomersListView({
   const pathname = usePathname();
   const [isPending, startTransition] =
     useTransition();
+  const searchInputRef =
+    useRef<HTMLInputElement | null>(null);
   const [searchQuery, setSearchQuery] =
     useState(initialSearchQuery);
+  const [selectedCustomer, setSelectedCustomer] =
+    useState<CustomerSummary | null>(null);
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
@@ -110,6 +114,16 @@ export default function CustomersListView({
     searchQuery,
   ]);
 
+  useEffect(() => {
+    if (isPending || document.activeElement !== document.body) {
+      return;
+    }
+
+    searchInputRef.current?.focus({
+      preventScroll: true,
+    });
+  }, [initialSearchQuery, isPending]);
+
   const handlePageChange = (page: number) => {
     const params = new URLSearchParams();
 
@@ -132,7 +146,7 @@ export default function CustomersListView({
 
   return (
     <div className="space-y-6">
-      <section className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+      <section className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(360px,520px)] xl:items-end">
         <div>
           <h1 className="text-headline-lg font-headline-lg">
             รายชื่อลูกค้า
@@ -142,16 +156,43 @@ export default function CustomersListView({
           </p>
         </div>
 
-        <div className="w-full max-w-md">
-          <Input
-            type="search"
-            value={searchQuery}
-            onChange={(event) =>
-              setSearchQuery(event.target.value)
-            }
-            placeholder="ค้นหาชื่อ เบอร์โทร อีเมล หรือสนาม..."
-            className="w-full"
-          />
+        <div className="w-full min-w-0">
+          <div className="flex min-h-14 w-full items-center gap-3 rounded-2xl border border-outline-variant/20 bg-surface-container-low px-4 shadow-[0_16px_40px_rgba(0,0,0,0.18)] transition-all focus-within:border-primary/60 focus-within:bg-surface-container focus-within:ring-4 focus-within:ring-primary/10">
+            <span className="material-symbols-outlined shrink-0 text-[24px] text-primary">
+              search
+            </span>
+
+            <input
+              ref={searchInputRef}
+              type="text"
+              inputMode="search"
+              autoComplete="off"
+              value={searchQuery}
+              onChange={(event) =>
+                setSearchQuery(event.target.value)
+              }
+              placeholder="ค้นหาชื่อ เบอร์โทร อีเมล หรือสนาม"
+              className="h-14 min-w-0 flex-1 bg-transparent text-body-md text-on-surface outline-none placeholder:text-on-surface-variant/60"
+            />
+
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchQuery("");
+                  searchInputRef.current?.focus({
+                    preventScroll: true,
+                  });
+                }}
+                aria-label="ล้างการค้นหา"
+                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-surface-container-high text-on-surface-variant transition-colors hover:text-on-surface"
+              >
+                <span className="material-symbols-outlined text-[18px]">
+                  close
+                </span>
+              </button>
+            )}
+          </div>
         </div>
       </section>
 
@@ -179,25 +220,13 @@ export default function CustomersListView({
           กำลังโหลดข้อมูล...
         </div>
       ) : customers.length === 0 ? (
-        <EmptyState
-          className="flex min-h-80 flex-col items-center justify-center rounded-2xl border border-outline-variant/10 bg-surface-container-low p-8 text-center"
-          icon={
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-              <span className="material-symbols-outlined text-[32px]">
-                group_off
-              </span>
-            </div>
-          }
-          title={
-            <h2 className="mt-4 text-headline-md font-bold text-on-surface">
-              ไม่พบลูกค้าที่ตรงกับการค้นหา
-            </h2>
-          }
-          description={
-            <p className="mt-2 max-w-md text-body-md text-on-surface-variant">
-              ลองค้นหาด้วยชื่อ เบอร์โทร หรือชื่อสนามที่ลูกค้าเคยจอง
-            </p>
-          }
+        <CustomerEmptySearch
+          onClear={() => {
+            setSearchQuery("");
+            searchInputRef.current?.focus({
+              preventScroll: true,
+            });
+          }}
         />
       ) : (
         <>
@@ -269,50 +298,58 @@ export default function CustomersListView({
             ))}
           </section>
 
-          <section className="grid grid-cols-1 gap-md xl:hidden">
+          <section className="grid grid-cols-2 gap-3 xl:hidden">
             {customers.map((customer : CustomerSummary) => (
-              <article
+              <button
                 key={customer.id}
-                className="rounded-2xl border border-outline-variant/10 bg-surface-container-low p-4"
+                type="button"
+                onClick={() =>
+                  setSelectedCustomer(customer)
+                }
+                className="min-w-0 rounded-2xl border border-outline-variant/10 bg-surface-container-low p-3 text-left transition-all active:scale-[0.98]"
               >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex min-w-0 items-center gap-3">
-                    <CustomerAvatar customer={customer} />
-                    <div className="min-w-0">
-                      <p className="truncate text-body-md font-bold text-on-surface">
-                        {customer.displayName}
-                      </p>
-                      <p className="truncate text-label-sm text-on-surface-variant">
-                        {customer.phone || "ไม่มีเบอร์โทร"}
-                      </p>
-                    </div>
+                <div className="flex min-w-0 items-center gap-2">
+                  <CustomerAvatar
+                    customer={customer}
+                    size="sm"
+                  />
+                  <div className="min-w-0">
+                    <p className="truncate text-body-sm font-bold text-on-surface">
+                      {customer.displayName}
+                    </p>
+                    <p className="truncate text-label-sm text-on-surface-variant">
+                      {customer.phone || "ไม่มีเบอร์โทร"}
+                    </p>
                   </div>
-
-                  <SourceBadge source={customer.source} />
                 </div>
 
-                <div className="mt-4 grid grid-cols-2 gap-3">
-                  <MobileInfo
-                    label="การจอง"
-                    value={`${customer.totalBookings} ครั้ง`}
-                    secondary={`เปิดอยู่ ${customer.activeBookings}`}
+                <div className="mt-3 flex items-center justify-between gap-2">
+                  <SourceBadge source={customer.source} compact />
+                  <span className="text-label-sm font-bold text-primary">
+                    ฿{formatPrice(customer.totalSpent)}
+                  </span>
+                </div>
+
+                <div className="mt-3 grid grid-cols-2 gap-2 border-t border-outline-variant/10 pt-3">
+                  <CompactStat
+                    label="จอง"
+                    value={`${customer.totalBookings}`}
                   />
-                  <MobileInfo
-                    label="ยอดใช้จ่าย"
-                    value={`฿${formatPrice(customer.totalSpent)}`}
-                    secondary={`ล่าสุด ${formatThaiDate(customer.lastBookingAt)}`}
-                  />
-                  <MobileInfo
-                    label="สนามประจำ"
-                    value={customer.favoriteCourt || "-"}
-                  />
-                  <MobileInfo
-                    label="สถานะ"
-                    value={customer.status === "active" ? "ใช้งานอยู่" : "ปิดใช้งาน"}
-                    secondary={customer.email || "ไม่มีอีเมล"}
+                  <CompactStat
+                    label="เปิดอยู่"
+                    value={`${customer.activeBookings}`}
                   />
                 </div>
-              </article>
+
+                <div className="mt-3 flex items-center justify-between gap-2 text-label-sm text-on-surface-variant">
+                  <span className="truncate">
+                    {customer.favoriteCourt || "ไม่มีสนามประจำ"}
+                  </span>
+                  <span className="material-symbols-outlined text-[18px] text-primary">
+                    visibility
+                  </span>
+                </div>
+              </button>
             ))}
           </section>
 
@@ -323,6 +360,15 @@ export default function CustomersListView({
             totalPages={pagination.totalPages}
             onPageChange={handlePageChange}
           />
+
+          {selectedCustomer && (
+            <CustomerDetailModal
+              customer={selectedCustomer}
+              onClose={() =>
+                setSelectedCustomer(null)
+              }
+            />
+          )}
         </>
       )}
     </div>
@@ -348,21 +394,63 @@ function SummaryCard({
   );
 }
 
+function CustomerEmptySearch({
+  onClear,
+}: {
+  onClear: () => void;
+}) {
+  return (
+    <section className="flex min-h-80 flex-col items-center justify-center rounded-2xl border border-outline-variant/10 bg-surface-container-low px-6 py-10 text-center">
+      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+        <span className="material-symbols-outlined text-[32px]">
+          person_search
+        </span>
+      </div>
+
+      <h2 className="mt-5 max-w-[24rem] text-title-lg font-bold leading-8 text-on-surface">
+        ไม่พบลูกค้าที่ตรงกับการค้นหา
+      </h2>
+
+      <p className="mt-2 max-w-[22rem] text-body-md leading-6 text-on-surface-variant">
+        ลองค้นหาด้วยชื่อลูกค้า เบอร์โทร อีเมล หรือชื่อสนามที่ลูกค้าเคยจอง
+      </p>
+
+      <button
+        type="button"
+        onClick={onClear}
+        className="mt-5 inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-label-md font-bold text-on-primary transition-all hover:brightness-110 active:scale-95"
+      >
+        <span className="material-symbols-outlined text-[18px]">
+          backspace
+        </span>
+        ล้างคำค้นหา
+      </button>
+    </section>
+  );
+}
+
 function CustomerAvatar({
   customer,
+  size = "md",
 }: {
   customer: CustomerSummary;
+  size?: "sm" | "md";
 }) {
+  const sizeClassName =
+    size === "sm"
+      ? "h-10 w-10 text-xs"
+      : "h-11 w-11 text-sm";
+
   return customer.pictureUrl ? (
     <Image
       src={customer.pictureUrl}
       alt={customer.displayName}
       width={44}
       height={44}
-      className="h-11 w-11 shrink-0 rounded-full border border-primary/20 object-cover"
+      className={`${sizeClassName} shrink-0 rounded-full border border-primary/20 object-cover`}
     />
   ) : (
-    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-primary/20 bg-primary/10 text-sm font-bold text-primary">
+    <div className={`flex ${sizeClassName} shrink-0 items-center justify-center rounded-full border border-primary/20 bg-primary/10 font-bold text-primary`}>
       {getInitials(customer.displayName)}
     </div>
   );
@@ -370,8 +458,10 @@ function CustomerAvatar({
 
 function SourceBadge({
   source,
+  compact = false,
 }: {
   source: CustomerSummary["source"];
+  compact?: boolean;
 }) {
   const isOffline = source === "offline";
 
@@ -386,7 +476,13 @@ function SourceBadge({
       <span className="material-symbols-outlined text-[14px]">
         {isOffline ? "call" : "chat"}
       </span>
-      {isOffline ? "โทรจอง" : "LINE"}
+      {compact
+        ? isOffline
+          ? "โทร"
+          : "LINE"
+        : isOffline
+          ? "โทรจอง"
+          : "LINE"}
     </span>
   );
 }
@@ -409,28 +505,135 @@ function StatusPill({
   );
 }
 
-function MobileInfo({
+function CompactStat({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="min-w-0">
+      <p className="text-[10px] text-on-surface-variant">
+        {label}
+      </p>
+      <p className="mt-0.5 truncate text-body-sm font-bold text-on-surface">
+        {value}
+      </p>
+    </div>
+  );
+}
+
+function CustomerDetailModal({
+  customer,
+  onClose,
+}: {
+  customer: CustomerSummary;
+  onClose: () => void;
+}) {
+  return (
+    <Modal contentClassName="max-w-[520px] p-5 sm:p-6">
+      <div className="mb-5 flex items-start justify-between gap-4">
+        <div className="flex min-w-0 items-center gap-3">
+          <CustomerAvatar customer={customer} />
+          <div className="min-w-0">
+            <h2 className="truncate text-title-md font-bold text-on-surface">
+              {customer.displayName}
+            </h2>
+            <p className="mt-1 text-body-sm text-on-surface-variant">
+              {customer.phone || "ไม่มีเบอร์โทร"}
+            </p>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="ปิด"
+          className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-surface-container-high text-on-surface-variant transition-colors hover:text-on-surface"
+        >
+          <span className="material-symbols-outlined text-[20px]">
+            close
+          </span>
+        </button>
+      </div>
+
+      <div className="mb-5 flex flex-wrap gap-2">
+        <SourceBadge source={customer.source} />
+        <StatusPill status={customer.status} />
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <DetailBox
+          label="การจองทั้งหมด"
+          value={`${customer.totalBookings} ครั้ง`}
+          secondary={`เปิดอยู่ ${customer.activeBookings}`}
+        />
+        <DetailBox
+          label="ยอดใช้จ่าย"
+          value={`฿${formatPrice(customer.totalSpent)}`}
+          secondary={`ล่าสุด ${formatThaiDate(customer.lastBookingAt)}`}
+        />
+        <DetailBox
+          label="เสร็จสิ้น"
+          value={`${customer.completedBookings} ครั้ง`}
+          secondary={`ยกเลิก ${customer.cancelledBookings}`}
+        />
+        <DetailBox
+          label="สนามประจำ"
+          value={customer.favoriteCourt || "-"}
+          secondary="จากประวัติการจอง"
+        />
+      </div>
+
+      <div className="mt-4 rounded-2xl border border-outline-variant/10 bg-surface-container-low p-4">
+        <DetailRow label="อีเมล" value={customer.email || "ไม่มีอีเมล"} />
+        <DetailRow label="วันที่สมัคร" value={formatThaiDate(customer.createdAt)} />
+        <DetailRow label="รหัสลูกค้า" value={customer.id} />
+      </div>
+    </Modal>
+  );
+}
+
+function DetailBox({
   label,
   value,
   secondary,
 }: {
   label: string;
   value: string;
-  secondary?: string;
+  secondary: string;
 }) {
   return (
-    <div className="rounded-xl border border-outline-variant/10 bg-surface-container p-3">
+    <div className="rounded-2xl border border-outline-variant/10 bg-surface-container p-4">
       <p className="text-label-sm text-on-surface-variant">
         {label}
       </p>
-      <p className="mt-1 text-body-sm font-bold text-on-surface">
+      <p className="mt-2 break-words text-title-md font-bold text-on-surface">
         {value}
       </p>
-      {secondary && (
-        <p className="mt-1 text-label-sm text-on-surface-variant">
-          {secondary}
-        </p>
-      )}
+      <p className="mt-1 text-label-sm text-on-surface-variant">
+        {secondary}
+      </p>
+    </div>
+  );
+}
+
+function DetailRow({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="flex items-start justify-between gap-4 border-b border-outline-variant/10 py-3 first:pt-0 last:border-b-0 last:pb-0">
+      <span className="shrink-0 text-label-sm text-on-surface-variant">
+        {label}
+      </span>
+      <span className="min-w-0 break-all text-right text-label-sm font-semibold text-on-surface">
+        {value}
+      </span>
     </div>
   );
 }
